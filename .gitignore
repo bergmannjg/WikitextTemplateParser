@@ -1,0 +1,9 @@
+.vscode/
+.ionide/
+.ipynb_checkpoints/
+.nuget/
+
+bin/
+obj/
+
+node_modules/
