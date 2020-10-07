@@ -2,6 +2,7 @@ module Wikidata
 
 open FSharp.Data
 open System.Web
+open System.Text.RegularExpressions
 
 // SPARQL query for wikipedia articles of german railway routes, LIMIT needs value
 // wdt:P31 wd:Q728937 'ist eine Eisenbahnstrecke'
@@ -78,10 +79,10 @@ let findWikiTitle (railwaynumber: string) =
 let tryFindEndOfTemplates (s: string) =
     let mutable last = s.IndexOf("{{BS-Trenner}}")
     if last < 0 then last <- s.IndexOf("|} |}")
-    if last < 0 then last <- s.IndexOf("|} {{All Coordinates")
+    if last < 0 then last <- s.IndexOf("|} ")
     last
 
-let loadTemplates (wikiTitle: string) =
+let rec loadTemplates (wikiTitle: string) =
     let url =
         "https://de.wikipedia.org/wiki/Spezial:Exportieren/"
         + wikiTitle
@@ -97,12 +98,17 @@ let loadTemplates (wikiTitle: string) =
     let mutable result = None
     if vorlage.Length = 1 then
         let s = (vorlage.[0].ToString())
-        let start = s.IndexOf("{{BS-header")
+        let start = s.IndexOf("{{BS")
         let last = tryFindEndOfTemplates s
         if start > 0 && last > 0 then
             result <- Some(s.Substring(start, last - start))
-        else if start > 0
-                && s.Substring(start, 14) = "#WEITERLEITUNG" then
-            result <- Some("{{BS-header|WEITERLEITUNG}}") // todo
+        else
+            let regex =
+                Regex(@"#weiterleitung\s*\[\[([^\]]+)\]\]", RegexOptions.IgnoreCase)
+
+            let m = regex.Match s
+            if m.Success && m.Groups.Count = 2
+            then result <- loadTemplates m.Groups.[1].Value
+
 
     result

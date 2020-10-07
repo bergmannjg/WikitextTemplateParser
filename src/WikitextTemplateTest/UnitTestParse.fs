@@ -101,7 +101,7 @@ let daten1 = """
 | SPURWEITE = 1435
 | V-MAX = 200 bzw. 160
 | STRECKENKLASSE = D4
-| STROMW = 15 kV, 16,7 Hz 
+| STROMW = 15 kV, 16,7 Hz
 | ZWEIGLEISIG = <small>durchgehend</small>
 | BILDPFAD_KARTE = kme2.png
 | PIXEL_KARTE = 270px
@@ -160,7 +160,7 @@ let daten1 = """
 {{BS2|STR|ABZgl+l|||[[Bahnstrecke Münster–Warstein|nach Beckum]]}}
 {{BS2|DST-L|DST-R|155,9|Neubeckum Gbf}}
 {{BS2e|eHST|STR|159,4|Vorhelm (PV bis Mai 1988)}}
-{{BS2|eBHF|DST|162,5|Ahlen (Westf) Gbf}} 
+{{BS2|eBHF|DST|162,5|Ahlen (Westf) Gbf}}
 {{BS2|BHF|HST|165,1|[[Bahnhof Ahlen (Westfalen)|Ahlen (Westf)]]|(Notbahnsteig auf Güterstrecke) {{Coordinate|text=ICON0|NS=51.760987|EW=7.8952|type=landmark|region=DE-NW|name=Ahlen (Westf) Bf}}}}
 {{BS2|STR2|STR3u|||[[Überwerfungsbauwerk]] Ahlen {{Coordinate|text=ICON0|NS=51.742100|EW=7.872490|type=landmark|dim=500|region=DE-NW|name=Überwerfungsbauwerk Ahlen}}}}
 {{BS2|STR+1u|STR+4||||}}
@@ -182,7 +182,7 @@ let daten1 = """
 """
 
 let daten2 = """
-{{BS-header|Nordhausen Nord–Wernigerode&lt;ref&gt;{{Eisenbahnatlas|2007|D}}&lt;/ref&gt;&lt;ref&gt;{{Tunnelportale|9700}}&lt;/ref&gt;}}
+{{BS-header|Nordhausen Nord–Wernigerode<re>{{Eisenbahnatlas|2007|D}}</re><re>{{Tunnelportale|9700}}</re>}}
 {{BS-daten
 | DE-STRECKENNR= 9700
 | LÄNGE= 60,5
@@ -292,13 +292,17 @@ let daten2 = """
 let Setup () = ()
 
 // maybe wrong format
-let prepare (s: string) = 
+let prepare (s: string) =
     let regex1 = Regex(@"<!--.*?-->")
-    regex1.Replace(s, "")
+    let s1 = regex1.Replace(s, "")
+    let regex1 = Regex(@"<!--.*?-->")
+    regex1.Replace(s1, "")
 
 [<Test>]
 let TestPrepare () =
-    let s =(prepare "abc<!-- ist eigentlich - eine Awanst! -->")
+    let s =
+        (prepare "abc<!-- ist eigentlich - eine Awanst! -->")
+
     Assert.That(s, Is.EqualTo("abc"))
 
 [<Test>]
