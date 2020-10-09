@@ -110,7 +110,6 @@ Bahnstrecke_Karlovy_Vary–Johanngeorgenstadt
 Bahnstrecke_Neumünster–Ascheberg
 Bahnstrecke_Kiel–Lübeck
 Bahnstrecke_Wunstorf–Bremen
-Reitzenhain
 Bahnstrecke_Flensburg–Husum
 Bahnstrecke_Neumünster–Flensburg
 Bahnstrecke_Flensburg–Husum–Tönning
@@ -192,7 +191,6 @@ Bahnstrecke_Bremervörde–Walsrode
 Bahnstrecke_Buchloe–Memmingen
 Bahnstrecke_Demmin–Tutow
 Bahnstrecke_Freilassing–Berchtesgaden
-Bodenseegürtelbahn
 Bahnstrecke_Bad_Münder–Bad_Nenndorf
 Bahnstrecke_Beienheim–Schotten
 Erfttalbahn
@@ -231,7 +229,6 @@ Bahnstrecke_Ingolstadt–Neuoffingen
 Bahnstrecke_Weinheim–Fürth
 Bahnstrecke_Weimar–Gera
 Bahnstrecke_Zeitz–Camburg
-Franzburg
 Bahnstrecke_Langelsheim–Altenau_(Oberharz)
 Walhallabahn
 Bahnstrecke_Bretleben–Sondershausen
@@ -264,7 +261,6 @@ Bahnstrecke_Neckarsteinach–Schönau
 Bahnstrecke_Oldenburg–Brake
 Solmsbachtalbahn
 Kuckucksbähnel
-Riesbahn
 Schleswig-Klosterkruger_Eisenbahn
 Wohratalbahn
 Hönnetalbahn
@@ -447,7 +443,6 @@ Bahnstrecke_Bodenwöhr–Rötz
 Bahnstrecke_Dresden-Klotzsche–Straßgräbchen-Bernsdorf
 Bahnstrecke_Dresden–Werdau
 Bahnstrecke_Güsen–Jerichow
-Vienenburg
 Neubaustrecke_Stuttgart–Wendlingen
 Bahnstrecke_Delmenhorst–Hesepe
 Bahnstrecke_Bobingen–Landsberg_am_Lech
@@ -509,7 +504,6 @@ Bahnstrecke_Stollberg–St._Egidien
 Bahnstrecke_Tauberbischofsheim–Königheim
 Bahnstrecke_Tröglitz–Zeitz
 Bahnstrecke_Mühldorf–Burghausen
-Ringethal
 Bahnstrecke_Neustadt–Dürrröhrsdorf
 Bahnstrecke_Münchberg–Zell
 Bahnstrecke_Simbach–Pocking
@@ -937,7 +931,6 @@ Bahnstrecke_Neckarelz–Osterburken
 Alsternordbahn
 Dreiseenbahn
 Meppen-Haselünner_Eisenbahn
-Taubertalbahn
 Bahnstrecke_Langenfeld–Rheindorf
 Bahnstrecke_Oberhausen–Arnhem
 Bahnstrecke_Aachen_Nord–Jülich

@@ -1,6 +1,6 @@
 # Wikitext Template Parser
 
-Parser for wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) [templates](https://www.mediawiki.org/wiki/Help:Templates).
+Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) [templates](https://www.mediawiki.org/wiki/Help:Templates) and compare it with [data](https://data.deutschebahn.com/dataset/geo-betriebsstelle) from Open-Data-Portal of Deutsche Bahn.
 
 The wikipedia articles are collected from wikidata with the following SPARGL query:
 
@@ -23,5 +23,11 @@ The text of the wikipedia article ist downloaded with https://de.wikipedia.org/w
 Usage example of parser:
 
 ```
-dotnet run src/WikitextTemplateParser/bin/Debug/netcoreapp3.1/WikitextTemplateParser.dll -parsetitle Bahnstrecke_Hannover–Celle
+dotnet src/WikitextTemplateParser/bin/Debug/netcoreapp3.1/WikitextTemplateParser.dll -parsetitle Bahnstrecke_Nürnberg–Feucht
+```
+
+Usage example of comparer:
+
+```
+dotnet src/WikitextDbComparer/bin/Debug/netcoreapp3.1/WikitextDbComparer.dll -comparetitle Bahnstrecke_Nürnberg–Feucht
 ```

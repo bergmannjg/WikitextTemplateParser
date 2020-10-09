@@ -7,6 +7,7 @@ open Ast
 // prepare template string, todo: add to parser
 let prepare (s: string) =
     let s0 = s.Replace("|name=Bhf Künsebeck}}", "|name=Bhf Künsebeck}}}}") // missing parenthesis in 'Bahnstrecke_Brackwede–Osnabrück'
+                .Replace("BSkm|{{0}}", "BSkm|")   // unecessary in Bskm template 
     let regex0 = Regex(@"<ref[^>]*>.*</ref>")
     let s1 = regex0.Replace(s0, "")
     let regex1 = Regex(@"<!--.*?-->")
@@ -18,8 +19,8 @@ let parseTemplatesForWikiTitle title =
         match Parser.parse (prepare t) with
         | Success (result, _, _) -> 
             fprintfn stdout "Success"
-            System.IO.File.WriteAllText ("./out/" + title + ".json", Serializer.Serialize<Templates>(result))
-            System.IO.File.WriteAllText ("./out/" + title + ".txt", sprintf "%A" result)
+            System.IO.File.WriteAllText ("./wikidata/" + title + ".json", Serializer.Serialize<Templates>(result))
+            System.IO.File.WriteAllText ("./wikidata/" + title + ".txt", sprintf "%A" result)
         | Failure (errorMsg, _, _) -> fprintfn stdout "\n***Failure: %s" errorMsg
     | None -> 
         fprintfn stdout "\n***loadTemplates failed, title %s" title

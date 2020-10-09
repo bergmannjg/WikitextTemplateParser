@@ -44,13 +44,7 @@ let addConverters (deserializeConverters: JsonConverter array) =
     if (deserializeOptions.Converters.Count = 0) then
         for converter in deserializeConverters do
             deserializeOptions.Converters.Add(converter)
-        deserializeOptions.Converters.Add
-            (JsonFSharpConverter
-                (JsonUnionEncoding.InternalTag
-                 ||| JsonUnionEncoding.UnwrapRecordCases
-                 ||| JsonUnionEncoding.UnwrapOption,
-                 unionTagName = "type",
-                 unionTagCaseInsensitive = true))
+        deserializeOptions.Converters.Add(JsonFSharpConverter())
         serializeOptions.Converters.Add(JsonFSharpConverter())
 
 let Deserialize<'a> (response: string) =

@@ -5,6 +5,7 @@
 
 bin/
 obj/
-out/
+wikidata/
+dbdata/
 
 node_modules/
