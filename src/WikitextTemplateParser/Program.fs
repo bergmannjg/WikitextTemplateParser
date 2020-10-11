@@ -6,15 +6,13 @@ open Ast
 
 // prepare template string, todo: add to parser
 let prepare (s: string) =
-    let s0 = s.Replace("|name=Bhf Künsebeck}}", "|name=Bhf Künsebeck}}}}") // missing parenthesis in 'Bahnstrecke_Brackwede–Osnabrück'
-                .Replace("BSkm|{{0}}", "BSkm|")   // unecessary in Bskm template 
     let regex0 = Regex(@"<ref[^>]*>.*</ref>")
-    let s1 = regex0.Replace(s0, "")
+    let s1 = regex0.Replace(s, "")
     let regex1 = Regex(@"<!--.*?-->")
     regex1.Replace(s1, "")
 
 let parseTemplatesForWikiTitle title =
-    match loadTemplates title with
+    match loadTemplatesCached title with
     | Some t ->
         match Parser.parse (prepare t) with
         | Success (result, _, _) -> 

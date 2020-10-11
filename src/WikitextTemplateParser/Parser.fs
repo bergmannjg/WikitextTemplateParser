@@ -67,12 +67,14 @@ let pnamed =
     |>> Parameter.String
 
 let pnamedpcomposites =
-    pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) (fun x y z -> Composite(x, z))
+    pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) (fun x y z ->
+        if System.String.IsNullOrEmpty y then Composite(x, z) else Composite(x, Composite.String(y) :: z))
 
 let panonpcomposites =
     pid0
-    >>. many1 pcomposite
-    |>> (fun l -> Parameter.Composite("", l))
+    .>>. many1 pcomposite
+    |>> (fun (y, z) ->
+        if System.String.IsNullOrEmpty y then Composite("", z) else Composite("", Composite.String(y) :: z))
 
 let panonstring =
     pid1 |>> (fun s -> Parameter.String("", s))

@@ -2,7 +2,6 @@ module AstUtils
 
 open Ast
 open System.Text.RegularExpressions
-// open System.Collections.Generic
 
 type Bahnhof =
     { km: float
@@ -20,28 +19,46 @@ let findTemplateParameterString (templates: Template []) (templateName: string) 
     |> Array.map (fun p ->
         match p with
         | String (n, v) when parameterName = n || ("DE-" + parameterName) = n -> Some v
+        | Composite (n, v) when (parameterName = n || ("DE-" + parameterName) = n)
+                                && v.Length > 0 ->
+            match v with
+            | Composite.String (s) :: _ -> Some s
+            | _ -> None
         | _ -> None)
     |> Array.choose id
     |> Array.tryExactlyOne
 
 let findBsDatenStreckenNr (templates: Template []) =
+    let fromTo =
+        match findTemplateParameterString templates "BS-header" "" with
+        | Some value -> value.Split "–"
+        | None -> Array.empty
+
     match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
     | Some value ->
         let strecken =
             ResizeArray<System.Collections.Generic.KeyValuePair<int, string []>>()
 
-        let regex1 = Regex(@"^([0-9]+)$")
-        let mc1 = regex1.Matches value
-        for m in mc1 do
+        let regex0 = Regex(@"^([0-9]+)$")
+        let mc0 = regex0.Matches value
+        for m in mc0 do
             if m.Groups.Count = 2
-            then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, Array.empty))
-        if mc1.Count = 0 then
-            let regex2 = Regex(@"([0-9]+)[^\(]*\(([^\)]+)")
-            let mc2 = regex2.Matches value
-            for m in mc2 do
-                if m.Groups.Count = 3 then
-                    let names = m.Groups.[2].Value.Split '\u2013'
-                    strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, names))
+            then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
+        if mc0.Count = 0 then
+            let regex1 = Regex(@"^([0-9]+)[\<,]")
+            let mc1 = regex1.Matches value
+            for m in mc1 do
+                if m.Groups.Count = 2
+                then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
+            if mc1.Count = 0 then
+                let regex2 = Regex(@"([0-9]+)[^\(]*\(([^\)]+)") // subroutes
+                let mc2 = regex2.Matches value
+                for m in mc2 do
+                    if m.Groups.Count = 3 then
+                        let names = m.Groups.[2].Value.Split "–"
+                        strecken.Add
+                            (System.Collections.Generic.KeyValuePair.Create
+                                (m.Groups.[1].Value |> int, (if names.Length = 2 then names else fromTo)))
         if strecken.Count = 0
         then printfn "couldnt match STRECKENNR: %s" value
         strecken.ToArray()
@@ -71,7 +88,7 @@ let findBahnhofName (p: Parameter) =
 
 let findKm (p: Parameter) =
     match p with
-    | String (_, km) -> Some((parse2float km, None))
+    | String (_, km) -> Some((parse2float (km.Replace("(", "").Replace(")", "")), None))
     | Composite (_, cl) ->
         match cl with
         | fst :: rest ->
@@ -80,6 +97,7 @@ let findKm (p: Parameter) =
                 match lp.[0], lp.[1] with
                 | String (_, km), String (_, k2) -> Some(parse2float km, Some(parse2float k2))
                 | _ -> None
+            | Composite.String (km) -> Some(parse2float km, None)
             | _ -> None
         | _ -> None
 
@@ -115,9 +133,12 @@ let findBahnhof (t: Template) =
     | Template (n, l) when "BS3" = n
                            && l.Length >= 5
                            && (matchesType (List.take 3 l) bhftypes) -> findKmBahnhof l.[3] l.[4]
+    | Template (n, l) when "BS4" = n
+                           && l.Length >= 6
+                           && (matchesType (List.take 4 l) bhftypes) -> findKmBahnhof l.[4] l.[5]
     | _ -> None
 
-let filterNthRoute (fromTo: string []) (arrbhf: Bahnhof []) =
+let filterRoute (fromTo: string []) (arrbhf: Bahnhof []) =
     let mutable routeActive =
         fromTo.Length = 0
         || fromTo |> Array.exists arrbhf.[0].name.StartsWith
@@ -127,20 +148,30 @@ let filterNthRoute (fromTo: string []) (arrbhf: Bahnhof []) =
         if routeActive then arbhfOfRoute.Add bhf
         match bhf.km2 with
         | Some km2 ->
-            let routeWillBeActive =
+            let routeWillChange =
                 fromTo |> Array.exists bhf.name.StartsWith
 
-            if routeActive
-            then arbhfOfRoute.Add { bhf with km2 = None }
-            if routeWillBeActive
-            then arbhfOfRoute.Add { bhf with km = km2; km2 = None }
+            if routeActive && routeWillChange then
+                routeActive <- false
+            else if not routeActive && routeWillChange then
+                routeActive <- true
+                arbhfOfRoute.Add { bhf with km = km2; km2 = None }
 
-            routeActive <- routeWillBeActive
+
+
+
         | _ -> ()
+    if routeActive && arrbhf.Length > 0 then // close route for error handling
+        routeActive <-
+            not
+                (fromTo
+                 |> Array.exists arrbhf.[arrbhf.Length - 1].name.StartsWith)
+    if routeActive && fromTo.Length > 0
+    then printfn "filterRoute: some of %A not found, maybe BsKm template missing" fromTo
     arbhfOfRoute.ToArray()
 
 let findBahnhöfe (templates: Template []) (fromTo: string []) =
     templates
     |> Array.map findBahnhof
     |> Array.choose id
-    |> filterNthRoute fromTo
+    |> filterRoute fromTo

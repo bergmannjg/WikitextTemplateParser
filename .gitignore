@@ -7,5 +7,9 @@ bin/
 obj/
 wikidata/
 dbdata/
+cache/
 
 node_modules/
+
+x.txt
+y.txt

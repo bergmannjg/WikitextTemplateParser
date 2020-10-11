@@ -9,11 +9,10 @@ open System.Text.RegularExpressions
 // wdt:P17 wd:Q183 'Staat Deutschland'
 // wdt:P1671 'Streckennummer'
 let query = """
-SELECT ?railway ?railwayLabel ?routeNumber ?article WHERE {
+SELECT ?railway ?railwayLabel ?article WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de". }
   ?railway wdt:P31 wd:Q728937;
-    wdt:P17 wd:Q183;
-    wdt:P1671 ?routeNumber.
+    wdt:P17 wd:Q183.
   ?article schema:about ?railway;
     schema:isPartOf <https://de.wikipedia.org/>.
 }
@@ -109,6 +108,22 @@ let rec loadTemplates (wikiTitle: string) =
             let m = regex.Match s
             if m.Success && m.Groups.Count = 2
             then result <- loadTemplates m.Groups.[1].Value
-
-
     result
+
+let loadCached (directory: string) (filename: string) (loader: _ -> string option) =
+    let chachedFile = directory + "/" + filename
+    if System.IO.File.Exists chachedFile then
+        printf "use cache: %s " chachedFile
+        Some(System.IO.File.ReadAllText chachedFile)
+    else
+        let maybeText = loader ()
+        match maybeText with
+        | Some text -> System.IO.File.WriteAllText(chachedFile, text)
+        | _ -> ()
+        maybeText
+
+let loadTemplatesCached (wikiTitle: string) =
+    let useCache = System.IO.Directory.Exists "./cache"
+    if useCache
+    then loadCached "./cache" (wikiTitle + ".txt") (fun () -> loadTemplates wikiTitle)
+    else loadTemplates wikiTitle

@@ -9,6 +9,7 @@ type Link = string * string
 type SimpleTemplate = string * Parameter list
 
 and Composite =
+    | String of string
     | Link of Link
     | Template of SimpleTemplate
 

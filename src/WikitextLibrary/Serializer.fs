@@ -38,7 +38,9 @@ type UnionConverter<'a>() =
 let deserializeOptions = JsonSerializerOptions()
 
 let serializeOptions =
-    JsonSerializerOptions(IgnoreNullValues = true)
+    let jso = JsonSerializerOptions(IgnoreNullValues = true)
+    jso.Encoder <- System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    jso
 
 let addConverters (deserializeConverters: JsonConverter array) =
     if (deserializeOptions.Converters.Count = 0) then
