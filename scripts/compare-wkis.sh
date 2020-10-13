@@ -14,4 +14,4 @@ fi
 
 while read p; do
     dotnet src/WikitextDbComparer/bin/Debug/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p"
-done < "${1:-/dev/stdin}"
+done < <(grep Bahnstrecke ./titles.txt)

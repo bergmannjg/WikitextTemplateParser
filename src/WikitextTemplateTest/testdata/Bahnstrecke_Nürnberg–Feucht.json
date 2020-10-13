@@ -1,0 +1,1104 @@
+[
+    [
+        "BS-header",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Nürnberg Hbf – Feucht"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS-daten",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "BILDPFAD_KARTE",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "PIXEL_KARTE",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "TEXT_KARTE",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "DE-KBS",
+                    "890.2, 890.3"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "DE-STRECKENNR",
+                    "5970"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "LÄNGE",
+                    "12,5"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "SPURWEITE",
+                    "1435"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "STRECKENKLASSE",
+                    "D4"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "STROMW",
+                    "15 kV, 16,7 Hz"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "NEIGUNG",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "RADIUS",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "V-MAX",
+                    "120"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "BILDPFAD_FOTO",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "PIXEL_FOTO",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "TEXT_FOTO",
+                    ""
+                ]
+            }
+        ]
+    ],
+    [
+        "BS-table",
+        []
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Crailsheim",
+                                    "von Crailsheim"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Roth",
+                                    "von Roth"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Treuchtlingen–Nürnberg",
+                                    "von Treuchtlingen"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Bamberg",
+                                    "von Bamberg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "0,0"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Nürnberg Hauptbahnhof",
+                                    "Nürnberg Hbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "312 m"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Cheb",
+                                    "nach Cheb"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Regensburg",
+                                    "nach Regensburg Hbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "1,1"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Nürnberg-Dürrenhof",
+                                    "Nürnberg-Dürrenhof"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Schwandorf",
+                                    "nach Schwandorf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Cheb",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "2,3"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Nürnberg-Gleißhammer",
+                                    "Nürnberg-Gleißhammer"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "3,2"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 4 R",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "3,2"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Nürnberg-Dutzendteich",
+                                    "Nürnberg-Dutzendteich"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Hp"
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "4,4"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Nürnberg Frankenstadion",
+                                    "Nürnberg Frankenstadion"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Ringbahn Nürnberg",
+                                    "Ringbahn"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ÜST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "8,1"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Fischbach (b Nürnberg)"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Überleitstelle",
+                                    "Üst"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 2011)"
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "8,2"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Fischbach (b Nürnberg)",
+                                    "Fischbach (b Nürnberg)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "345 m"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 6",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 9",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Regensburg",
+                                    "von Nürnberg Hbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Feucht–Wendelstein",
+                                    "von Wendelstein"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "12,5"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Feucht (Mittelfranken)",
+                                    "Feucht"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "368 m"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Nürnberg–Regensburg",
+                                    "nach Regensburg Hbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Feucht–Altdorf",
+                                    "nach Altdorf (b Nürnberg)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ]
+]

@@ -1,12 +1,12 @@
 module Comparer
 
 open Ast
-open AstUtils
+open Stations
 open DbData
 open System.Text.RegularExpressions
 
 type Result =
-    | Success of Bahnhof * BetriebsstelleRailwayRoutePosition
+    | Success of Station * BetriebsstelleRailwayRoutePosition
     | Failure of BetriebsstelleRailwayRoutePosition
 
 // see http://www.fssnip.net/bj/title/Levenshtein-distance
@@ -52,7 +52,8 @@ let matchBahnhofName (wikiName: string) (dbName: string) =
     let wikiNamex = regex1.Replace(wikiName0, "").Trim()
     let dbNamex = regex1.Replace(dbName0, "").Trim()
 
-    wikiName0 = dbName0
+    wikiName = dbName
+    || wikiName0 = dbName0
     || dbName0.StartsWith wikiName0
     || dbName0.EndsWith wikiName0
     || wikiName0.StartsWith dbName0
@@ -60,12 +61,12 @@ let matchBahnhofName (wikiName: string) (dbName: string) =
     || wikiNamex = dbNamex
     || (levenshtein wikiNamex dbNamex) <= 3
 
-let matchBahnhof (wikiBahnhof: Bahnhof) (position: BetriebsstelleRailwayRoutePosition) =
+let matchBahnhof (wikiBahnhof: Station) (position: BetriebsstelleRailwayRoutePosition) =
     let dbkm = getKMI2Float position.KM_I
     (abs (dbkm - wikiBahnhof.km) < 1.0)
     && matchBahnhofName wikiBahnhof.name position.BEZEICHNUNG
 
-let findBahnhof (wikiBahnhöfe: Bahnhof []) (position: BetriebsstelleRailwayRoutePosition) =
+let findBahnhof (wikiBahnhöfe: Station []) (position: BetriebsstelleRailwayRoutePosition) =
     let res =
         wikiBahnhöfe
         |> Array.filter (fun b -> matchBahnhof b position)
@@ -83,7 +84,7 @@ let filterResults ((fromKm, toKm): float * float) (results: Result []) =
             && (getKMI2Float p.KM_I) <= toKm
         | _ -> true)
 
-let getMinMaxKm (bahnhöfe: Bahnhof []) =
+let getMinMaxKm (bahnhöfe: Station []) =
     if bahnhöfe.Length = 0 then
         (0.0, 0.0)
     else
@@ -96,7 +97,7 @@ let getMinMaxKm (bahnhöfe: Bahnhof []) =
         (fromKm, toKm)
 
 let checkDbDataInWikiData (strecke: int)
-                          (wikiBahnhöfe: Bahnhof [])
+                          (wikiBahnhöfe: Station [])
                           (dbRoutePositions: BetriebsstelleRailwayRoutePosition [])
                           =
     let results =
@@ -107,7 +108,7 @@ let checkDbDataInWikiData (strecke: int)
     results
     |> Array.iter (fun result ->
         match result with
-        | Failure p -> printfn "*** failed to find Bahnhof for position %s %s" p.BEZEICHNUNG p.KM_L
+        | Failure p -> printfn "*** failed to find station for position %s %s" p.BEZEICHNUNG p.KM_L
         | _ -> ())
 
     let countSucces =
@@ -126,18 +127,23 @@ let checkDbDataInWikiData (strecke: int)
             | Success _ -> false)
         |> Array.length
 
-    if countFailuers = 0
-    then printfn "route %d, %d stations of dbdata found in wikidata" strecke countSucces
+    if countFailuers = 0 && countSucces > 0
+    then printfn "success, route %d, %d stations of dbdata found in wikidata" strecke countSucces
 
-let compare (strecke: System.Collections.Generic.KeyValuePair<int, string []>)
-            (wikiBahnhöfe: Bahnhof [])
+let compare (title: string)
+            (strecke: System.Collections.Generic.KeyValuePair<int, string []>)
+            (wikiBahnhöfe: Station [])
             (dbRoutePositions: BetriebsstelleRailwayRoutePosition [])
             =
     printfn
-        "compare route %d %A %A, wikidata stops %d, dbdata stop %d "
+        "compare route %d %A %A, title %s, wikidata stops %d, dbdata stop %d "
         strecke.Key
         strecke.Value
         (getMinMaxKm wikiBahnhöfe)
+        title
         wikiBahnhöfe.Length
         dbRoutePositions.Length
-    checkDbDataInWikiData strecke.Key wikiBahnhöfe dbRoutePositions
+
+    if wikiBahnhöfe.Length = 0
+    then printfn "*** route %d, no stations found in wikidata" strecke.Key
+    else checkDbDataInWikiData strecke.Key wikiBahnhöfe dbRoutePositions

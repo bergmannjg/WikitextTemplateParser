@@ -44,18 +44,21 @@ let pid1LinkTitle =
     .>> ws
     |>> (Array.ofList >> System.String.Concat >> trim)
 
-// skip text between links
 let link =
     str "[["
     >>. pid1
     .>>. ((str "|" >>. pid1LinkTitle .>> str "]]")
           <|> (str "]]" >>. preturn ""))
-    .>> pid0
     |>> Composite.Link
 
-let simpletemplate, simpletemplateRef = createParserForwardedToRef ()
+let compositestring = pid1 .>> ws |>> Composite.String
 
-let pcomposite = (attempt link) <|> simpletemplate
+let compositetemplate, compositetemplateRef = createParserForwardedToRef ()
+
+let pcomposite =
+    (attempt link)
+    <|> (attempt compositestring)
+    <|> compositetemplate
 
 let pnamed =
     ws
@@ -66,15 +69,16 @@ let pnamed =
     .>>. pid0
     |>> Parameter.String
 
+let makecomposite (x: string) (y: string) (z: list<Composite>) =
+    if System.String.IsNullOrEmpty y then Composite(x, z) else Composite(x, Composite.String(y) :: z)
+
 let pnamedpcomposites =
-    pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) (fun x y z ->
-        if System.String.IsNullOrEmpty y then Composite(x, z) else Composite(x, Composite.String(y) :: z))
+    pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) makecomposite
 
 let panonpcomposites =
     pid0
     .>>. many1 pcomposite
-    |>> (fun (y, z) ->
-        if System.String.IsNullOrEmpty y then Composite("", z) else Composite("", Composite.String(y) :: z))
+    |>> (fun (y, z) -> makecomposite "" y z)
 
 let panonstring =
     pid1 |>> (fun s -> Parameter.String("", s))
@@ -86,7 +90,7 @@ let parameter =
     <|> panonstring
     <|> preturn Empty
 
-let commontemplate =
+let template =
     ws
     >>. str "{{"
     >>. pid1
@@ -94,18 +98,10 @@ let commontemplate =
           <|> preturn [])
     .>> str "}}"
 
-do simpletemplateRef
-   := ws
-   >>. str "{{"
-   >>. pid1
-   .>>. ((str "|" >>. sepBy1 parameter (str "|"))
-         <|> preturn [])
-   .>> str "}}"
-   .>> pid0
+do compositetemplateRef
+   := template
    |>> Composite.Template
 
-let template = commontemplate |>> Template
-
-let templates = many template |>> Templates
+let templates = many template
 
 let parse str = run templates str

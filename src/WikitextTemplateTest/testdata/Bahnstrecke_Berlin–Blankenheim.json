@@ -1,0 +1,4660 @@
+[
+    [
+        "BS-header",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Berlin-Charlottenburg–Blankenheim Trennungsbf"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS-daten",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "DE-STRECKENNR",
+                    "6118 <small>(Fernbahn)</small><br />6024 <small>(S-Bahn)</small>"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "DE-KBS",
+                    "200.7, 207, ''ehem. 258, 335''"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "LÄNGE",
+                    "188,1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "SPURWEITE",
+                    "1435"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "STRECKENKLASSE",
+                    "D4<ref name=\"DB_20120829\"/>"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "STROMG",
+                    "<small>S-Bahn Berlin:</small> 750 V"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "STROMW",
+                    "<small>Berlin–Wiesenburg:</small> 15 kV 16,7 Hz"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "NEIGUNG",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "RADIUS",
+                    ""
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "V-MAX",
+                    "160"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "BILDPFAD_FOTO",
+                    "Elbebrücke-Barby-2012b.jpg"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "PIXEL_FOTO",
+                    "300px"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "TEXT_FOTO",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Die"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Elbebrücke bei Barby",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "ist der größte"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Ingenieurbauwerk",
+                                    "Kunstbau"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "an der Strecke."
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "BILDPFAD_KARTE",
+                    "Bahnstrecke Berlin–Blankenheim Karte.png"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "PIXEL_KARTE",
+                    "300px"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "TEXT_KARTE",
+                    "Streckenverlauf"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS-table",
+        []
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Berliner Stadtbahn",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "11,2"
+                            ]
+                        },
+                        {
+                            "Case": "Template",
+                            "Fields": [
+                                [
+                                    "0",
+                                    []
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "0,0"
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Berlin-Charlottenburg",
+                                    "Berlin-Charlottenburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZglxr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "nach Westend (bis 1944), nach Halensee"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "TSBHFu"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZql"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "12,6"
+                            ]
+                        },
+                        {
+                            "Case": "Template",
+                            "Fields": [
+                                [
+                                    "0",
+                                    [
+                                        {
+                                            "Case": "String",
+                                            "Fields": [
+                                                "",
+                                                "00,0"
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Berlin Westkreuz",
+                                    "Berlin Westkreuz"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Berliner Ringbahn",
+                                    "Ringbahn"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZu"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZq+lr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Gütergleise der Ringbahn"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBRÜCKE"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 100",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Spandauer Vorortbahn",
+                                    "nach Spandau"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZu"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Hamburger Stadtbahnanschluss",
+                                    "nach Berlin-Spandau"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "DST"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "14,6"
+                            ]
+                        },
+                        {
+                            "Case": "Template",
+                            "Fields": [
+                                [
+                                    "0",
+                                    [
+                                        {
+                                            "Case": "String",
+                                            "Fields": [
+                                                "",
+                                                "00,0"
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Berlin-Grunewald",
+                                    "Berlin-Grunewald"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BS2l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BS2lc"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BS2r"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "4,0"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Abzweigstelle",
+                                    "Abzw"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Berlin-Grunewald Gds"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SHST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "22,5"
+                            ]
+                        },
+                        {
+                            "Case": "Template",
+                            "Fields": [
+                                [
+                                    "0",
+                                    [
+                                        {
+                                            "Case": "String",
+                                            "Fields": [
+                                                "",
+                                                "00,0"
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Berlin-Nikolassee",
+                                    "Berlin-Nikolassee (Stadtbahn)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Wannseebahn",
+                                    "von Zehlendorf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Gütergleis der"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Wannseebahn",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 115",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "24,1 12,7"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Berlin-Wannsee",
+                                    "Berlin-Wannsee"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 1",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eABZgl"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eKRZu"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Friedhofsbahn (Berlin)",
+                                    "nach Stahnsdorf"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "(bis 1961)"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "WBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "WBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Teltowkanal",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR+GRZq"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR+GRZq"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Landesgrenze"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Berlin",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "/"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Brandenburg",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STRr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "16,5"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Griebnitzsee Ost"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Berlin–Magdeburg",
+                                    "nach Potsdam"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS2",
+        [
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eKRZu"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Berlin–Magdeburg",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "GRZq"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BS2+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BS2c4"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "zweimaliges Kreuzen der Landesgrenze"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "18,7"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Potsdam Medienstadt Babelsberg",
+                                    "Potsdam Medienstadt Babelsberg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "WBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Nuthe",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "21,7"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bergholz-Rehbrücke",
+                                    "Potsdam-Rehbrücke"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "THSTu"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "24,3"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Bergholz (b Potsdam)",
+                                    "Bergholz (b Potsdam)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "(bis 1998)"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Berliner Außenring",
+                                    "Außenring"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "25,1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Abzw Wilhelmshorst"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Berliner Außenring",
+                                    "vom Außenring"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "25,5"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Wilhelmshorst",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 2",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Michendorf–Großbeeren",
+                                    "von Saarmund"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "28,5"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Michendorf",
+                                    "Michendorf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 10",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Jüterbog–Nauen",
+                                    "nach Jüterbog"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "und"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Seddin",
+                                    "Seddin Gbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "32,6"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Seddin",
+                                    "Seddin"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "von Seddin Gbf"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "34,7"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Jüterbog–Nauen",
+                                    "nach Potsdam"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZu"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Jüterbog–Nauen",
+                                    "Umgehungsbahn"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "(bis 1998)"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Jüterbog–Nauen",
+                                    "von Potsdam"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "37,9"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Beelitz-Heilstätten",
+                                    "Beelitz Heilstätten"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 9",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "43,9"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Borkheide",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 246",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "52,1"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Brück",
+                                    "Brück (Mark)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Bundesstraße 246"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "57,9"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Baitz",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "SBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Bundesstraße 246"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 102",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3e",
+        [
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eKRZo"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "exSTR+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Brandenburgische Städtebahn",
+                                    "von Brandenburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3e",
+        [
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eABZqlr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Brandenburgische Städtebahn",
+                                    "von Treuenbrietzen"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "65,2"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Bad Belzig",
+                                    "Bad Belzig"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 2011 Belzig)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "72,7"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Borne (Bad Belzig)",
+                                    "Borne (Mark)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 1991)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "77,8"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Wiesenburg (Mark)",
+                                    "Wiesenburg (Mark)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 107",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Wiesenburg–Roßlau",
+                                    "nach Roßlau"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "84,9"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Reetz (Wiesenburg/Mark)",
+                                    "Reetz"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "("
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Blockstelle",
+                                    "Bk"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                ")"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xSTR+GRZq"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Landesgrenze"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Brandenburg",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "/"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Sachsen-Anhalt",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Bundesstraße 246"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "92,9"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Nedlitz (Zerbst)",
+                                    "Nedlitz"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 2003)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xHST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "97,6"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Deetz (Zerbst)",
+                                    "Deetz (Kr Zerbst)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 2003)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "102,0"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Stadt Lindau",
+                                    "Lindau (Anh)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 2003)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 184",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "110,2"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Biederitz–Trebnitz",
+                                    "nach Biederitz"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xTBHFo"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "111,5"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Güterglück",
+                                    "Güterglück"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "(bis 2003)"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Biederitz–Trebnitz",
+                                    "Biederitz–Trebnitz"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZg+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "112,6"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Biederitz–Trebnitz",
+                                    "von Dessau"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "115,5"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Flötz (Gödnitz)",
+                                    "Flötz"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "("
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Blockstelle",
+                                    "Bk"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                ")"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xhKRZWae"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Elbebrücke bei Barby",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "Anschl. Futtermittelwerk"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "DST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "120,2"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Barby",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(Reisezugverkehr bis 2004)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "124,4"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Abzw Werkleitz"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Magdeburg–Leipzig",
+                                    "nach Magdeburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "eABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Verbindungskurve (geplant)"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Magdeburg–Leipzig",
+                                    "von Magdeburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZo"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Magdeburg–Leipzig",
+                                    "Magdeburg–Halle"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "126,8"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Abzw Tornitz"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Magdeburg–Leipzig",
+                                    "von Calbe (Saale) Ost"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Calbe (Saale)",
+                                    "Calbe (Saale) Stadt"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(seit 2014)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "130,7"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Calbe (Saale) West",
+                                    "Calbe (Saale) West"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Bernburg–Calbe (Saale)",
+                                    "nach Bernburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xSBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesautobahn 14",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 71",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xWBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bode",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xBHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "137,6"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Neugattersleben",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 1994)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xHST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "143,9"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Rathmannsdorf (Staßfurt)",
+                                    "Rathmannsdorf (Kr Staßfurt)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 1998)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xSBRÜCKE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 185",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZ+lr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xKRZo"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Schönebeck–Güsten",
+                                    "von Magdeburg"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Köthen–Aschersleben",
+                                    "und Bernburg"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STRl"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "147,3"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Güsten",
+                                    "Güsten"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "(vormals"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Inselbahnhof",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                ")"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR+l"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZgr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "WBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "exWBRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Wipper (Harz)",
+                                    "Wipper"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS3",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZlr"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "xABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "150,6"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Abzw"
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Giersleben",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Köthen–Aschersleben",
+                                    "nach Aschersleben"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BUE"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 6",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Halle–Vienenburg",
+                                    "von Aschersleben"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "163,4"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnhof Sandersleben (Anh)",
+                                    "Sandersleben (Anh)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "("
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Keilbahnhof",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                ")"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Halle–Vienenburg",
+                                    "nach Halle (Saale)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "169,8"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Hettstedt#Verkehrsanbindung",
+                                    "Hettstedt"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgr"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "zum Kupfer- und Messingwerk (MKM)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZgl"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Halle Klaustor–Hettstedt",
+                                    "nach Gerbstedt (HHE)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZu"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Mansfelder Bergwerksbahn",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "173,2"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Siersleben",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(bis 1993)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BRÜCKE1"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 180",
+                                    ""
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                ","
+                            ]
+                        },
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bundesstraße 242",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Gleisanschluss#Anschlussstelle",
+                                    "Anst"
+                                ]
+                            ]
+                        },
+                        {
+                            "Case": "String",
+                            "Fields": [
+                                "Umspannwerk Klostermansfeld"
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+r"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Klostermansfeld–Wippra",
+                                    "von Wippra"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "KRZu"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Mansfelder Bergwerksbahn",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "Empty"
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "BHF"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "179,0"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Klostermansfeld",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "(früher Mansfeld)"
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "mKRZ"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Elektrische Kleinbahn Mansfeld",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "DST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "181,3"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Helbra",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BSe",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "HST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "184,8"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Hergisdorf",
+                                    ""
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "ABZg+l"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Halle–Hann. Münden",
+                                    "von Halle (Saale)"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "DST"
+                ]
+            },
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "188,1"
+                ]
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Blankenheim (Landkreis Mansfeld-Südharz)",
+                                    "Blankenheim Trennungsbf"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ],
+    [
+        "BS",
+        [
+            {
+                "Case": "String",
+                "Fields": [
+                    "",
+                    "STR"
+                ]
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Empty"
+            },
+            {
+                "Case": "Composite",
+                "Fields": [
+                    "",
+                    [
+                        {
+                            "Case": "Link",
+                            "Fields": [
+                                [
+                                    "Bahnstrecke Halle–Hann. Münden",
+                                    "nach Sangerhausen"
+                                ]
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ]
+    ]
+]

@@ -19,9 +19,9 @@ let parseTemplatesForWikiTitle title =
             fprintfn stdout "Success"
             System.IO.File.WriteAllText ("./wikidata/" + title + ".json", Serializer.Serialize<Templates>(result))
             System.IO.File.WriteAllText ("./wikidata/" + title + ".txt", sprintf "%A" result)
-        | Failure (errorMsg, _, _) -> fprintfn stdout "\n***Failure: %s" errorMsg
+        | Failure (errorMsg, _, _) -> fprintfn stdout "\n***Parser failure: %s" errorMsg
     | None -> 
-        fprintfn stdout "\n***loadTemplates failed, title %s" title
+        fprintfn stdout "\n***no templates found, title %s" title
 
 let parseTemplatesForRailwaynr railwaynr =
     match findWikiTitle railwaynr with

@@ -1,5 +1,5 @@
 // export VSTEST_HOST_DEBUG=1
-module Test
+module TestParse
 
 open NUnit.Framework
 open FParsec
@@ -291,7 +291,7 @@ let daten2 = """
 [<SetUp>]
 let Setup () = ()
 
-// maybe wrong format
+// skip comments
 let prepare (s: string) =
     let regex1 = Regex(@"<!--.*?-->")
     let s1 = regex1.Replace(s, "")
@@ -310,8 +310,7 @@ let TestParseDaten0 () =
     match Parser.parse (prepare daten0) with
     | Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
-        match result with
-        | Templates t -> Assert.That(t.Length, Is.EqualTo(71))
+        Assert.That(result.Length, Is.EqualTo(71))
     | Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
@@ -321,8 +320,7 @@ let TestParseDaten1 () =
     match Parser.parse (prepare daten1) with
     | Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
-        match result with
-        | Templates t -> Assert.That(t.Length, Is.EqualTo(74))
+        Assert.That(result.Length, Is.EqualTo(74))
     | Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
@@ -332,8 +330,7 @@ let TestParseDaten2 () =
     match Parser.parse (prepare daten2) with
     | Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
-        match result with
-        | Templates t -> Assert.That(t.Length, Is.EqualTo(91))
+        Assert.That(result.Length, Is.EqualTo(91))
     | Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
