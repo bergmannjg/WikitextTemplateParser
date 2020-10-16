@@ -8,6 +8,7 @@ obj/
 wikidata/
 dbdata/
 cache/
+dump/
 
 node_modules/
 

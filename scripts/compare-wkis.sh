@@ -12,6 +12,8 @@ then
   exit 0
 fi
 
+echo "["
 while read p; do
     dotnet src/WikitextDbComparer/bin/Debug/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p"
-done < <(grep Bahnstrecke ./titles.txt)
+done < <(head -2000 ./titles.txt)
+echo "]"

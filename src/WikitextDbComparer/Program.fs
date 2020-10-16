@@ -1,10 +1,30 @@
 ﻿
 open Ast
 open AstUtils
-open Stations
+open PrecodedStation
 open DbData
 open Comparer
 
+let showResults (path:string) =
+    if System.IO.File.Exists path then
+        let text = System.IO.File.ReadAllText path
+        let results = Serializer.Deserialize<ResultOfRoute[]>(text)
+        // results |> Array.iter (printfn "%A")
+        printfn "routes count: %d" results.Length
+        printfn "articles count : %d" (results |> Array.countBy (fun r->r.title)).Length
+        printfn "found wikidata : %d" (results |> Array.filter 
+            (fun r->r.resultKind = ResultKind.WikidataFound)).Length
+        printfn "not found wikidata in templates: %d" (results |> Array.filter
+            (fun r->r.resultKind = ResultKind.WikidataNotFoundInTemplates)).Length
+        printfn "not found wikidata in db data: %d" (results |> Array.filter 
+            (fun r->r.resultKind = ResultKind.WikidataNotFoundInDbData)).Length
+        printfn "no db data found: %d" (results |> Array.filter 
+            (fun r->r.resultKind = ResultKind.NoDbDataFound)).Length
+        let countUndef = (results |> Array.filter (fun r->r.resultKind = ResultKind.Undef)).Length
+        if countUndef > 0 then fprintf stderr "undef result kind unexpected, count %d" countUndef
+    else
+        fprintfn stderr "file not found: %s" path
+        
 let loadTemplatesForWikiTitle (title:string) =
     let path = if title.StartsWith("./wikidata/") then title else "./wikidata/" + title + ".json"
     if System.IO.File.Exists path then
@@ -44,20 +64,23 @@ let loadRailwayRoutePositions routenr =
     let positions = dbdata|>Array.filter (fun p -> p.STRECKE_NR=routenr && bfStelleArt|>Array.contains p.STELLE_ART) 
     positions
 
+let comparetitle  title showDetails =
+    let templates = loadTemplatesForWikiTitle title
+    let precodedStations = templates |> Array.map findPrecodedStation |> Array.choose id
+    let strecken = findBsDatenStreckenNr templates
+    if strecken.Length = 0 then () //todo: fprintfn stdout "no routenumbers found: %s" title
+    else strecken
+        |> Array.iter (fun kvstrecke -> 
+            let positions = loadRailwayRoutePositions kvstrecke.Key
+            compare title kvstrecke (strecken.Length>1) precodedStations positions showDetails)
+
 [<EntryPoint>]
 let main argv =
     Serializer.addConverters ([| |])
     match argv with
-    | [| "-comparetitle"; title |] ->
-        let templates = loadTemplatesForWikiTitle title
-        let precodedStations = templates |> Array.map findPrecodedStation |> Array.choose id
-        let strecken = findBsDatenStreckenNr templates
-        if strecken.Length = 0 then () //todo: fprintfn stdout "no routenumbers found: %s" title
-        else strecken
-            |> Array.iter (fun kvstrecke -> 
-                let positions = loadRailwayRoutePositions kvstrecke.Key
-                if positions.Length > 0 // todo: length = 0 
-                then compare title kvstrecke (filterPrecodedStations (if strecken.Length>1 then kvstrecke.Value else Array.empty) precodedStations) positions)
+    | [| "-comparetitle"; title |] -> comparetitle title false
+    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle title true
     | [| "-generateIndex" |] -> generateIndex()
-    | _ -> fprintfn stderr "usage: -comparetitle title"   
+    | [| "-showResults"; path |] -> showResults(path)
+    | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -generateIndex | -showResults path"   
     0

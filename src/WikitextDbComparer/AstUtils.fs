@@ -4,6 +4,8 @@ open Ast
 open System.Text.RegularExpressions
 open FSharp.Collections
 
+let trim (s: string) = s.Trim()
+
 let findTemplateParameterString (templates: Template []) (templateName: string) (parameterName: string) =
     templates
     |> Array.map (fun t ->
@@ -27,7 +29,7 @@ let findTemplateParameterString (templates: Template []) (templateName: string) 
 let findBsDatenStreckenNr (templates: Template []) =
     let fromTo =
         match findTemplateParameterString templates "BS-header" "" with
-        | Some value -> value.Split "–"
+        | Some value -> value.Split "–" |> Array.map trim
         | None -> Array.empty
 
     match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
@@ -35,24 +37,32 @@ let findBsDatenStreckenNr (templates: Template []) =
         let strecken =
             ResizeArray<System.Collections.Generic.KeyValuePair<int, string []>>()
 
+        // adhoc
+        let value0 =
+            value.Replace("<small>", " ").Replace("</small>", " ").Replace("<br />", " ").Replace("(", " ").Replace(")", " ")
+
         let regex0 = Regex(@"^([0-9]+)$")
-        let mc0 = regex0.Matches value
+        let mc0 = regex0.Matches value0
         for m in mc0 do
             if m.Groups.Count = 2
             then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
         if mc0.Count = 0 then
             let regex1 = Regex(@"^([0-9]+)[\<,]")
-            let mc1 = regex1.Matches value
+            let mc1 = regex1.Matches value0
             for m in mc1 do
                 if m.Groups.Count = 2
                 then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
             if mc1.Count = 0 then
-                let regex2 = Regex(@"([0-9]+)[^\(]*\(([^\)]+)") // subroutes
-                let mc2 = regex2.Matches value
+                let regex2 = Regex(@"([0-9]+)([^0-9)]+)") // subroutes
+                let mc2 = regex2.Matches value0
                 for m in mc2 do
                     if m.Groups.Count = 3
-                       && m.Groups.[2].Value <> "S-Bahn" then // todo: generalize
-                        let names = m.Groups.[2].Value.Split "–"
+                       && not (m.Groups.[2].Value.Contains("parallel"))
+                       && not (m.Groups.[2].Value.Contains("Gleis"))
+                       && not (m.Groups.[2].Value.Contains("S-Bahn")) then // todo: generalize
+                        let names =
+                            m.Groups.[2].Value.Split "–" |> Array.map trim
+
                         strecken.Add
                             (System.Collections.Generic.KeyValuePair.Create
                                 (m.Groups.[1].Value |> int, (if names.Length = 2 then names else fromTo)))
@@ -61,7 +71,10 @@ let findBsDatenStreckenNr (templates: Template []) =
 
 let convertfloattxt (km: string) =
     let regex0 = Regex(@"^([0-9\.]+)")
-    let m = regex0.Match(km.Replace(",", "."))
+
+    let m =
+        regex0.Match(km.Replace(",", ".").Replace("(", "").Replace(")", ""))
+
     if m.Success && m.Groups.Count = 2 then m.Groups.[1].Value else "-1.0"
 
 let parse2float (km: string) =
@@ -72,7 +85,7 @@ let parse2float (km: string) =
 
 let textOfLink (link: Link) =
     match link with
-    | (t, n) -> if not (System.String.IsNullOrEmpty(n)) then n else t
+    | (t, n) -> if not (System.String.IsNullOrEmpty(n)) then n.Trim() else t.Trim()
 
 let getFirstLinkInList (cl: list<Composite>) =
     cl

@@ -39,7 +39,7 @@ let TestCompareBerlinBlankenheim () =
     Assert.That(templates.Length, Is.EqualTo(110))
 
     let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(25))
+    Assert.That(bahnhöfe.Length, Is.EqualTo(26))
 
     checkStationDistance bahnhöfe "Berlin-Charlottenburg" "0.0"
     checkStationDistance bahnhöfe "Berlin-Wannsee" "12.7"
@@ -52,7 +52,7 @@ let TestCompareNürnbergFeucht () =
     Assert.That(templates.Length, Is.EqualTo(27))
 
     let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(7))
+    Assert.That(bahnhöfe.Length, Is.EqualTo(8))
 
     checkStationDistance bahnhöfe "Nürnberg Hbf" "0.0"
     checkStationDistance bahnhöfe "Feucht" "12.5"
@@ -65,7 +65,7 @@ let TestCompareAltenbekenKreiensen () =
     Assert.That(templates.Length, Is.EqualTo(45))
 
     let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(20))
+    Assert.That(bahnhöfe.Length, Is.EqualTo(21))
 
     checkStationDistance bahnhöfe "Altenbeken" "110.8"
     checkStationDistance bahnhöfe "Kreiensen" "105.8"

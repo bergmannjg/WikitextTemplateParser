@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="DbData.fs" />
     <Compile Include="AstUtils.fs" />
+    <Compile Include="PrecodedStation.fs" />
     <Compile Include="Stations.fs" />
     <Compile Include="Comparer.fs" />
     <Compile Include="Program.fs" />
