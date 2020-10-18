@@ -4,7 +4,41 @@ open Ast
 open System.Text.RegularExpressions
 open FSharp.Collections
 
+// todo
+let ignoreStringsInRoutename =
+    [| "<small>("
+       "<small>"
+       ")</small>"
+       "</small>"
+       "Ferngleise"
+       "Südgleis"
+       "äußeres Gleispaar" |]
+
+let ignoreStrings (v: string) (strings: string []) =
+    strings
+    |> Array.fold (fun (s: string) v -> s.Replace(v, "")) v
+
+type Strecke =
+    { nummer: int
+      von: string
+      bis: string }
+
+let createStrecke (nummer: int) (von: string) (bis: string) =
+    { nummer = nummer
+      von = von
+      bis = bis }
+
 let trim (s: string) = s.Trim()
+
+let concatCompositeStrings (cl: list<Composite>) =
+    cl
+    |> List.fold (fun s e ->
+        let c =
+            match e with
+            | Composite.String (str) -> str
+            | _ -> ""
+
+        s + c) ""
 
 let findTemplateParameterString (templates: Template []) (templateName: string) (parameterName: string) =
     templates
@@ -18,56 +52,72 @@ let findTemplateParameterString (templates: Template []) (templateName: string) 
         match p with
         | String (n, v) when parameterName = n || ("DE-" + parameterName) = n -> Some v
         | Composite (n, v) when (parameterName = n || ("DE-" + parameterName) = n)
-                                && v.Length > 0 ->
-            match v with
-            | Composite.String (s) :: _ -> Some s
-            | _ -> None
+                                && v.Length > 0 -> Some(concatCompositeStrings v)
         | _ -> None)
     |> Array.choose id
     |> Array.tryExactlyOne
+    |> Option.bind (fun s -> if System.String.IsNullOrEmpty s then None else Some s)
 
-let findBsDatenStreckenNr (templates: Template []) =
-    let fromTo =
+let matchRegexwithValue pattern value von bis (strecken: ResizeArray<Strecke>) =
+    let regex = Regex(pattern)
+    let mc = regex.Matches value
+    for m in mc do
+        if m.Groups.Count = 2
+        then strecken.Add(createStrecke (m.Groups.[1].Value |> int) von bis)
+    mc.Count > 0
+
+let matchRegexwithSubroutes pattern value von bis (strecken: ResizeArray<Strecke>) =
+    let regex = Regex(pattern) // subroutes
+
+    let mc = regex.Matches value
+    for m in mc do
+        if m.Groups.Count = 3
+           && not (m.Groups.[2].Value.Contains("parallel")) then // todo: generalize
+            let nr = m.Groups.[1].Value |> int
+
+            let namen =
+                ignoreStringsInRoutename
+                |> ignoreStrings m.Groups.[2].Value
+
+            match (namen.Split "–" |> Array.map trim) with
+            | [| von0; bis0 |] -> strecken.Add(createStrecke nr von0 bis0)
+            | [| von0; _; bis0 |] -> strecken.Add(createStrecke nr von0 bis0)
+            | _ -> strecken.Add(createStrecke nr von bis)
+    mc.Count > 0
+
+let strContainsNumber (s: string) = s |> Seq.exists System.Char.IsDigit
+
+let findBsDatenStreckenNr (templates: Template []) title =
+    let (von, bis) =
         match findTemplateParameterString templates "BS-header" "" with
-        | Some value -> value.Split "–" |> Array.map trim
-        | None -> Array.empty
+        | Some value ->
+            match (value.Split "–" |> Array.map trim) with
+            | [| von; bis |] -> (von, bis)
+            | _ -> ("", "")
+        | None -> ("", "")
 
     match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
-    | Some value ->
-        let strecken =
-            ResizeArray<System.Collections.Generic.KeyValuePair<int, string []>>()
+    | Some value when strContainsNumber value ->
+        let strecken = ResizeArray<Strecke>()
 
         // adhoc
-        let value0 =
-            value.Replace("<small>", " ").Replace("</small>", " ").Replace("<br />", " ").Replace("(", " ").Replace(")", " ")
+        let valueX =
+            value.Replace("<br />", " ").Replace("</span>", " ")
 
-        let regex0 = Regex(@"^([0-9]+)$")
-        let mc0 = regex0.Matches value0
-        for m in mc0 do
-            if m.Groups.Count = 2
-            then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
-        if mc0.Count = 0 then
-            let regex1 = Regex(@"^([0-9]+)[\<,]")
-            let mc1 = regex1.Matches value0
-            for m in mc1 do
-                if m.Groups.Count = 2
-                then strecken.Add(System.Collections.Generic.KeyValuePair.Create(m.Groups.[1].Value |> int, fromTo))
-            if mc1.Count = 0 then
-                let regex2 = Regex(@"([0-9]+)([^0-9)]+)") // subroutes
-                let mc2 = regex2.Matches value0
-                for m in mc2 do
-                    if m.Groups.Count = 3
-                       && not (m.Groups.[2].Value.Contains("parallel"))
-                       && not (m.Groups.[2].Value.Contains("Gleis"))
-                       && not (m.Groups.[2].Value.Contains("S-Bahn")) then // todo: generalize
-                        let names =
-                            m.Groups.[2].Value.Split "–" |> Array.map trim
+        let regexX = Regex(@"<span[^>]*>")
+        let value0 = regexX.Replace(valueX, "")
 
-                        strecken.Add
-                            (System.Collections.Generic.KeyValuePair.Create
-                                (m.Groups.[1].Value |> int, (if names.Length = 2 then names else fromTo)))
-        strecken.ToArray()
-    | _ -> Array.empty
+        if not
+            ((matchRegexwithValue @"^[']*([0-9]+)[']*$" value0 von bis strecken)
+             || (matchRegexwithValue @"^([0-9]+)[;,]" value0 von bis strecken)
+             || (matchRegexwithValue @"^([0-9]+)\s+[0-9/]" value0 von bis strecken)
+             || (matchRegexwithValue @"^DB ([0-9]+)" value0 von bis strecken)
+             || (matchRegexwithSubroutes @"([0-9]+)[^<]*(<small>.+?</small>)" value0 von bis strecken)
+             || (matchRegexwithSubroutes @"([0-9]+)[^\(]*\(([^\)]+)\)" value0 von bis strecken)
+             || (matchRegexwithSubroutes @"([0-9]+)[^A-Z]*([^0-9]+)" value0 von bis strecken)) then
+            fprintfn stderr "%s, findBsDatenStreckenNr failed, '%s'" title value0
+        Some(strecken.ToArray())
+    | _ -> None
 
 let convertfloattxt (km: string) =
     let regex0 = Regex(@"^([0-9\.]+)")

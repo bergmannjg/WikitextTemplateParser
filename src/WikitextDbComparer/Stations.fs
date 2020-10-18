@@ -37,12 +37,12 @@ let guessDistanceCoding (stations: PrecodedStation []) =
 
 // filter station list beginning and ending with a name  in 'fromTo'
 let filterStationsByStrategy (fromTo: string [])
-                                     (precodedStations: PrecodedStation [])
-                                     (canChange: PrecodedStation -> bool)
-                                     (mustChange: bool)
-                                     (getDistance0: PrecodedStation -> float)
-                                     (getDistance1: PrecodedStation -> float)
-                                     : Station [] =
+                             (precodedStations: PrecodedStation [])
+                             (canChange: PrecodedStation -> bool)
+                             (mustChange: bool)
+                             (getDistance0: PrecodedStation -> float)
+                             (getDistance1: PrecodedStation -> float)
+                             : Station [] =
     let indexes =
         if precodedStations.Length > 0 then
             match (fromTo
@@ -104,13 +104,7 @@ let filterStationsByStrategy (fromTo: string [])
     if routeClosed then List.toArray stations else Array.empty
 
 let filterStationsBySingleValue (fromTo: string []) (stations: PrecodedStation []): Station [] =
-    filterStationsByStrategy
-        fromTo
-        stations
-        (fun s -> true)
-        false
-        (fun s -> s.distances.[0])
-        (fun s -> s.distances.[0])
+    filterStationsByStrategy fromTo stations (fun s -> true) false (fun s -> s.distances.[0]) (fun s -> s.distances.[0])
 
 let filterStationsByBsKm (fromTo: string []) (stations: PrecodedStation []): Station [] =
     filterStationsByStrategy
@@ -129,18 +123,20 @@ let filterMainTrack (s: PrecodedStation): Station =
 let filterStationsByMainTrack (fromTo: string []) (stations: PrecodedStation []): Station [] =
     stations |> Array.map filterMainTrack
 
-let filterStations (fromTo: string []) (stations: PrecodedStation []) =
-    let dc = guessDistanceCoding stations
-    if dc = DistanceCoding.SingleValue
-    then filterStationsBySingleValue fromTo stations
-    else if dc = DistanceCoding.BsKm
-    then filterStationsByBsKm fromTo stations
-    else if dc = DistanceCoding.MainTrack
-    then filterStationsByMainTrack fromTo stations
-    else Array.empty
+let filterStations (strecke: Strecke) (stations: PrecodedStation []) =
+    let fromTo = [| strecke.von; strecke.bis |]
 
-let findBahnhöfe (templates: Template []) (fromTo: string []) =
-    templates
-    |> Array.map findPrecodedStation
-    |> Array.choose id
-    |> filterStations fromTo
+    match guessDistanceCoding stations with
+    | DistanceCoding.SingleValue -> filterStationsBySingleValue fromTo stations
+    | DistanceCoding.BsKm -> filterStationsByBsKm fromTo stations
+    | DistanceCoding.MainTrack -> filterStationsByMainTrack fromTo stations
+    | _ -> Array.empty
+
+let findStations strecke templates =
+    let precodedStations =
+        templates
+        |> Array.takeWhile (containsBorderStation >> not)
+        |> Array.map findPrecodedStation
+        |> Array.choose id
+
+    filterStations strecke precodedStations

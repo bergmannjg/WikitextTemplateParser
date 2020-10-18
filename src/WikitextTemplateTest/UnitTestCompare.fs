@@ -38,11 +38,13 @@ let TestCompareBerlinBlankenheim () =
 
     Assert.That(templates.Length, Is.EqualTo(110))
 
-    let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(26))
-
-    checkStationDistance bahnhöfe "Berlin-Charlottenburg" "0.0"
-    checkStationDistance bahnhöfe "Berlin-Wannsee" "12.7"
+    match findBsDatenStreckenNr templates "Bahnstrecke_Berlin–Blankenheim" with
+    | Some strecken -> 
+        let bahnhöfe = findStations strecken.[0] templates 
+        Assert.That(bahnhöfe.Length, Is.EqualTo(23))
+        checkStationDistance bahnhöfe "Berlin-Charlottenburg" "0.0"
+        checkStationDistance bahnhöfe "Berlin-Wannsee" "12.7"
+    | None -> Assert.Fail("no stations found")
 
 [<Test>]
 let TestCompareNürnbergFeucht () =
@@ -51,11 +53,13 @@ let TestCompareNürnbergFeucht () =
 
     Assert.That(templates.Length, Is.EqualTo(27))
 
-    let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(8))
-
-    checkStationDistance bahnhöfe "Nürnberg Hbf" "0.0"
-    checkStationDistance bahnhöfe "Feucht" "12.5"
+    match findBsDatenStreckenNr templates "Bahnstrecke_Nürnberg–Feucht" with
+    | Some strecken -> 
+        let bahnhöfe = findStations strecken.[0] templates 
+        Assert.That(bahnhöfe.Length, Is.EqualTo(7))
+        checkStationDistance bahnhöfe "Nürnberg Hbf" "0.0"
+        checkStationDistance bahnhöfe "Feucht" "12.5"
+    | None -> Assert.Fail("no stations found")
 
 [<Test>]
 let TestCompareAltenbekenKreiensen () =
@@ -64,11 +68,10 @@ let TestCompareAltenbekenKreiensen () =
 
     Assert.That(templates.Length, Is.EqualTo(45))
 
-    let bahnhöfe = findBahnhöfe templates Array.empty
-    Assert.That(bahnhöfe.Length, Is.EqualTo(21))
-
-    checkStationDistance bahnhöfe "Altenbeken" "110.8"
-    checkStationDistance bahnhöfe "Kreiensen" "105.8"
-
-    let bahnhöfe1760 = findBahnhöfe templates [|"Altenbeken"; "Langeland"|]
-    Assert.That(bahnhöfe1760.Length, Is.EqualTo(2))
+    match findBsDatenStreckenNr templates "Bahnstrecke_Altenbeken–Kreiensen" with
+    | Some strecken -> 
+        Assert.That(strecken.Length, Is.EqualTo(3))
+        let bahnhöfe = findStations strecken.[1] templates 
+        Assert.That(bahnhöfe.Length, Is.EqualTo(10))
+        checkStationDistance bahnhöfe "Langeland" "3.5"
+    | None -> Assert.Fail("no stations found")

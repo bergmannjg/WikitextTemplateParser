@@ -5,11 +5,14 @@ open System.Text.RegularExpressions
 open Ast
 
 // prepare template string, todo: add to parser
-let prepare (s: string) =
-    let regex0 = Regex(@"<ref[^>]*>.*</ref>")
-    let s1 = regex0.Replace(s, "")
-    let regex1 = Regex(@"<!--.*?-->")
-    regex1.Replace(s1, "")
+let prepare (s0: string) =
+    let regex0 = Regex(@"<ref[^>]*>.+?</ref>")
+    let s1 = regex0.Replace(s0, "")
+    let regex1 = Regex(@"<ref[^/]*/>")
+    let s2 = regex1.Replace(s1, "")
+    let regex2 = Regex(@"<!--.*?-->")
+    let s3 = regex2.Replace(s2, "")
+    s3.Replace("{{BS2||", "{{BS2|") // error in 'Berliner_Nordbahn'
 
 let parseTemplatesForWikiTitle title =
     match loadTemplatesCached title with

@@ -7,8 +7,8 @@
     <ProjectReference Include="..\WikitextDbComparer/WikitextDbComparer.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UnitTestParse.fs" />
     <Compile Include="UnitTestCompare.fs" />
+    <Compile Include="UnitTestParse.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.SystemTextJson" Version="0.14.8" />

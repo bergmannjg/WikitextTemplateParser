@@ -7,6 +7,9 @@ open FSharp.Collections
 
 // see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
 
+
+let BorderSymbols = [| "TZOLLWo" |]
+
 let BhfSymbols =
     [| "BHF" // Bahnhof, Station
        "BHF-R"
@@ -18,6 +21,7 @@ let BhfSymbols =
        "KBHFe" // Kopfbahnhof Streckenende
        "KBHFxe" // Kopfbahnhof Streckenende
        "KBHFxeq"
+       "KBHFaq" // Spitzkehrenbahnhof
        "ABHFl+l" // Spitzkehrbahnhof links
        "ABHFr+r" // Spitzkehrbahnhof rechts
        "TBHFo" // Turmbahnhof oben
@@ -45,6 +49,7 @@ let DstSymbols =
        "KDSTxa"
        "KDSTe"
        "KDSTxe"
+       "exKDSTe"
        "ÜST" |]
 
 let HstSymbols =
@@ -118,41 +123,54 @@ let normalizeKms (kms: string) =
     let regex1 = Regex(@"\s+")
     regex1.Replace(km0, " ").Trim()
 
+let filterBhfSymbols (symbols: string []) (kms: float []) =
+    if kms.Length = 1 && kms.Length = symbols.Length then
+        (symbols, kms)
+    else if kms.Length = symbols.Length then
+        Array.fold2 (fun (x1, x2) y z ->
+            if bhftypes |> Array.contains y
+            then (Array.concat [ [| y |]; x1 ], Array.concat [ [| z |]; x2 ])
+            else (x1, x2)) ([||], [||]) symbols kms
+    else
+        (symbols, kms)
+
+let createDistanceCoding (symbols0: string []) (kms0: float []) (name: string) =
+    let (symbols, kms) = filterBhfSymbols symbols0 kms0
+    if kms.Length = 1 then
+        Some
+            ({ distanceCoding = DistanceCoding.SingleValue
+               symbols = symbols
+               distances = kms
+               name = name })
+    else if kms.Length = symbols.Length then
+        Some
+            ({ distanceCoding = DistanceCoding.MainTrack
+               symbols = symbols
+               distances = kms
+               name = name })
+    else if kms.Length > symbols.Length && symbols.Length = 1 then // adhoc
+        Some
+            ({ distanceCoding = DistanceCoding.SingleValue
+               symbols = symbols
+               distances = [| kms.[kms.Length - 1] |]
+               name = name })
+    else
+        fprintfn
+            stderr
+            "*** findDistanceCoding, %s, distances.Length %d <> symbols.Length %d, %A"
+            name
+            kms.Length
+            symbols.Length
+            kms
+        None
+
 let findDistanceCoding (symbols: string []) (p: Parameter) (name: string) =
     try
         match p with
         | String (_, km) ->
             let km0 = normalizeKms km
-
             let kms = km0.Split " " |> Array.map parse2float
-            if kms.Length = 1 then
-                Some
-                    ({ distanceCoding = DistanceCoding.SingleValue
-                       symbols = symbols
-                       distances = kms
-                       name = name })
-            else if kms.Length = symbols.Length then
-                Some
-                    ({ distanceCoding = DistanceCoding.MainTrack
-                       symbols = symbols
-                       distances = kms
-                       name = name })
-            else if kms.Length > symbols.Length && symbols.Length = 1 then // adhoc
-                Some
-                    ({ distanceCoding = DistanceCoding.SingleValue
-                       symbols = symbols
-                       distances = [| kms.[kms.Length - 1] |]
-                       name = name })
-            else
-                fprintfn
-                    stderr
-                    "*** findDistanceCoding, %s, distances.Length %d <> symbols.Length %d, %A from %s"
-                    name
-                    kms.Length
-                    symbols.Length
-                    kms
-                    km0
-                None
+            createDistanceCoding symbols kms name
         | Composite (_, cl) ->
             match cl with
             | Composite.Template (n, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
@@ -173,37 +191,19 @@ let findDistanceCoding (symbols: string []) (p: Parameter) (name: string) =
                         | _ -> -1.0)
                     |> List.toArray
 
-                if kms.Length = symbols.Length then
-                    Some
-                        ({ distanceCoding = DistanceCoding.MainTrack
-                           symbols = symbols
-                           distances = kms
-                           name = name })
-                else if kms.Length = 1 then
-                    Some
-                        ({ distanceCoding = DistanceCoding.SingleValue
-                           symbols = symbols
-                           distances = kms
-                           name = name })
-                else if kms.Length > symbols.Length && symbols.Length = 1 then // adhoc
-                    Some
-                        ({ distanceCoding = DistanceCoding.SingleValue
-                           symbols = symbols
-                           distances = [| kms.[kms.Length - 1] |]
-                           name = name })
-                else
-                    fprintfn
-                        stderr
-                        "*** findDistanceCoding, %s, distances.Length %d <> symbols.Length %d, %A"
-                        name
-                        kms.Length
-                        symbols.Length
-                        kms
-                    None
+                createDistanceCoding symbols kms name
         | _ -> None
     with ex ->
         fprintfn stderr "error: %A, findKm parameter %A" ex p
         None
+
+let containsBorderSymbols (parameters: List<Parameter>) =
+    getParameterStrings parameters
+    |> List.map (fun s ->
+        match s with
+        | Parameter.String (_, str) -> str
+        | _ -> "")
+    |> List.exists (fun s -> BorderSymbols |> Array.contains s)
 
 let findSymbols (parameters: List<Parameter>) =
     getParameterStrings parameters
@@ -220,12 +220,18 @@ let createPrecodedStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
     | _, [| "xKMW" |] -> findDistanceCoding symbols p1 "Kilometrierungswechsel"
     | _ -> None
 
+let containsBorderStation (t: Template) =
+    match t with
+    | (n, l) when "BS" = n
+                  && l.Length >= 3
+                  && (containsBorderSymbols (List.take 1 l)) -> true
+    | _ -> false
+
 let findPrecodedStation (t: Template) =
     try
         match t with
-        | (n, l) when ("BS" = n || "BSe" = n)
-                      && l.Length
-                      >= 3
+        | (n, l) when "BS" = n
+                      && l.Length >= 3
                       && (matchesType (List.take 1 l) allbhftypes) ->
             createPrecodedStation (findSymbols (List.take 1 l)) l.[1] l.[2]
         | (n, l) when "BS2" = n
@@ -245,3 +251,27 @@ let findPrecodedStation (t: Template) =
         fprintfn stderr "*** error %A\n  template %A" ex t
         None
 
+let fillStreckeNames (strecke: Strecke) (precodedStations: PrecodedStation []) =
+    if precodedStations.Length > 1
+       && (System.String.IsNullOrEmpty strecke.von
+           || System.String.IsNullOrEmpty strecke.bis) then
+
+        let first =
+            precodedStations
+            |> Array.tryFind (fun s -> s.symbols.Length > 0)
+
+        let last =
+            precodedStations
+            |> Array.tryFind (fun s -> s.symbols.Length > 0)
+
+        { nummer = strecke.nummer
+          von =
+              match first with
+              | Some s -> s.name
+              | None -> ""
+          bis =
+              match last with
+              | Some s -> s.name
+              | None -> "" }
+    else
+        strecke

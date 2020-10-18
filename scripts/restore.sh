@@ -38,6 +38,25 @@ sed -i -e 's/BREITE":""/BREITE":0/' ${OUTFILE}
 rm -f geo-betriebsstelle_2020.zip
 rm -rf geo-betriebsstelle
 
+#
+# Geo-Streckennetz
+#
+
+rm -f strecken_nutzung.json
+
+wget -q http://download-data.deutschebahn.com/static/datasets/geo-strecke/geo-strecke_2020.zip
+unzip -q geo-strecke_2020.zip -d geo-strecke
+
+tempfile=$(mktemp)
+
+echo mifcode,strecke_nr,richtung,laenge,von_km_i,bis_km_i,von_km_l,bis_km_l,elektrifizierung,bahnnutzung,geschwindigkeit,strecke_kurzn,gleisanzahl,bahnart,kmspru_typ_anf,kmspru_typ_end > ${tempfile}
+iconv -f WINDOWS-1252 geo-strecke/Strecken/MapInfoRelationen/strecken.MID >> ${tempfile}
+npx csv2json -d -s "," <  ${tempfile} > strecken_nutzung.json
+
+rm -f geo-strecke_2020.zip
+rm -f ${tempfile}
+rm -rf geo-strecke
+
 cd ..
 cd ..
 

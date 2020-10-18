@@ -1,6 +1,6 @@
 module Comparer
 
-open Ast
+open AstUtils
 open PrecodedStation
 open Stations
 open DbData
@@ -8,9 +8,13 @@ open System.Text.RegularExpressions
 
 type ResultKind =
     | WikidataFound
+    | StartStopStationsNotFound
     | WikidataNotFoundInTemplates
     | WikidataNotFoundInDbData
     | NoDbDataFound
+    | RouteParameterNotParsed
+    | RouteParameterEmpty
+    | RouteIsNoPassengerTrain
     | Undef
 
 type ResultOfRoute =
@@ -18,14 +22,24 @@ type ResultOfRoute =
       title: string
       fromToName: string []
       fromToKm: float []
+      resultKind: ResultKind
       countWikiStops: int
       countDbStops: int
-      countDbStopsNotFound: int
-      resultKind: ResultKind }
+      countDbStopsNotFound: int }
 
 type ResultOfStation =
-    | Success of Station * BetriebsstelleRailwayRoutePosition
-    | Failure of BetriebsstelleRailwayRoutePosition
+    | Success of Station * Station
+    | Failure of Station
+
+let createResult title route resultKind =
+    { route = route
+      title = title
+      fromToName = [||]
+      fromToKm = [||]
+      countWikiStops = 0
+      countDbStops = 0
+      countDbStopsNotFound = 0
+      resultKind = resultKind }
 
 // see http://www.fssnip.net/bj/title/Levenshtein-distance
 let levenshtein (word1: string) (word2: string) =
@@ -87,17 +101,16 @@ let matchBahnhofName (wikiName: string) (dbName: string) =
     || (levenshtein wikiNamex dbNamex) <= 3
     || sameSubstring wikiName0 dbName0
 
-let matchBahnhof (wikiBahnhof: Station) (position: BetriebsstelleRailwayRoutePosition) =
-    let dbkm = getKMI2Float position.KM_I
-    (abs (dbkm - wikiBahnhof.km) < 1.0)
-    && matchBahnhofName wikiBahnhof.name position.BEZEICHNUNG
+let matchBahnhof (wikiStation: Station) (dbStation: Station) =
+    (abs (dbStation.km - wikiStation.km) < 1.0)
+    && matchBahnhofName wikiStation.name dbStation.name
 
-let findBahnhof (wikiBahnhöfe: Station []) (position: BetriebsstelleRailwayRoutePosition) =
+let findBahnhof (wikiStations: Station []) (dbStation: Station) =
     let res =
-        wikiBahnhöfe
-        |> Array.filter (fun b -> matchBahnhof b position)
+        wikiStations
+        |> Array.filter (fun b -> matchBahnhof b dbStation)
 
-    if res.Length = 0 then Failure(position) else Success(res.[0], position)
+    if res.Length = 0 then Failure(dbStation) else Success(res.[0], dbStation)
 
 // filter results outside of current route
 let filterResults (fromToKm: float []) (results: ResultOfStation []) =
@@ -106,10 +119,7 @@ let filterResults (fromToKm: float []) (results: ResultOfStation []) =
         results
         |> Array.filter (fun result ->
             match result with
-            | Failure p ->
-                (getKMI2Float p.KM_I)
-                >= fromKm
-                && (getKMI2Float p.KM_I) <= toKm
+            | Failure p -> (p.km) >= fromKm && (p.km) <= toKm
             | _ -> true)
     | _ -> [||]
 
@@ -125,13 +135,10 @@ let getMinMaxKm (bahnhöfe: Station []) =
 
         [| fromKm; toKm |]
 
-let checkDbDataInWikiData (strecke: int)
-                          (wikiBahnhöfe: Station [])
-                          (dbRoutePositions: BetriebsstelleRailwayRoutePosition [])
-                          =
-    dbRoutePositions
-    |> Array.map (fun p -> findBahnhof wikiBahnhöfe p)
-    |> filterResults (getMinMaxKm wikiBahnhöfe)
+let checkDbDataInWikiData (strecke: int) (wikiStations: Station []) (dbStations: Station []) =
+    dbStations
+    |> Array.map (fun p -> findBahnhof wikiStations p)
+    |> filterResults (getMinMaxKm wikiStations)
 
 let countResultFailuers results =
     results
@@ -142,14 +149,14 @@ let countResultFailuers results =
     |> Array.length
 
 let dump (title: string)
-         (strecke: System.Collections.Generic.KeyValuePair<int, string []>)
-         (fromTo: string [])
+         (strecke: Strecke)
          (precodedStations: PrecodedStation [])
          (stations: Station [])
          (results: ResultOfStation [])
          =
     let lines = ResizeArray<string>()
-    sprintf "fromTo: %A" fromTo |> lines.Add
+    sprintf "fromTo: %A" [| strecke.von; strecke.bis |]
+    |> lines.Add
     sprintf "guessDistanceCoding: %A" (guessDistanceCoding precodedStations)
     |> lines.Add
     sprintf "precodedStations:" |> lines.Add
@@ -161,7 +168,7 @@ let dump (title: string)
     |> Array.iter (fun result ->
         match result with
         | Failure p ->
-            sprintf "*** failed to find station for position %s %s" p.BEZEICHNUNG p.KM_L
+            sprintf "*** failed to find station for position %s %.1f" p.name p.km
             |> lines.Add
         | _ -> ())
     let s = String.concat "\n" lines
@@ -169,72 +176,66 @@ let dump (title: string)
         ("./dump/"
          + title
          + "-"
-         + strecke.Key.ToString()
+         + strecke.nummer.ToString()
          + ".txt",
          s)
 
-let getResultKind countWikiStops countDbStops countDbStopsNotFound =
-    if countWikiStops > 0
-       && countDbStops > 0
-       && countDbStopsNotFound = 0 then
+let getResultKind noStationsFound countWikiStops countDbStops countDbStopsNotFound =
+    let dbStopsWithRoute = countDbStops > 1
+    if noStationsFound && dbStopsWithRoute then
+        StartStopStationsNotFound
+    else if countWikiStops > 0
+            && dbStopsWithRoute
+            && countDbStopsNotFound = 0 then
         WikidataFound
     else if countWikiStops > 0
-            && countDbStops > 0
+            && dbStopsWithRoute
             && countDbStopsNotFound > 0 then
         WikidataNotFoundInDbData
-    else if countWikiStops = 0 && countDbStops > 0 then
+    else if countWikiStops = 0 && dbStopsWithRoute then
         WikidataNotFoundInTemplates
-    else if countDbStops = 0 then
+    else if not dbStopsWithRoute then
         NoDbDataFound
     else
         Undef
 
+let printResult (resultOfRoute: ResultOfRoute) showDetails =
+    if (showDetails)
+    then printfn "%A" resultOfRoute
+    else printfn "%s" (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+
 let compare (title: string)
-            (strecke: System.Collections.Generic.KeyValuePair<int, string []>)
-            (useFilter: bool)
+            (strecke: Strecke)
+            (wikiStations: Station [])
+            (dbStations: Station [])
             (precodedStations: PrecodedStation [])
-            (dbRoutePositions: BetriebsstelleRailwayRoutePosition [])
             showDetails
             =
-    let fromTo =
-        if useFilter then strecke.Value else Array.empty
+    let results =
+        if wikiStations.Length > 0 && dbStations.Length > 0
+        then checkDbDataInWikiData strecke.nummer wikiStations dbStations
+        else [||]
 
-    let wikiBahnhöfe =
-        if dbRoutePositions.Length > 0 then filterStations fromTo precodedStations else [||]
-
-    let mutable results = [||]
-    if wikiBahnhöfe.Length > 0
-       && dbRoutePositions.Length > 0 then
-        results <- checkDbDataInWikiData strecke.Key wikiBahnhöfe dbRoutePositions
-
-    let countFailuers = countResultFailuers results
-
-    if (showDetails) then
-        dump title strecke strecke.Value precodedStations wikiBahnhöfe results
-        printfn "see wikitext ./cache/%s.txt" title
-        printfn "see templates ./wikidata/%s.txt" title
-        printfn "see templates ./wikidata/%s.txt" title
-        printfn "see dumps ./dump/%s-%d.txt" title strecke.Key
-
-    let fromToKm = (getMinMaxKm wikiBahnhöfe)
-    let countWikiStops = wikiBahnhöfe.Length
-    let countDbStops = dbRoutePositions.Length
-    let countDbStopsNotFound = countFailuers
+    let countWikiStops = wikiStations.Length
+    let countDbStops = dbStations.Length
+    let countDbStopsNotFound = countResultFailuers results
+    let minmaxkm = (getMinMaxKm wikiStations)
+    let noStationsFound = (minmaxkm |> Array.max) = 0.0
 
     let resultOfRoute =
-        { route = strecke.Key
+        { route = strecke.nummer
           title = title
-          fromToName = strecke.Value
-          fromToKm = fromToKm
+          fromToName = [| strecke.von; strecke.bis |]
+          fromToKm = minmaxkm
           countWikiStops = countWikiStops
           countDbStops = countDbStops
           countDbStopsNotFound = countDbStopsNotFound
-          resultKind = getResultKind countWikiStops countDbStops countDbStopsNotFound }
+          resultKind = getResultKind noStationsFound countWikiStops countDbStops countDbStopsNotFound }
 
     if (showDetails) then
-        printfn "%A" resultOfRoute
-    else
-        let s =
-            Serializer.Serialize<ResultOfRoute>(resultOfRoute)
+        dump title strecke precodedStations wikiStations results
+        printfn "see wikitext ./cache/%s.txt" title
+        printfn "see templates ./wikidata/%s.txt" title
+        printfn "see dumps ./dump/%s-%d.txt" title strecke.nummer
 
-        printfn "%s," s
+    printResult resultOfRoute showDetails
