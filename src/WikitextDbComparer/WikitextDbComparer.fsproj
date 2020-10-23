@@ -8,9 +8,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbData.fs" />
-    <Compile Include="AstUtils.fs" />
-    <Compile Include="PrecodedStation.fs" />
-    <Compile Include="Stations.fs" />
+    <Compile Include="RouteInfo.fs" />
+    <Compile Include="StationsOfInfobox.fs" />
+    <Compile Include="StationsOfRoute.fs" />
+    <Compile Include="StationMatch.fs" />
+    <Compile Include="ResultOfMatch.fs" />
     <Compile Include="Comparer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

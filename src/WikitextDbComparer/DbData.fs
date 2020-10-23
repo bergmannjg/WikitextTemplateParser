@@ -1,5 +1,7 @@
 module DbData
 
+type DbStationOfRoute = { km: float; name: string }
+
 type BetriebsstelleRailwayRoutePosition =
     { STRECKE_NR: int
       RICHTUNG: int
@@ -47,6 +49,10 @@ let loadDBRoutePosition routenr =
     |> Array.filter (fun p ->
         p.STRECKE_NR = routenr
         && bfStelleArt |> Array.contains p.STELLE_ART)
+
+let loadDBStations routenr =
+    loadDBRoutePosition routenr
+    |>Array.map (fun p ->  {km = getKMI2Float p.KM_I; name = p.BEZEICHNUNG})
 
 let checkPersonenzugStreckenutzung (strecke: int) =
     let dbtext =
