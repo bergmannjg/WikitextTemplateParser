@@ -88,7 +88,31 @@ let parameter =
     <|> (attempt pnamed)
     <|> (attempt panonpcomposites)
     <|> panonstring
-    <|> preturn Empty
+    <|> preturn Parameter.Empty
+
+let functionparameter =
+    pid1
+    |>> (fun s -> FunctionParameter.String(s))
+    <|> preturn FunctionParameter.Empty
+
+let functionname =
+    many1 ((notFollowedBy (str ":")) >>. anyChar)
+    .>> ws
+    |>> (Array.ofList >> System.String.Concat >> trim)
+
+let parserfunction =
+    ws
+    >>. str "{{"
+    >>. str "#"
+    >>. functionname
+    .>> str ":"
+    .>> str "{{{"
+    .>>. sepBy1 functionparameter (str "|")
+    .>> str "}}}"
+    .>>. ((str "|" >>. sepBy1 parameter (str "|"))
+          <|> preturn [])
+    .>> str "}}"
+    |>> (fun ((fn, pl1), pl2) -> ("#" + fn, pl1, pl2))
 
 let template =
     ws
@@ -97,9 +121,11 @@ let template =
     .>>. ((str "|" >>. sepBy1 parameter (str "|"))
           <|> preturn [])
     .>> str "}}"
+    |>> (fun (n, pl) -> (n, List.empty, pl))
 
 do compositetemplateRef
-   := template
+   := (attempt parserfunction)
+   <|> template
    |>> Composite.Template
 
 let templates = many template

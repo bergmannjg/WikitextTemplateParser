@@ -14,6 +14,7 @@
     <Compile Include="StationMatch.fs" />
     <Compile Include="ResultOfMatch.fs" />
     <Compile Include="Comparer.fs" />
+    <Compile Include="Wikidata.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

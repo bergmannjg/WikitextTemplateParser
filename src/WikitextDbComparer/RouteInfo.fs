@@ -11,9 +11,11 @@ let ignoreStringsInRoutename =
        "<small>"
        ")</small>"
        "</small>"
+       ", Ferngleise"
        "Ferngleise"
        "Südgleis"
-       "äußeres Gleispaar" |]
+       "äußeres Gleispaar"
+       ", Vorortgleise" |]
 
 let ignoreStrings (v: string) (strings: string []) =
     strings
@@ -51,8 +53,9 @@ let matchRegexwithSubroutes pattern value von bis (strecken: ResizeArray<RouteIn
                 |> ignoreStrings m.Groups.[2].Value
 
             match (namen.Split "–" |> Array.map trim) with
-            | [| von0; bis0 |] -> strecken.Add(createStrecke nr von0 bis0)
-            | [| von0; _; bis0 |] -> strecken.Add(createStrecke nr von0 bis0)
+            | [| von0; bis0 |] when not (System.String.IsNullOrEmpty bis0) -> strecken.Add(createStrecke nr von0 bis0)
+            | [| von0; _; bis0 |] when not (System.String.IsNullOrEmpty bis0) ->
+                strecken.Add(createStrecke nr von0 bis0)
             | _ -> strecken.Add(createStrecke nr von bis)
     mc.Count > 0
 
@@ -89,4 +92,3 @@ let findBsDatenStreckenNr (templates: Template []) title =
             fprintfn stderr "%s, findBsDatenStreckenNr failed, '%s'" title value0
         Some(strecken.ToArray())
     | _ -> None
-

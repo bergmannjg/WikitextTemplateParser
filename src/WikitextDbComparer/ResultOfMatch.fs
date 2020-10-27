@@ -5,7 +5,7 @@ open StationsOfRoute
 open DbData
 
 type ResultKind =
-    | WikidataFound
+    | WikidataFoundInDbData
     | StartStopStationsNotFound
     | WikidataNotFoundInTemplates
     | WikidataNotFoundInDbData
@@ -18,12 +18,14 @@ type ResultKind =
 type ResultOfRoute =
     { route: int
       title: string
-      fromToName: string []
+      fromToNameOrig: string []
+      fromToNameMatched: string []
       fromToKm: float []
       resultKind: ResultKind
       countWikiStops: int
       countDbStops: int
-      countDbStopsNotFound: int }
+      countDbStopsNotFound: int
+      isCompleteDbRoute: bool }
 
 type ResultOfStation =
     | Success of DbStationOfRoute * StationOfRoute
@@ -32,21 +34,23 @@ type ResultOfStation =
 let createResult title route resultKind =
     { route = route
       title = title
-      fromToName = [||]
+      fromToNameOrig = [||]
+      fromToNameMatched = [||]
       fromToKm = [||]
       countWikiStops = 0
       countDbStops = 0
       countDbStopsNotFound = 0
-      resultKind = resultKind }
+      resultKind = resultKind
+      isCompleteDbRoute = false }
 
-let getResultKind noStationsFound countWikiStops countDbStops countDbStopsNotFound =
+let getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound =
     let dbStopsWithRoute = countDbStops > 1
-    if noStationsFound && dbStopsWithRoute then
+    if countWikiStops = 0 && dbStopsWithRoute then
         StartStopStationsNotFound
-    else if countWikiStops > 0
+    else if countDbStopsFound > 0
             && dbStopsWithRoute
             && countDbStopsNotFound = 0 then
-        WikidataFound
+        WikidataFoundInDbData
     else if countWikiStops > 0
             && dbStopsWithRoute
             && countDbStopsNotFound > 0 then
@@ -57,6 +61,13 @@ let getResultKind noStationsFound countWikiStops countDbStops countDbStopsNotFou
         NoDbDataFound
     else
         Undef
+
+let existsInDbSuccessResults (pred: DbStationOfRoute -> bool) (results: ResultOfStation []) =
+    results
+    |> Array.exists (fun result ->
+        match result with
+        | Success (db, _) -> pred (db)
+        | _ -> false)
 
 let getSuccessMinMaxDbKm (results: ResultOfStation []) =
     let dbkm =
@@ -78,6 +89,7 @@ let getSuccessMinMaxDbKm (results: ResultOfStation []) =
 let filterResultsOfRoute (results: ResultOfStation []) =
     let fromToKm = getSuccessMinMaxDbKm results // assumes start/stop of route is in success array
     match fromToKm with
+    | [| fromKm; toKm |] when fromKm = toKm -> results
     | [| fromKm; toKm |] ->
         results
         |> Array.filter (fun result ->
@@ -114,7 +126,7 @@ let showResults (path: string) =
         printfn
             "found wikidata : %d"
             (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataFound)).Length
+             |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataFoundInDbData)).Length
         printfn
             "not found wikidata in templates: %d"
             (results

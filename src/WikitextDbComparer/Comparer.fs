@@ -23,12 +23,20 @@ let checkDbDataInWikiData (strecke: int) (wikiStations: StationOfRoute []) (dbSt
 
     results |> filterResultsOfRoute
 
-let countResultFailuers results =
+let countResultFailures results =
     results
     |> Array.filter (fun result ->
         match result with
-        | Failure p -> true
+        | Failure _ -> true
         | Success _ -> false)
+    |> Array.length
+
+let countResultSuccess results =
+    results
+    |> Array.filter (fun result ->
+        match result with
+        | Failure _ -> false
+        | Success _ -> true)
     |> Array.length
 
 let dump (title: string)
@@ -45,13 +53,16 @@ let dump (title: string)
     |> Array.iter (sprintf "%A" >> lines.Add)
     sprintf "stations:" |> lines.Add
     stations |> Array.iter (sprintf "%A" >> lines.Add)
+    sprintf "results:" |> lines.Add
     results
     |> Array.iter (fun result ->
         match result with
+        | Success (db, wk) ->
+            sprintf "find db station %s %.1f for wk station %s" db.name db.km wk.name
+            |> lines.Add
         | Failure p ->
             sprintf "*** failed to find station for position %s %A" p.name p.km
-            |> lines.Add
-        | _ -> ())
+            |> lines.Add)
     let s = String.concat "\n" lines
     System.IO.File.WriteAllText
         ("./dump/"
@@ -66,8 +77,23 @@ let printResult (resultOfRoute: ResultOfRoute) showDetails =
     then printfn "%A" resultOfRoute
     else printfn "%s" (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
 
+let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
+    let dbFirst = dbStations.[0]
+    let dbLast = dbStations.[dbStations.Length - 1]
+
+    let foundFirst =
+        results
+        |> existsInDbSuccessResults (fun db -> db.km = dbFirst.km)
+
+    let foundLast =
+        results
+        |> existsInDbSuccessResults (fun db -> db.km = dbLast.km)
+
+    foundFirst && foundLast
+
 let compare (title: string)
-            (strecke: RouteInfo)
+            (streckeOrig: RouteInfo)
+            (streckeMatched: RouteInfo)
             (wikiStations: StationOfRoute [])
             (dbStations: DbStationOfRoute [])
             (precodedStations: StationOfInfobox [])
@@ -75,29 +101,37 @@ let compare (title: string)
             =
     let results =
         if wikiStations.Length > 0 && dbStations.Length > 0
-        then checkDbDataInWikiData strecke.nummer wikiStations dbStations
+        then checkDbDataInWikiData streckeOrig.nummer wikiStations dbStations
         else [||]
 
     let countWikiStops = wikiStations.Length
     let countDbStops = dbStations.Length
-    let countDbStopsNotFound = countResultFailuers results
+    let countDbStopsFound = countResultSuccess results
+    let countDbStopsNotFound = countResultFailures results
     let minmaxkm = (getSuccessMinMaxDbKm results)
-    let noStationsFound = (minmaxkm |> Array.max) = 0.0
+
+    let isCompleteDbRoute =
+        dbStations.Length > 0
+        && isDbRouteComplete results dbStations
 
     let resultOfRoute =
-        { route = strecke.nummer
+        { route = streckeOrig.nummer
           title = title
-          fromToName = [| strecke.von; strecke.bis |]
+          fromToNameOrig = [| streckeOrig.von; streckeOrig.bis |]
+          fromToNameMatched =
+              [| streckeMatched.von
+                 streckeMatched.bis |]
           fromToKm = minmaxkm
           countWikiStops = countWikiStops
           countDbStops = countDbStops
           countDbStopsNotFound = countDbStopsNotFound
-          resultKind = getResultKind noStationsFound countWikiStops countDbStops countDbStopsNotFound }
+          resultKind = getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound
+          isCompleteDbRoute = isCompleteDbRoute }
 
     if (showDetails) then
-        dump title strecke precodedStations wikiStations results
+        dump title streckeOrig precodedStations wikiStations results
         printfn "see wikitext ./cache/%s.txt" title
         printfn "see templates ./wikidata/%s.txt" title
-        printfn "see dumps ./dump/%s-%d.txt" title strecke.nummer
+        printfn "see dumps ./dump/%s-%d.txt" title streckeOrig.nummer
 
     printResult resultOfRoute showDetails

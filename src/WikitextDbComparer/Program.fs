@@ -6,19 +6,9 @@ open StationsOfInfobox
 open DbData
 open Comparer
 open ResultsOfMatch
-       
-let loadTemplatesForWikiTitle (title:string) showDetails  =
-    let path = if title.StartsWith("./wikidata/") then title else "./wikidata/" + title + ".json"
-    if System.IO.File.Exists path then
-        let wikitext = System.IO.File.ReadAllText path
-        let templates = Serializer.Deserialize<Template[]>(wikitext)
-        templates
-    else
-        fprintfn stderr "file not found: %s" path
-        Array.empty
-    
+open Wikidata
+
 let comparetitle title showDetails =
-    fprintfn stderr "loading : %s" title
     let templates = loadTemplatesForWikiTitle title showDetails
     let streckenAlle = match findBsDatenStreckenNr templates title with
                        | Some strecken ->
@@ -39,15 +29,15 @@ let comparetitle title showDetails =
         if showDetails then fprintfn stderr "%s, keine Fernbahnnutzung %A" title streckenOhne 
    
     if strecken.Length>0 then
-        let precodedStations = templates |> Array.takeWhile (containsBorderStation >> not) |> Array.map findStationOfInfobox |> Array.choose id
+        let precodedStations = templates |> Array.map findStationOfInfobox |> Array.choose id
         strecken
-        |> Array.iter (fun strecke -> 
-            let strecke0 = if strecken.Length = 1 then fillStreckeNames strecke precodedStations else strecke
-            let dbStations = loadDBStations strecke0.nummer
+        |> Array.iter (fun route -> 
+            let routeMatched = getMatchedRouteInfo route precodedStations (strecken.Length = 1)
+            let dbStations = loadDBStations routeMatched.nummer
             let wikiStations = match dbStations.Length > 0 with 
-                                | true -> filterStations strecke0 precodedStations 
+                                | true -> filterStations routeMatched precodedStations
                                 | _ -> [||]
-            compare title strecke0 wikiStations dbStations precodedStations showDetails)
+            compare title route routeMatched wikiStations dbStations precodedStations showDetails)
 
 [<EntryPoint>]
 let main argv =

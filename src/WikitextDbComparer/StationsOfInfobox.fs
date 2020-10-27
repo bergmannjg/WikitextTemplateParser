@@ -8,7 +8,7 @@ open FSharp.Collections
 
 // see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
 
-let BorderSymbols = [| "TZOLLWo" |]
+let BorderSymbols = [| "TZOLLWo"; "GRENZE"; "xGRENZE" |]
 
 let BhfSymbols =
     [| "BHF" // Bahnhof, Station
@@ -31,7 +31,9 @@ let BhfSymbols =
        "DST" // "Bahnhof ohne Personenverkehr, Dienststation, Betriebs- oder Güterbahnhof
        "DSTq" // "Bahnhof ohne Personenverkehr
        "S+BHF"
-       "exBHF" |]
+       "xKBHFe"
+       "exBHF"
+       "KS+BHFa" |]
 
 let SBhfSymbols =
     [| "SBHF" // S-Bahnhof
@@ -66,6 +68,7 @@ let HstSymbols =
        "KBSTxa" // Betriebsstelle Streckenanfang
        "KBSTe" // Betriebsstelle Streckenende
        "KBSTxe" // Betriebsstelle Streckenende
+       "KMW" // Streckenwechsel
        "xKMW" |] // Kilometrierungswechsel
 
 let SHstSymbols =
@@ -76,12 +79,17 @@ let SHstSymbols =
        "KSHSTe" // S-Bahnhalt... Streckenende
        "KSHSTxe" |]
 
+let AbzweigSymbols =
+    [| "ABZgl" // Abzweig geradeaus und nach links
+       "ABZgr" |] // Abzweig geradeaus und nach rechts
+
 let allbhftypes =
     Array.concat [ BhfSymbols
                    SBhfSymbols
                    HstSymbols
                    SHstSymbols
-                   DstSymbols ]
+                   DstSymbols
+                   AbzweigSymbols ]
 
 let bhftypes =
     Array.concat [ BhfSymbols
@@ -104,14 +112,14 @@ let private findBahnhofName (p: Parameter) =
         match getFirstLinkInList cl with
         | Some (link) -> Some(textOfLink link)
         | _ -> None
-    | String (_, n) -> Some(n.Trim())
+    | Parameter.String (_, n) -> Some(n.Trim())
     | _ -> None
 
 let private matchesType (parameters: List<Parameter>) (types: string []) =
     parameters
     |> List.exists (fun t ->
         match t with
-        | String (n, v) when types |> Array.exists ((=) v) -> true
+        | Parameter.String (n, v) when types |> Array.exists ((=) v) -> true
         | _ -> false)
 
 let private normalizeKms (kms: string) =
@@ -138,13 +146,13 @@ let private parse2float (km: string) =
 let private matchStationDistances (symbols: string []) (p: Parameter) (name: string) =
     try
         match p with
-        | String (_, km) ->
+        | Parameter.String (_, km) ->
             let km0 = normalizeKms km
             let kms = km0.Split " " |> Array.map parse2float
             Some(createStationOfInfobox symbols kms name)
         | Composite (_, cl) ->
             match cl with
-            | Composite.Template (n, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
+            | Composite.Template (n, _, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
                 match (getFirstStringValue lp.[0]), (getFirstStringValue lp.[1]) with
                 | Some (km), Some (k2) ->
                     Some(createStationOfInfobox symbols [| (parse2float km); (parse2float k2) |] name)
@@ -187,58 +195,28 @@ let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
     | _, [| "xKMW" |] -> matchStationDistances symbols p1 "Kilometrierungswechsel"
     | _ -> None
 
-let containsBorderStation (t: Template) =
-    match t with
-    | (n, l) when "BS" = n
-                  && l.Length >= 3
-                  && (containsBorderSymbols (List.take 1 l)) -> true
-    | _ -> false
-
 let findStationOfInfobox (t: Template) =
     try
         match t with
-        | (n, l) when ("BS" = n || "BSe" = n)
-                      && l.Length >= 3
-                      && (matchesType (List.take 1 l) allbhftypes) ->
+        | (n, [], l) when ("BS" = n || "BSe" = n)
+                          && l.Length
+                          >= 3
+                          && (matchesType (List.take 1 l) allbhftypes) ->
             matchStation (findSymbols (List.take 1 l)) l.[1] l.[2]
-        | (n, l) when ("BS2" = n || "BS2e" = n)
-                      && l.Length >= 4
-                      && (matchesType (List.take 2 l) allbhftypes) ->
+        | (n, [], l) when ("BS2" = n || "BS2e" = n)
+                          && l.Length
+                          >= 4
+                          && (matchesType (List.take 2 l) allbhftypes) ->
             matchStation (findSymbols (List.take 2 l)) l.[2] l.[3]
-        | (n, l) when "BS3" = n
-                      && l.Length >= 5
-                      && (matchesType (List.take 3 l) allbhftypes) ->
+        | (n, [], l) when "BS3" = n
+                          && l.Length >= 5
+                          && (matchesType (List.take 3 l) allbhftypes) ->
             matchStation (findSymbols (List.take 3 l)) l.[3] l.[4]
-        | (n, l) when "BS4" = n
-                      && l.Length >= 6
-                      && (matchesType (List.take 4 l) allbhftypes) ->
+        | (n, [], l) when "BS4" = n
+                          && l.Length >= 6
+                          && (matchesType (List.take 4 l) allbhftypes) ->
             matchStation (findSymbols (List.take 4 l)) l.[4] l.[5]
         | _ -> None
     with ex ->
         fprintfn stderr "*** error %A\n  template %A" ex t
         None
-
-let fillStreckeNames (strecke: RouteInfo) (stations: StationOfInfobox []) =
-    if stations.Length > 1
-       && (System.String.IsNullOrEmpty strecke.von
-           || System.String.IsNullOrEmpty strecke.bis) then
-
-        let first =
-            stations
-            |> Array.tryFind (fun s -> s.symbols.Length > 0)
-
-        let last =
-            stations
-            |> Array.tryFind (fun s -> s.symbols.Length > 0)
-
-        { nummer = strecke.nummer
-          von =
-              match first with
-              | Some s -> s.name
-              | None -> ""
-          bis =
-              match last with
-              | Some s -> s.name
-              | None -> "" }
-    else
-        strecke
