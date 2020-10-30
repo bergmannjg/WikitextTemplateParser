@@ -86,7 +86,7 @@ let rec loadTemplates (wikiTitle: string) =
         "https://de.wikipedia.org/wiki/Spezial:Exportieren/"
         + wikiTitle
 
-    printf "load url: %s " url
+    printfn "load url: %s " url
 
     let results = HtmlDocument.Load(url)
 
@@ -113,7 +113,7 @@ let rec loadTemplates (wikiTitle: string) =
 let loadCached (directory: string) (filename: string) (loader: _ -> string option) =
     let chachedFile = directory + "/" + filename
     if System.IO.File.Exists chachedFile then
-        printf "use cache: %s " chachedFile
+        printfn "use cache: %s " chachedFile
         Some(System.IO.File.ReadAllText chachedFile)
     else
         let maybeText = loader ()

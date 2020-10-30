@@ -17,6 +17,13 @@ let parseEndOfString =
     <|> (skipChar ']' >>. skipChar ']')
     <|> skipChar '\n'
 
+let parseStartOfTemplate = skipChar '{' >>. skipChar '{'
+
+let skipTillStartOfTemplate =
+    many ((notFollowedBy parseStartOfTemplate) >>. anyChar)
+    .>> ws
+    |>> ignore
+
 let parseEndOfNamedIdString = parseEndOfString <|> skipChar '='
 
 let pid0 =
@@ -128,6 +135,7 @@ do compositetemplateRef
    <|> template
    |>> Composite.Template
 
-let templates = many template
+let templates =
+    many (template .>> skipTillStartOfTemplate)
 
 let parse str = run templates str

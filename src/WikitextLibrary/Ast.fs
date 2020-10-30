@@ -32,6 +32,7 @@ let concatCompositeStrings (cl: list<Composite>) =
         let c =
             match e with
             | Composite.String (str) -> str
+            | Composite.Link (_, str) -> str
             | _ -> ""
 
         s + c) ""

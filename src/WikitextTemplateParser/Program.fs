@@ -4,6 +4,7 @@ open Wikidata
 open System.Text.RegularExpressions
 open Ast
 
+
 // prepare template string, todo: add to parser
 let prepare (s0: string) (title:string) =
     let regex0 = Regex(@"<ref[^>]*>.+?</ref>")
@@ -12,9 +13,8 @@ let prepare (s0: string) (title:string) =
     let s2 = regex1.Replace(s1, "")
     let regex2 = Regex(@"<!--.*?-->")
     let s3 = regex2.Replace(s2, "")
-    if title = "Berliner_Nordbahn" 
-    then s3.Replace("{{BS2||", "{{BS2|") // error in 'Berliner_Nordbahn'
-    else s3
+    AdhocReplacements.replacements 
+    |> Array.fold (fun (s:string) (t,oldV,newV) -> if t = title then s.Replace(oldV,newV) else s) s3
 
 /// load Vorlage:Bahnstrecke, ex. template 'Bahnstrecke Köln–Troisdorf' in title 'Siegstrecke'
 let loadBahnstreckeTemplate ((name,_,_):Template) (parseTemplates: (string -> unit)) =
@@ -31,10 +31,11 @@ let rec parseTemplatesForWikiTitle title =
             fprintfn stdout "Success: templates Length %d" result.Length
             System.IO.File.WriteAllText ("./wikidata/" + title + ".json", Serializer.Serialize<Templates>(result))
             System.IO.File.WriteAllText ("./wikidata/" + title + ".txt", sprintf "%A" result)
+            fprintfn stdout "see templates %s" ("./wikidata/" + title + ".txt")
             checkBahnstreckeTemplate result parseTemplatesForWikiTitle
-        | Failure (errorMsg, _, _) -> fprintfn stdout "\n***Parser failure: %s" errorMsg
+        | Failure (errorMsg, _, _) -> fprintfn stderr "\n***Parser failure: %s" errorMsg
     | None -> 
-        fprintfn stdout "\n***no templates found, title %s" title
+        fprintfn stderr "***no templates found, title %s" title
 
 let parseTemplatesForRailwaynr railwaynr =
     match findWikiTitle railwaynr with

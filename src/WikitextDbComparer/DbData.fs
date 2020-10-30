@@ -31,12 +31,17 @@ type Streckenutzung =
       kmspru_typ_anf: string
       kmspru_typ_end: string }
 
-// 112240006 -> 122,4
+// i.e. 112240006 -> 122,4
 let getKMI2Float (kmi: int) =
     let km = float (kmi - 100000000) / 100000.0
     System.Math.Round(km, 1)
 
-let bfStelleArt = [| "Bf"; "Bft"; "Hp" |]
+let bfStelleArt =
+    [| "Bf"
+       "Bft"
+       "Hp"
+       "Abzw"
+       "Awanst" |]
 
 let loadDBRoutePosition routenr =
     let dbtext =
@@ -52,7 +57,9 @@ let loadDBRoutePosition routenr =
 
 let loadDBStations routenr =
     loadDBRoutePosition routenr
-    |>Array.map (fun p ->  {km = getKMI2Float p.KM_I; name = p.BEZEICHNUNG})
+    |> Array.map (fun p ->
+        { km = getKMI2Float p.KM_I
+          name = p.BEZEICHNUNG })
 
 let checkPersonenzugStreckenutzung (strecke: int) =
     let dbtext =
@@ -66,6 +73,8 @@ let checkPersonenzugStreckenutzung (strecke: int) =
         |> Array.filter (fun p -> p.strecke_nr = strecke)
         |> Array.map (fun s -> s.bahnnutzung)
 
-    let hasBahnnutzung = bahnnutzung |> Array.exists (fun bn -> bn.Contains "Pz")
+    let hasBahnnutzung =
+        bahnnutzung
+        |> Array.exists (fun bn -> bn.Contains "Pz")
 
     hasBahnnutzung || bahnnutzung.Length = 0

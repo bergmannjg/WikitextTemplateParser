@@ -33,7 +33,11 @@ let BhfSymbols =
        "S+BHF"
        "xKBHFe"
        "exBHF"
-       "KS+BHFa" |]
+       "KS+BHFa"
+       "xTBHFo"
+       "eBHF"
+       "BS2l" // ?
+       "BS2r" |] // ?
 
 let SBhfSymbols =
     [| "SBHF" // S-Bahnhof
@@ -216,6 +220,10 @@ let findStationOfInfobox (t: Template) =
                           && l.Length >= 6
                           && (matchesType (List.take 4 l) allbhftypes) ->
             matchStation (findSymbols (List.take 4 l)) l.[4] l.[5]
+        | (n, [], l) when "BS5" = n
+                          && l.Length >= 7
+                          && (matchesType (List.take 5 l) allbhftypes) ->
+            matchStation (findSymbols (List.take 5 l)) l.[5] l.[6]
         | _ -> None
     with ex ->
         fprintfn stderr "*** error %A\n  template %A" ex t

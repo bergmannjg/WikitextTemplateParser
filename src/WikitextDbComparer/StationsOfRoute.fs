@@ -7,15 +7,6 @@ open FSharp.Collections
 
 type StationOfRoute = { kms: float []; name: string }
 
-// adhoc
-let private abbreviations =
-    [| ("Bln.", "Berlin")
-       ("Dr.-Friedrichst.", "Dresden-Friedrichstadt")
-       ("Frankfurt(M) Hbf", "Frankfurt (Main) Hbf")
-       ("Frankfurt Hbf", "Frankfurt (Main) Hbf")
-       ("Köln-Deutz", "Köln Messe/Deutz")
-       ("Hdbg Hbf", "Heidelberg Hbf") |]
-
 let private checkReplacedWithChar (s1: string) (s2: string) (c: char) = s1.Replace(c, ' ') = s2.Replace(c, ' ')
 
 let private checkReplaced (s1: string) (s2: string) = checkReplacedWithChar s1 s2 '-'
@@ -27,7 +18,7 @@ let private getMatch (nameInHeader: string) (nameInTemplate: string) =
         Some nameInTemplate
     else
         let candidates =
-            abbreviations
+            AdhocReplacements.abbreviationsInRoutename
             |> Array.map (fun (ab, s) ->
                 if nameInTemplate.StartsWith(nameInHeader.Replace(ab, s))
                 then Some nameInTemplate
@@ -116,7 +107,8 @@ let findStations strecke templates =
     filterStations strecke precodedStations
 
 let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox []) =
-    if stations.Length > 1 then
+    if stations.Length > 1
+       && strecke.routenameKind <> RoutenameKind.Unmatched then
 
         let first =
             stations
@@ -127,6 +119,7 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox [])
             |> Array.tryFindBack (fun s -> s.distances.Length > 0)
 
         { nummer = strecke.nummer
+          title = strecke.title
           von =
               match first with
               | Some s -> s.name
@@ -134,7 +127,9 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox [])
           bis =
               match last with
               | Some s -> s.name
-              | None -> "" }
+              | None -> ""
+          routenameKind = strecke.routenameKind
+          searchstring = strecke.searchstring }
     else
         strecke
 
@@ -149,5 +144,5 @@ let getMatchedRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox []) (re
         getBestMatch strecke.bis namesInTemplate false
 
     match matchFrom, matchTo with
-    | Some f, Some t -> createStrecke strecke.nummer f t
+    | Some f, Some t -> createStrecke strecke.nummer strecke.title f t strecke.routenameKind strecke.searchstring
     | _ -> if refillPossible then refillRouteInfo strecke stations else strecke

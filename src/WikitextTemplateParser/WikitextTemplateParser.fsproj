@@ -4,12 +4,15 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WikitextLibrary/WikitextLibrary.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Parser.fs" />
     <Compile Include="Wikidata.fs" />
+    <Compile Include="AdhocReplacements.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WikitextLibrary/WikitextLibrary.fsproj" />
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="FSharp.SystemTextJson" Version="0.14.8" />
     <PackageReference Include="FParsec" Version="1.1.1" />

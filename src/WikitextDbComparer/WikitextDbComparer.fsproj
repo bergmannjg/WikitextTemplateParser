@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbData.fs" />
+    <Compile Include="AdhocReplacements.fs" />
     <Compile Include="RouteInfo.fs" />
     <Compile Include="StationsOfInfobox.fs" />
     <Compile Include="StationsOfRoute.fs" />

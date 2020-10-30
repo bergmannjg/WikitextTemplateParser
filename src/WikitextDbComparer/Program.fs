@@ -1,5 +1,4 @@
 ﻿
-open Ast
 open RouteInfo
 open StationsOfRoute
 open StationsOfInfobox
@@ -7,6 +6,14 @@ open DbData
 open Comparer
 open ResultsOfMatch
 open Wikidata
+
+let classifyBsDatenStreckenNr title showDetails =
+    let templates = loadTemplatesForWikiTitle title showDetails
+    match findBsDatenStreckenNr templates title with
+    | Some strecken ->
+        strecken|>Array.iter (printRouteInfo showDetails) 
+    | None -> 
+        ()
 
 let comparetitle title showDetails =
     let templates = loadTemplatesForWikiTitle title showDetails
@@ -22,7 +29,7 @@ let comparetitle title showDetails =
                             printResult (createResult title 0 RouteParameterEmpty) showDetails
                             Array.empty
 
-    let strecken = streckenAlle |> Array.filter (fun s -> checkPersonenzugStreckenutzung s.nummer)
+    let strecken = streckenAlle |> Array.filter (fun s -> s.nummer>=1000 && checkPersonenzugStreckenutzung s.nummer)
     if streckenAlle.Length > 0 && streckenAlle.Length > strecken.Length then 
         let streckenOhne = streckenAlle|>Array.map (fun s -> s.nummer)|>Array.filter (fun nr -> not (strecken|>Array.exists (fun s -> s.nummer=nr)))
         streckenOhne |> Array.iter (fun nr -> printResult (createResult title nr RouteIsNoPassengerTrain) showDetails)
@@ -43,8 +50,10 @@ let comparetitle title showDetails =
 let main argv =
     Serializer.addConverters ([| |])
     match argv with
+    | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
     | [| "-comparetitle"; title |] -> comparetitle title false
     | [| "-verbose"; "-comparetitle"; title |] -> comparetitle title true
-    | [| "-showResults"; path |] -> showResults(path)
-    | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showResults path"   
+    | [| "-showCompareResults"; path |] -> showResults(path)
+    | [| "-showClassifyResults"; path |] -> showRouteInfoResults(path)
+    | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showCompareResults path | -classify title | -showClassifyResults path"   
     0

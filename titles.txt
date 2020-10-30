@@ -296,7 +296,6 @@ Bahnstrecke_Schönberg–Dassow
 Bahnstrecke_Schönberg–Schleiz
 Bahnstrecke_Schönebeck–Güsten
 Bahnstrecke_Schliersee–Bayrischzell
-Bahnstrecke_Siebenbrunn–Erlbach
 Bahnstrecke_Solingen–Wuppertal-Vohwinkel
 Bahnstrecke_Stendal–Niedergörne
 Bahnstrecke_Schwarzenbek–Bad_Oldesloe
@@ -352,7 +351,6 @@ Bahnstrecke_Mosbach–Mudau
 Bahnstrecke_Löhne–Rheine
 Bahnstrecke_Lüneburg–Soltau
 Bahnstrecke_Mölln–Hollenbek
-Bahnstrecke_Mikułowa–Bogatynia
 Bahnstrecke_Mittelherwigsdorf–Varnsdorf–Eibau
 Bahnstrecke_Merseburg–Leipzig-Leutzsch
 Bahnstrecke_Merseburg–Querfurt
@@ -582,7 +580,6 @@ Bahnstrecke_Jossa–Wildflecken
 Bahnstrecke_Stolberg–Herzogenrath
 Bahnstrecke_Stolberg–Münsterbusch
 Bahnstrecke_Straubing–Miltach
-Zschornewitzer_Kleinbahn
 Hannöversche_Südbahn
 Bahnstrecke_Parchim–Suckow
 Bahnstrecke_Stolberg–Kohlscheid
