@@ -5,6 +5,12 @@ if [ ! -d "./scripts" ]; then
     exit 1
 fi
 
+LINES=2000
+
+if [ $# -eq 1 ]; then
+  LINES="$1"
+fi
+
 dotnet build src/WikitextDbComparer/WikitextDbComparer.fsproj > /dev/null
 if [ $? -ne 0 ]
 then
@@ -18,7 +24,7 @@ tmpfile=$(mktemp /tmp/compare-wiki.XXXXXX)
 
 while read p; do
     dotnet src/WikitextDbComparer/bin/Debug/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
-done < <(head -2000 ./titles.txt)
+done < <(head -n $LINES ./titles.txt)
 
 sed -i -e '$ ! s/$/,/' "$tmpfile"
 

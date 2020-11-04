@@ -9,6 +9,8 @@ wikidata/
 dbdata/
 cache/
 dump/
+server/dist/
+src/ResultsViewer/dist
 
 node_modules/
 

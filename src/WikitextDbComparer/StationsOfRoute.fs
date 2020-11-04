@@ -14,6 +14,7 @@ let private checkReplaced (s1: string) (s2: string) = checkReplacedWithChar s1 s
 let private getMatch (nameInHeader: string) (nameInTemplate: string) =
     if nameInHeader.StartsWith nameInTemplate
        || nameInTemplate.StartsWith nameInHeader
+       || nameInTemplate.EndsWith nameInHeader
        || checkReplaced nameInTemplate nameInHeader then
         Some nameInTemplate
     else
@@ -146,3 +147,15 @@ let getMatchedRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox []) (re
     match matchFrom, matchTo with
     | Some f, Some t -> createStrecke strecke.nummer strecke.title f t strecke.routenameKind strecke.searchstring
     | _ -> if refillPossible then refillRouteInfo strecke stations else strecke
+
+let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =
+    let json =
+        (Serializer.Serialize<StationOfRoute []>(stations))
+
+    System.IO.File.WriteAllText
+        ("./dump/"
+         + title
+         + "-"
+         + strecke.nummer.ToString()
+         + "-StationOfRoute.json",
+         json)

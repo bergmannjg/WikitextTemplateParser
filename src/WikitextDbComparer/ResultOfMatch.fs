@@ -148,3 +148,39 @@ let showResults (path: string) =
         then fprintf stderr "undef result kind unexpected, count %d" countUndef
     else
         fprintfn stderr "file not found: %s" path
+
+type StationOfDbWk =
+    { dbname: string
+      dbkm: float
+      wkname: string
+      wkkms: float [] }
+
+let toResultOfStation (stations: DbStationOfRoute []) =
+    stations |> Array.map (fun db -> Failure(db))
+
+let dump (title: string) (route: int) (results: ResultOfStation []) =
+    let both =
+        results
+        |> Array.map (fun result ->
+            match result with
+            | Failure db ->
+                { dbname = db.name
+                  dbkm = db.km
+                  wkname = ""
+                  wkkms = [||] }
+            | Success (db, wk) ->
+                { dbname = db.name
+                  dbkm = db.km
+                  wkname = wk.name
+                  wkkms = wk.kms })
+
+    let json =
+        (Serializer.Serialize<StationOfDbWk []>(both))
+
+    System.IO.File.WriteAllText
+        ("./dump/"
+         + title
+         + "-"
+         + route.ToString()
+         + "-StationOfDbWk.json",
+         json)

@@ -8,13 +8,30 @@ open DbData
 open StationMatch
 open ResultsOfMatch
 
+let compareMatch ((db0, wk0): DbStationOfRoute * StationOfRoute) ((db1, wk1): DbStationOfRoute * StationOfRoute) =
+    if wk0.kms.Length = 0 || wk1.kms.Length = 0 then
+        0
+    else
+        let diff0 = abs (db0.km - wk0.kms.[0])
+        let diff1 = abs (db1.km - wk1.kms.[0])
+        if diff0 = diff1 then 0
+        else if diff0 < diff1 then -1
+        else 1
+
+let getBestMatch (matches: (DbStationOfRoute * StationOfRoute) []) =
+    if matches.Length > 1 then
+        let sorted = matches |> Array.sortWith compareMatch
+        sorted.[0]
+    else
+        matches.[0]
+
 let findStation (wikiStations: StationOfRoute []) (dbStation: DbStationOfRoute) =
     let res =
         wikiStations
         |> Array.map (fun b -> getMatchedStation b dbStation)
         |> Array.choose id
 
-    if res.Length = 0 then Failure(dbStation) else Success(res.[0])
+    if res.Length = 0 then Failure(dbStation) else Success(getBestMatch res)
 
 let checkDbDataInWikiData (strecke: int) (wikiStations: StationOfRoute []) (dbStations: DbStationOfRoute []) =
     let results =
@@ -91,6 +108,13 @@ let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRout
 
     foundFirst && foundLast
 
+let existsWkStationInResultSuccess (station: string) results =
+    results
+    |> Array.exists (fun result ->
+        match result with
+        | Success (_, wk) when wk.name = station -> true
+        | _ -> false)
+
 let compare (title: string)
             (streckeOrig: RouteInfo)
             (streckeMatched: RouteInfo)
@@ -125,8 +149,15 @@ let compare (title: string)
           countWikiStops = countWikiStops
           countDbStops = countDbStops
           countDbStopsNotFound = countDbStopsNotFound
-          resultKind = getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound
+          resultKind =
+              getResultKind
+                  countWikiStops
+                  countDbStops
+                  countDbStopsFound
+                  countDbStopsNotFound
           isCompleteDbRoute = isCompleteDbRoute }
+
+    ResultsOfMatch.dump title streckeOrig.nummer results
 
     if (showDetails) then
         dump title streckeOrig precodedStations wikiStations results

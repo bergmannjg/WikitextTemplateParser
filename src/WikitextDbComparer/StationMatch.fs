@@ -33,7 +33,7 @@ let private levenshtein (word1: string) (word2: string) =
 
 /// no strict matching af names, assuming the distance check has succeeded
 let private matchStationName (wikiName: string) (dbName: string) =
-    let nomatches = [ "Hbf"; "Pbf"; "Vorbahnhof" ]
+    let nomatches = [ "Hbf"; "Pbf"; "Vorbahnhof"; "Awanst"; "Abzw" ]
 
     let sameSubstring (s0: string) (s1: string) =
         let checkchars = 5
@@ -44,7 +44,7 @@ let private matchStationName (wikiName: string) (dbName: string) =
 
     let wikiName0 =
         nomatches
-        |> List.fold (fun (x: string) y -> x.Replace(y, "")) wikiName
+        |> List.fold (fun (x: string) y -> x.Replace(y, "").Trim()) wikiName
 
     let dbName0 =
         nomatches

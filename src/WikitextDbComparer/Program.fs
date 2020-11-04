@@ -32,11 +32,16 @@ let comparetitle title showDetails =
     let strecken = streckenAlle |> Array.filter (fun s -> s.nummer>=1000 && checkPersonenzugStreckenutzung s.nummer)
     if streckenAlle.Length > 0 && streckenAlle.Length > strecken.Length then 
         let streckenOhne = streckenAlle|>Array.map (fun s -> s.nummer)|>Array.filter (fun nr -> not (strecken|>Array.exists (fun s -> s.nummer=nr)))
-        streckenOhne |> Array.iter (fun nr -> printResult (createResult title nr RouteIsNoPassengerTrain) showDetails)
+        streckenOhne |> Array.iter (fun nr -> 
+            printResult (createResult title nr RouteIsNoPassengerTrain) showDetails
+            let dbStations = loadDBStations nr
+            ResultsOfMatch.dump title nr (ResultsOfMatch.toResultOfStation dbStations)
+            )
         if showDetails then fprintfn stderr "%s, keine Fernbahnnutzung %A" title streckenOhne 
    
     if strecken.Length>0 then
         let precodedStations = templates |> Array.map findStationOfInfobox |> Array.choose id
+        StationsOfInfobox.dump title precodedStations
         strecken
         |> Array.iter (fun route -> 
             let routeMatched = getMatchedRouteInfo route precodedStations (strecken.Length = 1)
@@ -44,6 +49,7 @@ let comparetitle title showDetails =
             let wikiStations = match dbStations.Length > 0 with 
                                 | true -> filterStations routeMatched precodedStations
                                 | _ -> [||]
+            StationsOfRoute.dump title route wikiStations
             compare title route routeMatched wikiStations dbStations precodedStations showDetails)
 
 [<EntryPoint>]

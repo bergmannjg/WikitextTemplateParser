@@ -2,7 +2,6 @@
 module StationsOfInfobox
 
 open Ast
-open RouteInfo
 open System.Text.RegularExpressions
 open FSharp.Collections
 
@@ -10,95 +9,18 @@ open FSharp.Collections
 
 let BorderSymbols = [| "TZOLLWo"; "GRENZE"; "xGRENZE" |]
 
-let BhfSymbols =
-    [| "BHF" // Bahnhof, Station
-       "BHF-R"
-       "BHF-L"
-       "tTBHF"
-       "BHFq" // Bahnhof, Station quer
-       "KBHFa" // Kopfbahnhof Streckenanfang
-       "KBHFxa" // Kopfbahnhof Streckenanfang
-       "KBHFe" // Kopfbahnhof Streckenende
-       "KBHFxe" // Kopfbahnhof Streckenende
-       "KBHFxeq"
-       "KBHFaq" // Spitzkehrenbahnhof
-       "ABHFl+l" // Spitzkehrbahnhof links
-       "ABHFr+r" // Spitzkehrbahnhof rechts
-       "TBHFo" // Turmbahnhof oben
-       "TBHFu" // Turmbahnhof unten
-       "TBHFxo" // Turmbahnhof oben
-       "TBHFxu" // Turmbahnhof unten
-       "DST" // "Bahnhof ohne Personenverkehr, Dienststation, Betriebs- oder Güterbahnhof
-       "DSTq" // "Bahnhof ohne Personenverkehr
-       "S+BHF"
-       "xKBHFe"
-       "exBHF"
-       "KS+BHFa"
-       "xTBHFo"
-       "eBHF"
-       "BS2l" // ?
-       "BS2r" |] // ?
-
-let SBhfSymbols =
-    [| "SBHF" // S-Bahnhof
-       "SBHFq"
-       "KSBHFa"
-       "KSBHFxa"
-       "KSBHFe"
-       "KSBHFxe" |]
-
-let DstSymbols =
-    [| "DST" // Bahnhof ohne Personenverkehr
-       "DST-R"
-       "DST-L"
-       "DSTq"
-       "KDSTa"
-       "KDSTxa"
-       "KDSTe"
-       "KDSTxe"
-       "exKDSTe"
-       "ÜST" |]
-
-let HstSymbols =
-    [| "HST" // Haltepunkt, Haltestelle
-       "HSTq" // Haltepunkt, Haltestelle quer
-       "KHSTa" // Halt... Streckenanfang
-       "KHSTxa" // Halt... Streckenanfang
-       "KHSTe" // Halt... Streckenende
-       "KHSTxe" // Halt... Streckenende
-       "BST" // Blockstelle etc.
-       "BSTq" // Blockstelle etc. quer
-       "KBSTa" // Betriebsstelle Streckenanfang
-       "KBSTxa" // Betriebsstelle Streckenanfang
-       "KBSTe" // Betriebsstelle Streckenende
-       "KBSTxe" // Betriebsstelle Streckenende
-       "KMW" // Streckenwechsel
-       "xKMW" |] // Kilometrierungswechsel
-
-let SHstSymbols =
-    [| "SHST" // S-Bahnhalt...
-       "SHSTq" // S-Bahnhalt... quer
-       "KSHSTa" // S-Bahnhalt... Streckenanfang
-       "KSHSTxa" // S-Bahnhalt... Streckenanfang
-       "KSHSTe" // S-Bahnhalt... Streckenende
-       "KSHSTxe" |]
-
-let AbzweigSymbols =
-    [| "ABZgl" // Abzweig geradeaus und nach links
-       "ABZgr" |] // Abzweig geradeaus und nach rechts
-
-let allbhftypes =
-    Array.concat [ BhfSymbols
-                   SBhfSymbols
-                   HstSymbols
-                   SHstSymbols
-                   DstSymbols
-                   AbzweigSymbols ]
-
-let bhftypes =
-    Array.concat [ BhfSymbols
-                   HstSymbols
-                   DstSymbols ]
+// "BS2l" "BS2r" are wrong symbols
+let BhfSymbolTypes =
+    [| "BHF"
+       "DST"
+       "ÜST"
+       "HST"
+       "BST"
+       "KMW"
+       "ABZ"
+       "KRZ"
+       "BS2l"
+       "BS2r" |]
 
 type StationOfInfobox =
     { symbols: string []
@@ -110,12 +32,29 @@ let private createStationOfInfobox (symbols: string []) (kms: float []) (name: s
       distances = kms
       name = name }
 
-let private findBahnhofName (p: Parameter) =
-    match p with
+let isValidText (s: string) =
+    not (System.String.IsNullOrEmpty(s))
+    && s
+    <> "'''"
+    && s <> "("
+
+let private findStationName (p: Parameter) =
+    match p with // try first string
+    | Composite (_, Composite.String (_) :: Link link :: Composite.String (s) :: _) when isValidText (s) ->
+        Some(textOfLink link + " " + s)
+    | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
+        Some(textOfLink link1 + s + textOfLink link2)
+    | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
+        Some(textOfLink link + " " + s)
+    | Composite (_, Composite.String (s) :: Composite.Link link :: _) when isValidText (s) ->
+        Some(s + " " + textOfLink link)
     | Composite (_, cl) ->
         match getFirstLinkInList cl with
         | Some (link) -> Some(textOfLink link)
-        | _ -> None
+        | _ ->
+            match cl with
+            | Composite.String (s) :: _ -> Some(s)
+            | _ -> None
     | Parameter.String (_, n) -> Some(n.Trim())
     | _ -> None
 
@@ -123,7 +62,7 @@ let private matchesType (parameters: List<Parameter>) (types: string []) =
     parameters
     |> List.exists (fun t ->
         match t with
-        | Parameter.String (n, v) when types |> Array.exists ((=) v) -> true
+        | Parameter.String (n, v) when types |> Array.exists (fun t -> v.Contains(t)) -> true
         | _ -> false)
 
 let private normalizeKms (kms: string) =
@@ -190,14 +129,18 @@ let private findSymbols (parameters: List<Parameter>) =
         match s with
         | Parameter.String (_, str) -> str
         | _ -> "")
-    |> List.filter (fun s -> bhftypes |> Array.contains s)
     |> List.toArray
 
 let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
-    match findBahnhofName p2, symbols with
+    match findStationName p2, symbols with
     | Some (name), _ -> matchStationDistances symbols p1 name
     | _, [| "xKMW" |] -> matchStationDistances symbols p1 "Kilometrierungswechsel"
     | _ -> None
+
+let chooseNonEmptyParameter (index: int) (l: Parameter list) =
+    match l.[index] with // try first string
+    | Parameter.Empty when index + 1 < l.Length -> l.[index + 1]
+    | _ -> l.[index]
 
 let findStationOfInfobox (t: Template) =
     try
@@ -205,26 +148,33 @@ let findStationOfInfobox (t: Template) =
         | (n, [], l) when ("BS" = n || "BSe" = n)
                           && l.Length
                           >= 3
-                          && (matchesType (List.take 1 l) allbhftypes) ->
-            matchStation (findSymbols (List.take 1 l)) l.[1] l.[2]
+                          && (matchesType (List.take 1 l) BhfSymbolTypes) ->
+            matchStation (findSymbols (List.take 1 l)) l.[1] (chooseNonEmptyParameter 2 l)
         | (n, [], l) when ("BS2" = n || "BS2e" = n)
                           && l.Length
                           >= 4
-                          && (matchesType (List.take 2 l) allbhftypes) ->
+                          && (matchesType (List.take 2 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 2 l)) l.[2] l.[3]
-        | (n, [], l) when "BS3" = n
-                          && l.Length >= 5
-                          && (matchesType (List.take 3 l) allbhftypes) ->
+        | (n, [], l) when ("BS3" = n || "BS3e" = n)
+                          && l.Length
+                          >= 5
+                          && (matchesType (List.take 3 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 3 l)) l.[3] l.[4]
         | (n, [], l) when "BS4" = n
                           && l.Length >= 6
-                          && (matchesType (List.take 4 l) allbhftypes) ->
+                          && (matchesType (List.take 4 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 4 l)) l.[4] l.[5]
         | (n, [], l) when "BS5" = n
                           && l.Length >= 7
-                          && (matchesType (List.take 5 l) allbhftypes) ->
+                          && (matchesType (List.take 5 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 5 l)) l.[5] l.[6]
         | _ -> None
     with ex ->
         fprintfn stderr "*** error %A\n  template %A" ex t
         None
+
+let dump (title: string) (precodedStations: StationOfInfobox []) =
+    let json =
+        (Serializer.Serialize<StationOfInfobox []>(precodedStations))
+
+    System.IO.File.WriteAllText("./dump/" + title + "-StationOfInfobox.json", json)

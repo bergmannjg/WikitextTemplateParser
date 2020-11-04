@@ -3,6 +3,7 @@ module AdhocReplacements
 
 let ignoreStringsInRoutename =
     [| ", 3. Gl."
+       "3. Gleis"
        ", Ferngleise"
        ", Vorortgleise"
        "+EVS"
@@ -11,6 +12,7 @@ let ignoreStringsInRoutename =
        "äußeres Gleispaar"
        "aus Hbf"
        "Bestandsstrecke"
+       "drittes Gleis"
        "ehem. Trasse"
        "Fernbahn"
        "Ferngleise"
