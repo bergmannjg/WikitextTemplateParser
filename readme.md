@@ -3,7 +3,8 @@
 Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) [templates](https://www.mediawiki.org/wiki/Help:Templates) and compare with [data](https://data.deutschebahn.com/dataset/geo-betriebsstelle) from Open-Data-Portal of Deutsche Bahn.
 
 * [parse](./src/WikitextTemplateParser/readme.md),
-* [compare](./src/WikitextDbComparer/readme.md).
+* [compare](./src/WikitextDbComparer/readme.md),
+* [view results](./src/ResultsViewer/readme.md).
 
 ## Preliminary results
 
@@ -15,9 +16,9 @@ Currently the comparison of wiki data with db data gives the follwing results:
 |articles with empty route parameter|381||
 |distinct routes total|1428|articles may contain multiple routes or routes are in multiple articles |
 |route is no passenger train|219|urban trains and freight trains are not checked|
-|start/stop stations of route not found|36|stations from route parameters not found, needs further investigation|
-|routes with wikidata complete|405|all db stations of a route found in wikidata stations|
-|routes with db data not found in wikidata|209|some db stations of a route not found in wikidata stations|
+|start/stop stations of route not found|27|stations from route parameters not found, needs further investigation|
+|routes with wikidata complete|470|all db stations of a route found in wikidata stations|
+|routes with db data not found in wikidata|153|some db stations of a route not found in wikidata stations|
 |routes with no db data found|695|articles with shut down routes or missing db data|
 
 <br/>

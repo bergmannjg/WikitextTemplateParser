@@ -5,7 +5,7 @@ if [ ! -d "./scripts" ]; then
     exit 1
 fi
 
-rm ./wikidata/*.*
+rm -f ./wikidata/*.*
  
 dotnet build src/WikitextTemplateParser/WikitextTemplateParser.fsproj > /dev/null
 if [ $? -ne 0 ]

@@ -2,12 +2,25 @@ module Views
 
 open Giraffe.ViewEngine
 
+let tabulatorCached = System.IO.Directory.Exists "./distx"
+
+/// using http://tabulator.info
 let titleAndScripts (titleString: string) =
+    let tabulaturScript =
+        if tabulatorCached
+        then "/dist/js/tabulator.min.js"
+        else "https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"
+
+    let tabulaturCss =
+        if tabulatorCached
+        then "/dist/css/tabulator.min.css"
+        else "https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css"
+
     [ title [] [ str titleString ]
       link [ _rel "stylesheet"
-             _href "/dist/css/tabulator.min.css" ]
+             _href tabulaturCss ]
       script [ _type "application/javascript"
-               _src "/dist/js/tabulator.min.js" ] [] // http://tabulator.info
+               _src tabulaturScript ] []
       script [ _type "application/javascript"
                _src "/js/loadTable.js" ] []
       style [] [
