@@ -2,7 +2,7 @@ module Views
 
 open Giraffe.ViewEngine
 
-let tabulatorCached = System.IO.Directory.Exists "./distx"
+let tabulatorCached = System.IO.Directory.Exists "./dist"
 
 /// using http://tabulator.info
 let titleAndScripts (titleString: string) =

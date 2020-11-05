@@ -13,8 +13,6 @@ RUN git clone https://github.com/bergmannjg/wikitext-template-parser.git
 
 WORKDIR /usr/src/apps/wikitext-template-parser
 
-RUN dotnet build ./src/WikitextTemplateParser/WikitextTemplateParser.fsproj
-
 RUN mkdir cache dump wikidata
 
 COPY ./dbdata dbdata/
@@ -25,11 +23,7 @@ RUN head -n ${LINES} titles.orig.txt > titles.txt
 
 RUN ./scripts/parse-wikis.sh
 
-RUN dotnet build ./src/WikitextDbComparer/WikitextDbComparer.fsproj
-
 RUN ./scripts/compare-wkis.sh > ./dump/results.json
-
-RUN dotnet run --project src/WikitextDbComparer/WikitextDbComparer.fsproj -showCompareResults ./dump/results.json
 
 RUN dotnet build ./src/ResultsViewer/ResultsViewer.fsproj
 
