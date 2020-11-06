@@ -35,7 +35,11 @@ and Parameter =
     | String of string * string
     | Composite of string * Composite list
 
-and Template = string * Parameter list
+and FunctionParameter =
+    | Empty
+    | String of string
+
+and Template = string * FunctionParameter list * Parameter list
 
 type Templates = Template list
 ```
