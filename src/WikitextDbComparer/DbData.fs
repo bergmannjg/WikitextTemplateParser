@@ -1,5 +1,7 @@
 module DbData
 
+open FSharp.Data
+
 type DbStationOfRoute = { km: float; name: string }
 
 type BetriebsstelleRailwayRoutePosition =
@@ -43,12 +45,61 @@ let bfStelleArt =
        "Abzw"
        "Awanst" |]
 
-let loadDBRoutePosition routenr =
-    let dbtext =
-        System.IO.File.ReadAllText("./dbdata/original/betriebsstellen_open_data.json")
+let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
+    try
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)
 
-    let dbdata =
-        Serializer.Deserialize<BetriebsstelleRailwayRoutePosition []>(dbtext)
+        use stream =
+            System.IO.File.Open(path, System.IO.FileMode.Open)
+
+        let streamReader =
+            new System.IO.StreamReader(stream, System.Text.Encoding.GetEncoding(cp))
+
+        seq {
+            for row in (CsvFile.Load(streamReader).Rows) do
+                yield (loader row)
+        }
+        |> Seq.toArray
+    with ex ->
+        fprintfn stderr "loadCsvData: %s %A" path ex
+        Array.empty
+
+let private loadBetriebsstellenCsvData () =
+    loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun row ->
+        { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
+          RICHTUNG = row.["RICHTUNG"].AsInteger()
+          KM_I = row.["KM_I"].AsInteger()
+          KM_L = row.["KM_L"]
+          BEZEICHNUNG = row.["BEZEICHNUNG"]
+          STELLE_ART = row.["STELLE_ART"]
+          KUERZEL = row.["KUERZEL"]
+          GEOGR_BREITE =
+              if System.String.IsNullOrEmpty(row.["GEOGR_BREITE"])
+              then 0.0
+              else row.["GEOGR_BREITE"].AsFloat()
+          GEOGR_LAENGE = row.["GEOGR_LAENGE"].AsFloat() })
+
+let private loadStreckenutzungCsvData () =
+    loadCsvData "./dbdata/original/strecken_nutzung.csv" 1252 (fun row ->
+        { mifcode = row.[0]
+          strecke_nr = row.[1].AsInteger()
+          richtung = row.[2].AsInteger()
+          laenge = row.[3].AsInteger()
+          von_km_i = row.[4].AsInteger()
+          bis_km_i = row.[5].AsInteger()
+          von_km_l = row.[6]
+          bis_km_l = row.[7]
+          elektrifizierung = row.[8]
+          bahnnutzung = row.[9]
+          geschwindigkeit = row.[10]
+          strecke_kurzn = row.[11]
+          gleisanzahl = row.[12]
+          bahnart = row.[13]
+          kmspru_typ_anf = row.[14]
+          kmspru_typ_end = row.[15] })
+
+let private loadDBRoutePosition routenr =
+    let dbdata = loadBetriebsstellenCsvData ()
 
     dbdata
     |> Array.filter (fun p ->
@@ -62,11 +113,7 @@ let loadDBStations routenr =
           name = p.BEZEICHNUNG })
 
 let checkPersonenzugStreckenutzung (strecke: int) =
-    let dbtext =
-        System.IO.File.ReadAllText("./dbdata/original/strecken_nutzung.json")
-
-    let dbdata =
-        Serializer.Deserialize<Streckenutzung []>(dbtext)
+    let dbdata = loadStreckenutzungCsvData ()
 
     let bahnnutzung =
         dbdata

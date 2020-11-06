@@ -15,7 +15,7 @@ WORKDIR /usr/src/apps/wikitext-template-parser
 
 RUN mkdir cache dump wikidata
 
-COPY ./dbdata dbdata/
+RUN source ./scripts/restore.sh
 
 RUN cp titles.txt titles.orig.txt
 
