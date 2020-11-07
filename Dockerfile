@@ -23,7 +23,7 @@ RUN head -n ${LINES} titles.orig.txt > titles.txt
 
 RUN ./scripts/parse-wikis.sh
 
-RUN ./scripts/compare-wkis.sh > ./dump/results.json
+RUN ./scripts/compare-wkis.sh
 
 RUN dotnet build ./src/ResultsViewer/ResultsViewer.fsproj
 

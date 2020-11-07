@@ -29,16 +29,15 @@ let private getMatch (nameInHeader: string) (nameInTemplate: string) =
         if candidates.Length > 0 then Some candidates.[0] else None
 
 /// getBestMatch, maybe 'takeFirst/takeLast' strategy is not enough
-let private getBestMatch (nameInHeader: string) (namesInTemplate: string []) (takeFirst: bool) =
+let private getBestMatch (nameInHeader: string) (namesInTemplate: string []) =
     let candidates =
         namesInTemplate
         |> Array.map (getMatch nameInHeader)
         |> Array.choose id
 
-    if candidates.Length = 0 then None
-    else if candidates.Length = 1 then Some candidates.[0]
-    else if takeFirst then Some candidates.[0]
-    else Some candidates.[candidates.Length - 1]
+    if candidates.Length = 0
+    then None
+    else Some(candidates.[0], candidates.[candidates.Length - 1])
 
 /// filter station list beginning and ending with a name  in 'fromTo'
 let private filterStations0 (fromTo: string []) (stations: StationOfInfobox []) =
@@ -129,23 +128,46 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox [])
               match last with
               | Some s -> s.name
               | None -> ""
+          railwayGuide = strecke.railwayGuide
           routenameKind = strecke.routenameKind
           searchstring = strecke.searchstring }
     else
         strecke
 
-/// match RouteInfo station names with station names of templates
-let getMatchedRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
+let private getMatchedRouteStations (von: string) (bis: string) (stations: StationOfInfobox []) =
     let namesInTemplate = stations |> Array.map (fun s -> s.name)
 
-    let matchFrom =
-        getBestMatch strecke.von namesInTemplate true
+    let matchFrom = getBestMatch von namesInTemplate
 
-    let matchTo =
-        getBestMatch strecke.bis namesInTemplate false
+    let matchTo = getBestMatch bis namesInTemplate
 
     match matchFrom, matchTo with
-    | Some f, Some t -> createStrecke strecke.nummer strecke.title f t strecke.routenameKind strecke.searchstring
+    | Some (fromFirst, fromLast), Some (toFirst, toLast) ->
+        let indedFrom =
+            namesInTemplate |> Array.findIndex ((=) fromFirst)
+
+        let indedTo =
+            namesInTemplate |> Array.findIndex ((=) toLast)
+
+        if indedFrom <= indedTo then Some(fromFirst, toLast) else Some(toFirst, fromLast) // reverse search
+    | _ -> None
+
+let private maybeReplaceRouteNr (strecke: RouteInfo) =
+    let candidate =
+        AdhocReplacements.maybeWrongRoutes
+        |> Array.tryFind (fun (title, routeWrong, route) ->
+            title = strecke.title
+            && routeWrong = strecke.nummer)
+
+    match candidate with
+    | Some (_, _, nr) -> { strecke with nummer = nr }
+    | None -> strecke
+
+/// match RouteInfo station names with station names of templates
+let getMatchedRouteInfo (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
+    let strecke = maybeReplaceRouteNr strecke0
+    match getMatchedRouteStations strecke.von strecke.bis stations with
+    | Some (f, t) -> { strecke with von = f; bis = t }
     | _ -> if refillPossible then refillRouteInfo strecke stations else strecke
 
 let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =

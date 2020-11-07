@@ -35,10 +35,17 @@ let abbreviationsInRoutename =
        ("Bln.", "Berlin")
        ("Büdesh-Dromersh", "Büdesheim-Dromersheim")
        ("Dr.-Friedrichst.", "Dresden-Friedrichstadt")
+       ("E-Kupferdreh", "Essen-Kupferdreh")
+       ("E-Überruhr", "Essen-Überruhr") 
        ("Frankfurt(M) Hbf", "Frankfurt (Main) Hbf")
        ("Frankfurt Hbf", "Frankfurt (Main) Hbf")
        ("Gens-Horrw", "Gensingen-Horrweiler")
        ("Hdbg Hbf", "Heidelberg Hbf")
        ("Köln-Deutz", "Köln Messe/Deutz")
+       ("Ludwigsh. (Rh) ÜbS", "Ludwigshafen (Rhein) Hbf")
        ("SG-Ohligs", "Solingen Hbf")
-       ("SG Süd", "Solingen Süd") |]
+       ("SG Süd", "Solingen Süd")
+       |]
+
+let maybeWrongRoutes =
+    [| ("Bahnstrecke_Lübeck–Lüneburg", 1122, 1120) |]

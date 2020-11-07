@@ -43,6 +43,7 @@ let bfStelleArt =
        "Bft"
        "Hp"
        "Abzw"
+       "Bft Abzw"
        "Awanst" |]
 
 let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
@@ -55,10 +56,8 @@ let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
         let streamReader =
             new System.IO.StreamReader(stream, System.Text.Encoding.GetEncoding(cp))
 
-        seq {
-            for row in (CsvFile.Load(streamReader).Rows) do
-                yield (loader row)
-        }
+        CsvFile.Load(streamReader).Rows
+        |> Seq.map loader
         |> Seq.toArray
     with ex ->
         fprintfn stderr "loadCsvData: %s %A" path ex

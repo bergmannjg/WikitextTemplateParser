@@ -5,6 +5,11 @@ if [ ! -d "./scripts" ]; then
     exit 1
 fi
 
+if [ ! -d "./dump" ]; then
+    echo "directory dump not found"
+    exit 1
+fi
+
 LINES=2000
 
 if [ $# -eq 1 ]; then
@@ -28,8 +33,10 @@ done < <(head -n $LINES ./titles.txt)
 
 sed -i -e '$ ! s/$/,/' "$tmpfile"
 
-echo "[" 
-cat "$tmpfile"
-echo "]"
+OUTFILE=./dump/results.json
+
+echo "[" > $OUTFILE
+cat "$tmpfile" >>  $OUTFILE
+echo "]" >>  $OUTFILE
 
 rm "$tmpfile"

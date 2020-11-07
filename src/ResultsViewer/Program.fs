@@ -4,6 +4,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 open Giraffe
 open Giraffe.ViewEngine
 
@@ -39,6 +40,9 @@ let configureApp (app : IApplicationBuilder) =
 let configureServices (services : IServiceCollection) =
     services.AddGiraffe() |> ignore
 
+let configureLogging (builder : ILoggingBuilder) =
+    builder.ClearProviders().AddConsole() |> ignore
+
 [<EntryPoint>]
 let main _ =
     Host.CreateDefaultBuilder()
@@ -47,6 +51,7 @@ let main _ =
                 webHostBuilder
                     .Configure(configureApp)
                     .ConfigureServices(configureServices)
+                    .ConfigureLogging(configureLogging)
                     |> ignore)
         .Build()
         .Run()

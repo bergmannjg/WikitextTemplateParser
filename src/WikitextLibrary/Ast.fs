@@ -1,4 +1,4 @@
-/// Ast for route diagram wikitext templates, 
+/// Ast for route diagram wikitext templates,
 /// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke
 /// see https://www.mediawiki.org/wiki/Help:Templates
 module Ast
@@ -47,8 +47,9 @@ let findTemplateParameterString (templates: Template []) (templateName: string) 
     |> Array.collect List.toArray
     |> Array.map (fun p ->
         match p with
-        | Parameter.String (n, v) when parameterName = n || ("DE-" + parameterName) = n -> Some v
-        | Composite (n, v) when (parameterName = n || ("DE-" + parameterName) = n)
+        | Parameter.String (n, v) when ("DE-" + parameterName = n) || parameterName = n -> Some v
+        | Composite (n, v) when ("DE-" + parameterName = n)
+                                || parameterName = n
                                 && v.Length > 0 -> Some(concatCompositeStrings v)
         | _ -> None)
     |> Array.choose id

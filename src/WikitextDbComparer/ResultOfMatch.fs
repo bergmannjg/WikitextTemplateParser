@@ -9,10 +9,12 @@ type ResultKind =
     | StartStopStationsNotFound
     | WikidataNotFoundInTemplates
     | WikidataNotFoundInDbData
-    | NoDbDataFound
+    | NoDbDataFoundWithRailwayGuide
+    | NoDbDataFoundWithoutRailwayGuide
     | RouteParameterNotParsed
     | RouteParameterEmpty
     | RouteIsNoPassengerTrain
+    | RouteIsShutdown
     | Undef
 
 type ResultOfRoute =
@@ -25,6 +27,7 @@ type ResultOfRoute =
       countWikiStops: int
       countDbStops: int
       countDbStopsNotFound: int
+      railwayGuide: string
       isCompleteDbRoute: bool }
 
 type ResultOfStation =
@@ -41,16 +44,35 @@ let createResult title route resultKind =
       countDbStops = 0
       countDbStopsNotFound = 0
       resultKind = resultKind
+      railwayGuide = ""
       isCompleteDbRoute = false }
 
-let getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound =
-    let dbStopsWithRoute = countDbStops > 1
+let guessRailwayGuideIsValid (value: string option) =
+    match value with
+    | Some v ->
+        let index = v.IndexOf "<br" // maybe valid
+        if index > 1 then
+            v.Substring(0, index - 1)
+            |> Seq.forall System.Char.IsDigit
+        else
+            v |> Seq.forall System.Char.IsDigit
+    | None -> false
+
+let guessRouteIsShutdown (railwayGuide: string option) =
+    match railwayGuide with
+    | Some v -> v.Contains "ehem" || v.Contains "alt"
+    | None -> false
+
+let getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound (railwayGuide: string option) =
+    let dbStopsWithRoute = countDbStops > 0
     if countWikiStops = 0 && dbStopsWithRoute then
         StartStopStationsNotFound
     else if countDbStopsFound > 0
             && dbStopsWithRoute
             && countDbStopsNotFound = 0 then
         WikidataFoundInDbData
+    else if guessRouteIsShutdown railwayGuide then
+        RouteIsShutdown
     else if countWikiStops > 0
             && dbStopsWithRoute
             && countDbStopsNotFound > 0 then
@@ -58,7 +80,10 @@ let getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotF
     else if countWikiStops = 0 && dbStopsWithRoute then
         WikidataNotFoundInTemplates
     else if not dbStopsWithRoute then
-        NoDbDataFound
+        if guessRailwayGuideIsValid railwayGuide then
+            NoDbDataFoundWithRailwayGuide
+        else
+            NoDbDataFoundWithoutRailwayGuide
     else
         Undef
 
@@ -134,11 +159,26 @@ let showResults (path: string) =
         printfn
             "not found wikidata in db data: %d"
             (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataNotFoundInDbData)).Length
+             |> Array.filter (fun r ->
+                 r.resultKind = ResultKind.WikidataNotFoundInDbData
+                 && not  // check result of route with WikidataFoundInDbData and complete
+                     (results
+                      |> Array.exists (fun s ->
+                          s.route = r.route
+                          && s.resultKind = WikidataFoundInDbData
+                          && s.isCompleteDbRoute)))).Length
+        printfn
+            "no db data found, but has railway guide : %d"
+            (results
+             |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithRailwayGuide)).Length
+        printfn
+            "route is shutdown : %d"
+            (results
+             |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsShutdown)).Length
         printfn
             "no db data found: %d"
             (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFound)).Length
+             |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithoutRailwayGuide)).Length
 
         let countUndef =
             (results

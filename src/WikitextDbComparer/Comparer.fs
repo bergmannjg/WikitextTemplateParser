@@ -125,7 +125,7 @@ let compare (title: string)
             =
     let results =
         if wikiStations.Length > 0 && dbStations.Length > 0
-        then checkDbDataInWikiData streckeOrig.nummer wikiStations dbStations
+        then checkDbDataInWikiData streckeMatched.nummer wikiStations dbStations
         else [||]
 
     let countWikiStops = wikiStations.Length
@@ -139,7 +139,7 @@ let compare (title: string)
         && isDbRouteComplete results dbStations
 
     let resultOfRoute =
-        { route = streckeOrig.nummer
+        { route = streckeMatched.nummer
           title = title
           fromToNameOrig = [| streckeOrig.von; streckeOrig.bis |]
           fromToNameMatched =
@@ -155,14 +155,19 @@ let compare (title: string)
                   countDbStops
                   countDbStopsFound
                   countDbStopsNotFound
+                  streckeMatched.railwayGuide
+          railwayGuide =
+              match streckeMatched.railwayGuide with
+              | Some s -> s
+              | None -> ""
           isCompleteDbRoute = isCompleteDbRoute }
 
-    ResultsOfMatch.dump title streckeOrig.nummer results
+    ResultsOfMatch.dump title streckeMatched.nummer results
 
     if (showDetails) then
-        dump title streckeOrig precodedStations wikiStations results
+        dump title streckeMatched precodedStations wikiStations results
         printfn "see wikitext ./cache/%s.txt" title
         printfn "see templates ./wikidata/%s.txt" title
-        printfn "see dumps ./dump/%s-%d.txt" title streckeOrig.nummer
+        printfn "see dumps ./dump/%s-%d.txt" title streckeMatched.nummer
 
     printResult resultOfRoute showDetails

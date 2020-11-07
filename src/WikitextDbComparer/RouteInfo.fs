@@ -29,6 +29,7 @@ type RouteInfo =
       title: string
       von: string
       bis: string
+      railwayGuide: string option
       routenameKind: RoutenameKind
       searchstring: string }
 
@@ -36,6 +37,7 @@ let createStrecke (nummer: int)
                   (title: string)
                   (von: string)
                   (bis: string)
+                  (hasRailwayGuide: string option)
                   (routenameKind: RoutenameKind)
                   (searchstring: string)
                   =
@@ -43,6 +45,7 @@ let createStrecke (nummer: int)
       title = title
       von = von
       bis = bis
+      railwayGuide = hasRailwayGuide
       routenameKind = routenameKind
       searchstring = searchstring }
 
@@ -86,6 +89,7 @@ let matchRegexwithValue pattern
                         value
                         von
                         bis
+                        (hasRailwayGuide: string option)
                         (routenameKind: RoutenameKind)
                         (title: string)
                         (strecken: ResizeArray<RouteInfo>)
@@ -94,14 +98,15 @@ let matchRegexwithValue pattern
     let mc = regex.Matches value
     for m in mc do
         if m.Groups.Count = 2
-        then strecken.Add(createStrecke (m.Groups.[1].Value |> int) title von bis routenameKind value)
+        then strecken.Add(createStrecke (m.Groups.[1].Value |> int) title von bis hasRailwayGuide routenameKind value)
     mc.Count > 0
 
 let figureDash = "–" // FIGURE DASH U+2012
 let hyphenMinus = "-" // HYPHEN-MINUS U+002D
 let minusSign = "−" // MINUS SIGN U+2212
+let leftRightArrow = "↔" // MINUS SIGN U+2194
 
-let separators = [| figureDash; hyphenMinus; minusSign |]
+let separators = [| leftRightArrow; figureDash; hyphenMinus; minusSign |]
 
 /// the standard is to separate names with FIGURE DASH char
 let spitstring (s: string) =
@@ -120,6 +125,7 @@ let addRoute (nrValue: string)
              (searchstring: string)
              von
              bis
+             (hasRailwayGuide: string option)
              (routenameKind: RoutenameKind)
              (title: string)
              (strecken: ResizeArray<RouteInfo>)
@@ -132,20 +138,21 @@ let addRoute (nrValue: string)
 
     match ((spitstring namen) |> Array.map trim) with
     | [| von0; bis0 |] when not (System.String.IsNullOrEmpty bis0) ->
-        strecken.Add(createStrecke nr title von0 bis0 routenameKind searchstring)
+        strecken.Add(createStrecke nr title von0 bis0 hasRailwayGuide routenameKind searchstring)
     | [| von0; _; bis0 |] when not (System.String.IsNullOrEmpty bis0) ->
-        strecken.Add(createStrecke nr title von0 bis0 routenameKind searchstring)
+        strecken.Add(createStrecke nr title von0 bis0 hasRailwayGuide routenameKind searchstring)
     | [| von0; _; bis0; _ |] when not (System.String.IsNullOrEmpty bis0) ->
-        strecken.Add(createStrecke nr title von0 bis0 routenameKind searchstring)
+        strecken.Add(createStrecke nr title von0 bis0 hasRailwayGuide routenameKind searchstring)
     | _ ->
         if System.String.IsNullOrEmpty(namen.Trim())
-        then strecken.Add(createStrecke nr title von bis Empty searchstring)
-        else strecken.Add(createStrecke nr title "" "" Unmatched searchstring)
+        then strecken.Add(createStrecke nr title von bis hasRailwayGuide Empty searchstring)
+        else strecken.Add(createStrecke nr title "" "" hasRailwayGuide Unmatched searchstring)
 
 let matchRegexwithSubroutes pattern
                             value
                             von
                             bis
+                            (hasRailwayGuide: string option)
                             (routenameKind: RoutenameKind)
                             (title: string)
                             (strecken: ResizeArray<RouteInfo>)
@@ -156,13 +163,14 @@ let matchRegexwithSubroutes pattern
     for m in mc do
         if m.Groups.Count = 3
            && not (m.Groups.[2].Value.Contains("parallel")) then
-            addRoute m.Groups.[1].Value m.Groups.[2].Value value von bis routenameKind title strecken
+            addRoute m.Groups.[1].Value m.Groups.[2].Value value von bis hasRailwayGuide routenameKind title strecken
     mc.Count > 0
 
 let matchRegexwithValueAndSubroutes pattern
                                     value
                                     von
                                     bis
+                                    (hasRailwayGuide: string option)
                                     (routenameKind: RoutenameKind)
                                     (title: string)
                                     (strecken: ResizeArray<RouteInfo>)
@@ -174,8 +182,8 @@ let matchRegexwithValueAndSubroutes pattern
         if m.Groups.Count = 4
            && not (m.Groups.[2].Value.Contains("parallel")) then // todo: generalize
             let nr0 = m.Groups.[1].Value |> int
-            strecken.Add(createStrecke nr0 title von bis RoutenameKind.Empty value)
-            addRoute m.Groups.[2].Value m.Groups.[3].Value value von bis routenameKind title strecken
+            strecken.Add(createStrecke nr0 title von bis hasRailwayGuide RoutenameKind.Empty value)
+            addRoute m.Groups.[2].Value m.Groups.[3].Value value von bis hasRailwayGuide routenameKind title strecken
 
     mc.Count > 0
 
@@ -183,6 +191,7 @@ let matchRegexwithValueAndSubcaptures pattern
                                       value
                                       von
                                       bis
+                                      (hasRailwayGuide: string option)
                                       (routenameKind: RoutenameKind)
                                       (title: string)
                                       (strecken: ResizeArray<RouteInfo>)
@@ -194,15 +203,18 @@ let matchRegexwithValueAndSubcaptures pattern
         if m.Groups.Count = 5
            && not (m.Groups.[2].Value.Contains("parallel")) then // todo: generalize
             let nr0 = m.Groups.[1].Value |> int
-            strecken.Add(createStrecke nr0 title von bis RoutenameKind.Empty value)
+            strecken.Add(createStrecke nr0 title von bis hasRailwayGuide RoutenameKind.Empty value)
 
             Seq.iter2 (fun (c1: Capture) (c2: Capture) ->
-                addRoute c1.Value c2.Value value von bis routenameKind title strecken) m.Groups.[3].Captures
-                m.Groups.[4].Captures
+                addRoute c1.Value c2.Value value von bis hasRailwayGuide routenameKind title strecken)
+                m.Groups.[3].Captures m.Groups.[4].Captures
 
     mc.Count > 0
 
 let strContainsNumber (s: string) = s |> Seq.exists System.Char.IsDigit
+
+let normalizeRailwayGuide (value: string) =
+    value.Replace("'", "")
 
 let findBsDatenStreckenNr (templates: Template []) title =
     let (von, bis) =
@@ -212,6 +224,11 @@ let findBsDatenStreckenNr (templates: Template []) title =
             | [| von; bis |] -> (von, bis)
             | _ -> ("", "")
         | Option.None -> ("", "")
+
+    let railwayGuide =
+        match findTemplateParameterString templates "BS-daten" "KBS" with
+        | Some value when not (System.String.IsNullOrEmpty value) -> Some (normalizeRailwayGuide value)
+        | _ -> None
 
     match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
     | Some value when strContainsNumber value ->
@@ -225,23 +242,33 @@ let findBsDatenStreckenNr (templates: Template []) title =
         let value0 = regexX.Replace(valueX, "")
 
         if not
-            ((matchRegexwithValue @"^[']*([0-9]+)[']*$" value0 von bis RoutenameKind.Empty title strecken)
-             || (matchRegexwithValue @"^DB ([0-9]+)" value0 von bis RoutenameKind.Empty title strecken)
+            ((matchRegexwithValue @"^[']*([0-9]+)[']*$" value0 von bis railwayGuide RoutenameKind.Empty title strecken)
+             || (matchRegexwithValue @"^DB ([0-9]+)" value0 von bis railwayGuide RoutenameKind.Empty title strecken)
              || (matchRegexwithValueAndSubroutes
                      @"([0-9]+)\s+([0-9]+)[^<]*(<small>.+?</small>)"
                      value0
                      von
                      bis
+                     railwayGuide
                      RoutenameKind.SmallFormat
                      title
                      strecken)
-             || (matchRegexwithValue @"^([0-9]+)\s*[;,']" value0 von bis RoutenameKind.Empty title strecken)
-             || (matchRegexwithValue @"^([0-9]+)\s+[0-9/]" value0 von bis RoutenameKind.Empty title strecken)
+             || (matchRegexwithValue @"^([0-9]+)\s*[;,']" value0 von bis railwayGuide RoutenameKind.Empty title strecken)
+             || (matchRegexwithValue
+                     @"^([0-9]+)\s+[0-9/]"
+                     value0
+                     von
+                     bis
+                     railwayGuide
+                     RoutenameKind.Empty
+                     title
+                     strecken)
              || (matchRegexwithSubroutes
                      @"([0-9]+)[^<]*(<small>[^0-9].+?</small>)"
                      value0
                      von
                      bis
+                     railwayGuide
                      RoutenameKind.SmallFormat
                      title
                      strecken)
@@ -250,6 +277,7 @@ let findBsDatenStreckenNr (templates: Template []) title =
                      value0
                      von
                      bis
+                     railwayGuide
                      RoutenameKind.Text
                      title
                      strecken)
@@ -258,10 +286,19 @@ let findBsDatenStreckenNr (templates: Template []) title =
                      value0
                      von
                      bis
+                     railwayGuide
                      RoutenameKind.Parenthesis
                      title
                      strecken)
-             || (matchRegexwithSubroutes @"([0-9]+)[^A-Z]*([^0-9]+)" value0 von bis RoutenameKind.Text title strecken)) then
+             || (matchRegexwithSubroutes
+                     @"([0-9]+)[^A-Z]*([^0-9]+)"
+                     value0
+                     von
+                     bis
+                     railwayGuide
+                     RoutenameKind.Text
+                     title
+                     strecken)) then
             fprintfn stderr "%s, findBsDatenStreckenNr failed, '%s'" title value0
         Some(strecken.ToArray())
     | _ -> Option.None

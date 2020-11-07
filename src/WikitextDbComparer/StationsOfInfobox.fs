@@ -19,8 +19,7 @@ let BhfSymbolTypes =
        "KMW"
        "ABZ"
        "KRZ"
-       "BS2l"
-       "BS2r" |]
+       "BS2" |]
 
 type StationOfInfobox =
     { symbols: string []
@@ -38,19 +37,24 @@ let isValidText (s: string) =
     <> "'''"
     && s <> "("
 
+let private normalizeTextOfLink (link: Link) = (textOfLink link).Replace("&nbsp;", " ")
+
 let private findStationName (p: Parameter) =
     match p with // try first string
     | Composite (_, Composite.String (_) :: Link link :: Composite.String (s) :: _) when isValidText (s) ->
-        Some(textOfLink link + " " + s)
+        Some(normalizeTextOfLink link + " " + s)
     | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
-        Some(textOfLink link1 + s + textOfLink link2)
+        Some
+            (normalizeTextOfLink link1
+             + s
+             + normalizeTextOfLink link2)
     | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
-        Some(textOfLink link + " " + s)
+        Some(normalizeTextOfLink link + " " + s)
     | Composite (_, Composite.String (s) :: Composite.Link link :: _) when isValidText (s) ->
-        Some(s + " " + textOfLink link)
+        Some(s + " " + normalizeTextOfLink link)
     | Composite (_, cl) ->
         match getFirstLinkInList cl with
-        | Some (link) -> Some(textOfLink link)
+        | Some (link) -> Some(normalizeTextOfLink link)
         | _ ->
             match cl with
             | Composite.String (s) :: _ -> Some(s)
@@ -140,6 +144,9 @@ let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
 let chooseNonEmptyParameter (index: int) (l: Parameter list) =
     match l.[index] with // try first string
     | Parameter.Empty when index + 1 < l.Length -> l.[index + 1]
+    | Parameter.String (n, _) when not (System.String.IsNullOrEmpty n) // bypass hints
+                                   && index
+                                   + 1 < l.Length -> l.[index + 1]
     | _ -> l.[index]
 
 let findStationOfInfobox (t: Template) =
@@ -154,12 +161,12 @@ let findStationOfInfobox (t: Template) =
                           && l.Length
                           >= 4
                           && (matchesType (List.take 2 l) BhfSymbolTypes) ->
-            matchStation (findSymbols (List.take 2 l)) l.[2] l.[3]
+            matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
         | (n, [], l) when ("BS3" = n || "BS3e" = n)
                           && l.Length
                           >= 5
                           && (matchesType (List.take 3 l) BhfSymbolTypes) ->
-            matchStation (findSymbols (List.take 3 l)) l.[3] l.[4]
+            matchStation (findSymbols (List.take 3 l)) l.[3] (chooseNonEmptyParameter 4 l)
         | (n, [], l) when "BS4" = n
                           && l.Length >= 6
                           && (matchesType (List.take 4 l) BhfSymbolTypes) ->

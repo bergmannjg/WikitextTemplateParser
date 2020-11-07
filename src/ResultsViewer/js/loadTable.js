@@ -51,10 +51,11 @@ function loadResultsTable(tableId, statusElementId, url) {
                 },
             },
             {
-                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams:{values:["","WikidataFoundInDbData","WikidataNotFoundInDbData","RouteParameterEmpty", "NoDbDataFound", "RouteIsNoPassengerTrain", "StartStopStationsNotFound"]}
+                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams:{values:["","WikidataFoundInDbData","WikidataNotFoundInDbData","RouteParameterEmpty", "NoDbDataFoundWithRailwayGuide", "NoDbDataFoundWithoutRailwayGuide", "RouteIsNoPassengerTrain", "StartStopStationsNotFound", "RouteIsShutdown"]}
             },
-            { title: "WikiStops", field: "countWikiStops", width: 100 },
-            { title: "DbStopsNotFound", field: "countDbStopsNotFound", width: 100 },
+            { title: "WikiFound", field: "countWikiStops", width: 100 },
+            { title: "DbNotFound", field: "countDbStopsNotFound", width: 100 },
+            { title: "railwayGuide", field: "railwayGuide", width: 100 },
             { title: "Complete", field: "isCompleteDbRoute", width: 100 },
         ],
     });
