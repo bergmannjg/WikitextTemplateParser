@@ -11,7 +11,23 @@ let private checkReplacedWithChar (s1: string) (s2: string) (c: char) = s1.Repla
 
 let private checkReplaced (s1: string) (s2: string) = checkReplacedWithChar s1 s2 '-'
 
-let private getMatch (nameInHeader: string) (nameInTemplate: string) =
+let startsWithFullReplace (strecke: RouteInfo)
+                          (nameInTemplate: string)
+                          (nameInHeader: string)
+                          (abbr: string)
+                          (r: string)
+                          =
+    if nameInHeader = abbr then
+        if nameInTemplate.StartsWith(r) then
+            /// used by AdhocReplacements.replacementsInRouteStation
+            fprintfn stderr "*** replace in route (\"%s\", %d, \"%s\", \"%s\")" strecke.title strecke.nummer abbr r
+            true
+        else
+            false
+    else
+        nameInTemplate.StartsWith(nameInHeader)
+
+let private getMatch (strecke: RouteInfo) (nameInHeader: string) (nameInTemplate: string) =
     if nameInHeader.StartsWith nameInTemplate
        || nameInTemplate.StartsWith nameInHeader
        || nameInTemplate.EndsWith nameInHeader
@@ -19,9 +35,9 @@ let private getMatch (nameInHeader: string) (nameInTemplate: string) =
         Some nameInTemplate
     else
         let candidates =
-            AdhocReplacements.abbreviationsInRoutename
-            |> Array.map (fun (ab, s) ->
-                if nameInTemplate.StartsWith(nameInHeader.Replace(ab, s))
+            AdhocReplacements.replacementsInRouteStation
+            |> Array.map (fun (title, route, ab, s) -> // todo: use title and route
+                if startsWithFullReplace strecke nameInTemplate nameInHeader ab s
                 then Some nameInTemplate
                 else None)
             |> Array.choose id
@@ -29,10 +45,10 @@ let private getMatch (nameInHeader: string) (nameInTemplate: string) =
         if candidates.Length > 0 then Some candidates.[0] else None
 
 /// getBestMatch, maybe 'takeFirst/takeLast' strategy is not enough
-let private getBestMatch (nameInHeader: string) (namesInTemplate: string []) =
+let private getBestMatch (strecke: RouteInfo) (nameInHeader: string) (namesInTemplate: string []) =
     let candidates =
         namesInTemplate
-        |> Array.map (getMatch nameInHeader)
+        |> Array.map (getMatch strecke nameInHeader)
         |> Array.choose id
 
     if candidates.Length = 0
@@ -134,12 +150,14 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox [])
     else
         strecke
 
-let private getMatchedRouteStations (von: string) (bis: string) (stations: StationOfInfobox []) =
+let private getMatchedRouteStations (strecke: RouteInfo) (stations: StationOfInfobox []) =
     let namesInTemplate = stations |> Array.map (fun s -> s.name)
 
-    let matchFrom = getBestMatch von namesInTemplate
+    let matchFrom =
+        getBestMatch strecke strecke.von namesInTemplate
 
-    let matchTo = getBestMatch bis namesInTemplate
+    let matchTo =
+        getBestMatch strecke strecke.bis namesInTemplate
 
     match matchFrom, matchTo with
     | Some (fromFirst, fromLast), Some (toFirst, toLast) ->
@@ -154,7 +172,7 @@ let private getMatchedRouteStations (von: string) (bis: string) (stations: Stati
 
 let private maybeReplaceRouteNr (strecke: RouteInfo) =
     let candidate =
-        AdhocReplacements.maybeWrongRoutes
+        AdhocReplacements.maybeWrongRouteNr
         |> Array.tryFind (fun (title, routeWrong, route) ->
             title = strecke.title
             && routeWrong = strecke.nummer)
@@ -163,10 +181,28 @@ let private maybeReplaceRouteNr (strecke: RouteInfo) =
     | Some (_, _, nr) -> { strecke with nummer = nr }
     | None -> strecke
 
+let private maybeReplaceRouteStation (strecke: RouteInfo) =
+    let candidate =
+        AdhocReplacements.maybeWrongRouteStation
+        |> Array.tryFind (fun (title, route, wrongStation, _) ->
+            title = strecke.title
+            && route = strecke.nummer
+            && (wrongStation = strecke.von
+                || wrongStation = strecke.bis))
+
+    match candidate with
+    | Some (_, _, wrongStation, station) ->
+        if wrongStation = strecke.von then { strecke with von = station } else { strecke with bis = station }
+    | None -> strecke
+
 /// match RouteInfo station names with station names of templates
 let getMatchedRouteInfo (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
-    let strecke = maybeReplaceRouteNr strecke0
-    match getMatchedRouteStations strecke.von strecke.bis stations with
+    let strecke =
+        strecke0
+        |> maybeReplaceRouteNr
+        |> maybeReplaceRouteStation
+
+    match getMatchedRouteStations strecke stations with
     | Some (f, t) -> { strecke with von = f; bis = t }
     | _ -> if refillPossible then refillRouteInfo strecke stations else strecke
 

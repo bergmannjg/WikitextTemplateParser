@@ -4,6 +4,7 @@ open StationsOfRoute
 open StationsOfInfobox
 open DbData
 open Comparer
+open Types
 open ResultsOfMatch
 open Wikidata
 

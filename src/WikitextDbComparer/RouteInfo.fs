@@ -106,7 +106,11 @@ let hyphenMinus = "-" // HYPHEN-MINUS U+002D
 let minusSign = "−" // MINUS SIGN U+2212
 let leftRightArrow = "↔" // MINUS SIGN U+2194
 
-let separators = [| leftRightArrow; figureDash; hyphenMinus; minusSign |]
+let separators =
+    [| leftRightArrow
+       figureDash
+       hyphenMinus
+       minusSign |]
 
 /// the standard is to separate names with FIGURE DASH char
 let spitstring (s: string) =
@@ -187,6 +191,39 @@ let matchRegexwithValueAndSubroutes pattern
 
     mc.Count > 0
 
+let matchRegexwithValueAndSubcapture pattern
+                                     value
+                                     replaceString
+                                     von
+                                     bis
+                                     (hasRailwayGuide: string option)
+                                     (routenameKind: RoutenameKind)
+                                     (title: string)
+                                     (strecken: ResizeArray<RouteInfo>)
+                                     =
+    let regex = Regex(pattern) // subroutes
+
+    let mc = regex.Matches value
+    for m in mc do
+        if m.Groups.Count = 3
+           && not (m.Groups.[2].Value.Contains("parallel")) then // todo: generalize
+            let nr0 = m.Groups.[1].Value |> int
+            strecken.Add(createStrecke nr0 title von bis hasRailwayGuide RoutenameKind.Empty value)
+
+            Seq.iter (fun (c1: Capture) ->
+                addRoute
+                    (c1.Value.Replace(replaceString, ""))
+                    ""
+                    value
+                    von
+                    bis
+                    hasRailwayGuide
+                    routenameKind
+                    title
+                    strecken) m.Groups.[2].Captures
+
+    mc.Count > 0
+
 let matchRegexwithValueAndSubcaptures pattern
                                       value
                                       von
@@ -213,8 +250,7 @@ let matchRegexwithValueAndSubcaptures pattern
 
 let strContainsNumber (s: string) = s |> Seq.exists System.Char.IsDigit
 
-let normalizeRailwayGuide (value: string) =
-    value.Replace("'", "")
+let normalizeRailwayGuide (value: string) = value.Replace("'", "")
 
 let findBsDatenStreckenNr (templates: Template []) title =
     let (von, bis) =
@@ -227,7 +263,7 @@ let findBsDatenStreckenNr (templates: Template []) title =
 
     let railwayGuide =
         match findTemplateParameterString templates "BS-daten" "KBS" with
-        | Some value when not (System.String.IsNullOrEmpty value) -> Some (normalizeRailwayGuide value)
+        | Some value when not (System.String.IsNullOrEmpty value) -> Some(normalizeRailwayGuide value)
         | _ -> None
 
     match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
@@ -247,6 +283,16 @@ let findBsDatenStreckenNr (templates: Template []) title =
              || (matchRegexwithValueAndSubroutes
                      @"([0-9]+)\s+([0-9]+)[^<]*(<small>.+?</small>)"
                      value0
+                     von
+                     bis
+                     railwayGuide
+                     RoutenameKind.SmallFormat
+                     title
+                     strecken)
+             || (matchRegexwithValueAndSubcapture
+                     @"^([0-9]+)(,\s*[0-9]+)+"
+                     value0
+                     ","
                      von
                      bis
                      railwayGuide

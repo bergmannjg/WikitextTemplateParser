@@ -115,6 +115,18 @@ let existsWkStationInResultSuccess (station: string) results =
         | Success (_, wk) when wk.name = station -> true
         | _ -> false)
 
+let private maybeReplaceResultkind (strecke: RouteInfo) (resultOfRoute: ResultOfRoute) =
+    let candidate =
+        AdhocReplacements.adhocResultKindChanges
+        |> Array.tryFind (fun (title, route, rkWrong, rk) ->
+            title = strecke.title
+            && route = strecke.nummer
+            && rkWrong = resultOfRoute.resultKind)
+
+    match candidate with
+    | Some (_, _, _, rk) -> { resultOfRoute with resultKind = rk }
+    | None -> resultOfRoute
+
 let compare (title: string)
             (streckeOrig: RouteInfo)
             (streckeMatched: RouteInfo)
@@ -138,6 +150,9 @@ let compare (title: string)
         dbStations.Length > 0
         && isDbRouteComplete results dbStations
 
+    let resultkind =
+        getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound streckeMatched.railwayGuide
+
     let resultOfRoute =
         { route = streckeMatched.nummer
           title = title
@@ -148,19 +163,15 @@ let compare (title: string)
           fromToKm = minmaxkm
           countWikiStops = countWikiStops
           countDbStops = countDbStops
+          countDbStopsFound = countDbStopsFound
           countDbStopsNotFound = countDbStopsNotFound
-          resultKind =
-              getResultKind
-                  countWikiStops
-                  countDbStops
-                  countDbStopsFound
-                  countDbStopsNotFound
-                  streckeMatched.railwayGuide
+          resultKind = resultkind
           railwayGuide =
               match streckeMatched.railwayGuide with
               | Some s -> s
               | None -> ""
           isCompleteDbRoute = isCompleteDbRoute }
+        |> maybeReplaceResultkind streckeMatched
 
     ResultsOfMatch.dump title streckeMatched.nummer results
 

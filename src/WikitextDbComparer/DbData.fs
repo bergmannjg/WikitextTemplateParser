@@ -4,6 +4,15 @@ open FSharp.Data
 
 type DbStationOfRoute = { km: float; name: string }
 
+type Strecke =
+    { STRNR: int
+      KMANF_E: int
+      KMEND_E: int
+      KMANF_V: string
+      KMEND_V: string
+      STRNAME: string
+      STRKURZN: string }
+
 type BetriebsstelleRailwayRoutePosition =
     { STRECKE_NR: int
       RICHTUNG: int
@@ -63,6 +72,16 @@ let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
         fprintfn stderr "loadCsvData: %s %A" path ex
         Array.empty
 
+let private loadStreckenCsvData () =
+    loadCsvData "./dbdata/original/strecken.csv" 852 (fun row ->
+        { STRNR = row.["STRNR"].AsInteger()
+          KMANF_E = row.["KMANF_E"].AsInteger()
+          KMEND_E = row.["KMEND_E"].AsInteger()
+          KMANF_V = row.["KMANF_V"]
+          KMEND_V = row.["KMEND_V"]
+          STRNAME = row.["STRNAME"]
+          STRKURZN = row.["STRKURZN"] })
+
 let private loadBetriebsstellenCsvData () =
     loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun row ->
         { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
@@ -97,13 +116,93 @@ let private loadStreckenutzungCsvData () =
           kmspru_typ_anf = row.[14]
           kmspru_typ_end = row.[15] })
 
+let removeRest (name: string) (pattern: string) =
+    let index = name.IndexOf(pattern)
+    if index > 0 then name.Substring(0, index) else name
+
+/// split streckekurzname like 'Bln-Spandau - Hamburg-Altona'
+let splitStreckekurzname (streckekurzname: string) =
+    let split = streckekurzname.Split " - "
+    if (split.Length = 2) then
+        let _from = removeRest split.[0] ", "
+        let _to = removeRest split.[1] ", "
+        [| _from; _to |]
+    else
+        Array.empty
+
+
+let addRouteEndpoints (route: Strecke) (dbdata: BetriebsstelleRailwayRoutePosition []) =
+    let indexAnf =
+        dbdata
+        |> Array.tryFind (fun d -> d.KM_I = route.KMANF_E)
+
+    let indexEnd =
+        dbdata
+        |> Array.tryFind (fun d -> d.KM_I = route.KMEND_E)
+
+    let split = splitStreckekurzname route.STRNAME
+
+    if split.Length = 2
+       && (indexAnf.IsNone || indexEnd.IsNone) then
+
+        let endNeu =
+            { STRECKE_NR = route.STRNR
+              RICHTUNG = 1
+              KM_I = route.KMEND_E
+              KM_L = route.KMEND_V
+              BEZEICHNUNG = split.[0]
+              STELLE_ART = "ANF"
+              KUERZEL = ""
+              GEOGR_BREITE = 0.0
+              GEOGR_LAENGE = 0.0 }
+
+        Array.concat [ if indexAnf.IsNone then
+                           yield
+                               [| { STRECKE_NR = route.STRNR
+                                    RICHTUNG = 1
+                                    KM_I = route.KMANF_E
+                                    KM_L = route.KMANF_V
+                                    BEZEICHNUNG = split.[0]
+                                    STELLE_ART = "ANF"
+                                    KUERZEL = ""
+                                    GEOGR_BREITE = 0.0
+                                    GEOGR_LAENGE = 0.0 } |]
+
+                       yield dbdata
+
+                       if indexEnd.IsNone then
+                           yield
+                               [| { STRECKE_NR = route.STRNR
+                                    RICHTUNG = 1
+                                    KM_I = route.KMEND_E
+                                    KM_L = route.KMEND_V
+                                    BEZEICHNUNG = split.[1]
+                                    STELLE_ART = "END"
+                                    KUERZEL = ""
+                                    GEOGR_BREITE = 0.0
+                                    GEOGR_LAENGE = 0.0 } |] ]
+    else
+        dbdata
+
 let private loadDBRoutePosition routenr =
     let dbdata = loadBetriebsstellenCsvData ()
 
-    dbdata
-    |> Array.filter (fun p ->
-        p.STRECKE_NR = routenr
-        && bfStelleArt |> Array.contains p.STELLE_ART)
+    let dbdataOfRoute =
+        dbdata
+        |> Array.filter (fun p ->
+            p.STRECKE_NR = routenr
+            && bfStelleArt |> Array.contains p.STELLE_ART)
+
+    if dbdataOfRoute.Length > 0 then
+        let maybeRoute =
+            loadStreckenCsvData ()
+            |> Array.tryFind (fun s -> s.STRNR = routenr)
+
+        match maybeRoute with
+        | Some route -> addRouteEndpoints route dbdataOfRoute // try fill incomplete db data
+        | None -> dbdataOfRoute
+    else
+        dbdataOfRoute
 
 let loadDBStations routenr =
     loadDBRoutePosition routenr

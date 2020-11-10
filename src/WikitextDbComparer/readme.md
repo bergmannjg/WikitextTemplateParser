@@ -1,6 +1,6 @@
 # Wikitext Db Comparer
 
-Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [data](https://data.deutschebahn.com/dataset/geo-betriebsstelle) from Open-Data-Portal of Deutsche Bahn.
+Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [data](../../scripts/restore.sh) from Open-Data-Portal of Deutsche Bahn.
 
 This is done in several steps.
 

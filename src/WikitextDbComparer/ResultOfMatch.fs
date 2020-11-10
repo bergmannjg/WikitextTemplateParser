@@ -1,21 +1,9 @@
 /// type of matching result
 module ResultsOfMatch
 
-open StationsOfRoute
 open DbData
-
-type ResultKind =
-    | WikidataFoundInDbData
-    | StartStopStationsNotFound
-    | WikidataNotFoundInTemplates
-    | WikidataNotFoundInDbData
-    | NoDbDataFoundWithRailwayGuide
-    | NoDbDataFoundWithoutRailwayGuide
-    | RouteParameterNotParsed
-    | RouteParameterEmpty
-    | RouteIsNoPassengerTrain
-    | RouteIsShutdown
-    | Undef
+open Types
+open StationsOfRoute
 
 type ResultOfRoute =
     { route: int
@@ -26,6 +14,7 @@ type ResultOfRoute =
       resultKind: ResultKind
       countWikiStops: int
       countDbStops: int
+      countDbStopsFound: int
       countDbStopsNotFound: int
       railwayGuide: string
       isCompleteDbRoute: bool }
@@ -42,6 +31,7 @@ let createResult title route resultKind =
       fromToKm = [||]
       countWikiStops = 0
       countDbStops = 0
+      countDbStopsFound = 0
       countDbStopsNotFound = 0
       resultKind = resultKind
       railwayGuide = ""

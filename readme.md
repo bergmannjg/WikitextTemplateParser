@@ -17,8 +17,8 @@ Currently the comparison of wiki data with db data gives the follwing results:
 |distinct routes total|1428|articles may contain multiple routes or routes are in multiple articles ||
 |route is no passenger train|219|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
 |start/stop stations of route not found|40|stations from route parameters not found, needs further investigation|[Route 5403](https://de.wikipedia.org/wiki/Au%C3%9Ferfernbahn)|
-|routes with wikidata complete|527|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with db data not found in wikidata|131|some db stations of a route not found in wikidata stations|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
+|routes with wikidata complete|533|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes with db data not found in wikidata|135|some db stations of a route not found in wikidata stations|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
 |routes shutdown|34|remark in railway guide (KBS)|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
 |routes with no db data found, <br/>but article has railway guide (KBS)|98|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
 |routes with no db data found|502|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|

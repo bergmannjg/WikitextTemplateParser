@@ -16,7 +16,7 @@ if [ $# -eq 1 ]; then
   LINES="$1"
 fi
 
-dotnet build src/WikitextDbComparer/WikitextDbComparer.fsproj > /dev/null
+dotnet build -c Release src/WikitextDbComparer/WikitextDbComparer.fsproj > /dev/null
 if [ $? -ne 0 ]
 then
   echo "error in building project"
@@ -28,7 +28,7 @@ rm -f /tmp/compare-wiki.*
 tmpfile=$(mktemp /tmp/compare-wiki.XXXXXX)
 
 while read p; do
-    dotnet src/WikitextDbComparer/bin/Debug/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
+    dotnet src/WikitextDbComparer/bin/Release/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
 done < <(head -n $LINES ./titles.txt)
 
 sed -i -e '$ ! s/$/,/' "$tmpfile"

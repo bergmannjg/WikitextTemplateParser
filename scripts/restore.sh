@@ -38,11 +38,13 @@ rm -rf geo-betriebsstelle
 # Geo-Streckennetz
 #
 
+rm -f strecken.csv
 rm -f strecken_nutzung.csv
 
 wget -q http://download-data.deutschebahn.com/static/datasets/geo-strecke/geo-strecke_2020.zip
 mkdir geo-strecke
 unzip -q geo-strecke_2020.zip -d geo-strecke
+cp geo-strecke/Strecken/CSV/strecken.csv .
 cp geo-strecke/Strecken/MapInfoRelationen/strecken.MID strecken_nutzung.csv
 
 rm -f geo-strecke_2020.zip

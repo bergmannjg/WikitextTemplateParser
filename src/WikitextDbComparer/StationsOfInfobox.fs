@@ -26,10 +26,23 @@ type StationOfInfobox =
       distances: float []
       name: string }
 
+let private maybeReplaceDistances (name: string) (kms: float []) =
+    let candidate =
+        AdhocReplacements.maybeWrongDistances
+        |> Array.tryFind (fun (_, name0, distanceWrong, distance) -> name = name0 && distanceWrong = kms)
+
+    match candidate with
+    | Some (_, _, _, d) -> d
+    | _ -> kms
+
 let private createStationOfInfobox (symbols: string []) (kms: float []) (name: string) =
+    let name0 =
+        name.Replace(" -", "-").Replace("- ", "-")
+
+    let kms0 = maybeReplaceDistances name0 kms
     { symbols = symbols
-      distances = kms
-      name = name }
+      distances = kms0
+      name = name0 }
 
 let isValidText (s: string) =
     not (System.String.IsNullOrEmpty(s))
@@ -103,6 +116,11 @@ let private matchStationDistances (symbols: string []) (p: Parameter) (name: str
                 match (getFirstStringValue lp.[0]), (getFirstStringValue lp.[1]) with
                 | Some (km), Some (k2) ->
                     Some(createStationOfInfobox symbols [| (parse2float km); (parse2float k2) |] name)
+                | _ -> None
+            | Composite.Template (n, _, lp) :: _ when n = "Coordinate" && lp.Length = 6 ->
+                match (lp.[4], getFirstStringValue lp.[4]) with // todo: find index
+                | Parameter.String ("text", _), Some (km) ->
+                    Some(createStationOfInfobox symbols [| (parse2float km) |] name)
                 | _ -> None
             | _ ->
                 let kms =
