@@ -33,4 +33,4 @@ RUN ln -s ../../dump dump
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:5000
 
-ENTRYPOINT ["dotnet", "./bin/Debug/netcoreapp3.1/ResultsViewer.dll"]
+ENTRYPOINT ["dotnet", "./bin/Debug/net5.0/ResultsViewer.dll"]
