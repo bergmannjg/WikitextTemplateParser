@@ -51,6 +51,7 @@ let comparetitle title showDetails =
                                 | true -> filterStations routeMatched precodedStations
                                 | _ -> [||]
             StationsOfRoute.dump title route wikiStations
+            DbData.dump title route.nummer dbStations
             compare title route routeMatched wikiStations dbStations precodedStations showDetails)
 
 [<EntryPoint>]

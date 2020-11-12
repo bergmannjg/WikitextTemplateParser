@@ -1,8 +1,15 @@
 # Wikitext Db Comparer
 
-Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [data](../../scripts/restore.sh) from Open-Data-Portal of Deutsche Bahn.
+Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [data](https://data.deutschebahn.com/dataset?groups=datasets) from Open-Data-Portal of Deutsche Bahn.
 
 This is done in several steps.
+
+## Load Db Data
+
+* [Geo-Betriebsstelle](https://data.deutschebahn.com/dataset/geo-betriebsstelle): Stops with positions of all routes,
+* [Geo-Streckennetz](https://data.deutschebahn.com/dataset/geo-strecke) Start/Stop station and usage (i.e. is passenger train) of a route.
+
+The data are restored with a [script](../../scripts/restore.sh).
 
 ## Extract route info in 'STRECKENNR' Template
 

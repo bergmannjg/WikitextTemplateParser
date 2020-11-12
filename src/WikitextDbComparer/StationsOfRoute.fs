@@ -11,49 +11,78 @@ let private checkReplacedWithChar (s1: string) (s2: string) (c: char) = s1.Repla
 
 let private checkReplaced (s1: string) (s2: string) = checkReplacedWithChar s1 s2 '-'
 
-let startsWithFullReplace (strecke: RouteInfo)
+let getMatchInReplacement (isExactMatch: bool)
+                          (strecke: RouteInfo)
                           (nameInTemplate: string)
                           (nameInHeader: string)
                           (abbr: string)
                           (r: string)
                           =
+    let matcher =
+        if isExactMatch then (=) else (fun (x: string) y -> x.StartsWith(y))
+
     if nameInHeader = abbr then
-        if nameInTemplate.StartsWith(r) then
+        if matcher nameInTemplate r then
             /// used by AdhocReplacements.replacementsInRouteStation
             fprintfn stderr "*** replace in route (\"%s\", %d, \"%s\", \"%s\")" strecke.title strecke.nummer abbr r
             true
         else
             false
     else
-        nameInTemplate.StartsWith(nameInHeader)
+        matcher nameInTemplate nameInHeader
 
-let private getMatch (strecke: RouteInfo) (nameInHeader: string) (nameInTemplate: string) =
-    if nameInHeader.StartsWith nameInTemplate
-       || nameInTemplate.StartsWith nameInHeader
-       || nameInTemplate.EndsWith nameInHeader
-       || checkReplaced nameInTemplate nameInHeader then
-        Some nameInTemplate
-    else
-        let candidates =
-            AdhocReplacements.replacementsInRouteStation
-            |> Array.map (fun (title, route, ab, s) -> // todo: use title and route
-                if startsWithFullReplace strecke nameInTemplate nameInHeader ab s
-                then Some nameInTemplate
-                else None)
-            |> Array.choose id
-
-        if candidates.Length > 0 then Some candidates.[0] else None
-
-/// getBestMatch, maybe 'takeFirst/takeLast' strategy is not enough
-let private getBestMatch (strecke: RouteInfo) (nameInHeader: string) (namesInTemplate: string []) =
+let private getMatchInReplacements (isExactMatch: bool)
+                                   (strecke: RouteInfo)
+                                   (nameInHeader: string)
+                                   (nameInTemplate: string)
+                                   =
     let candidates =
-        namesInTemplate
-        |> Array.map (getMatch strecke nameInHeader)
+        AdhocReplacements.replacementsInRouteStation
+        |> Array.filter (fun (_, route, _, _) -> route = 0 || route = strecke.nummer)
+        |> Array.map (fun (_, _, ab, s) ->
+            if getMatchInReplacement isExactMatch strecke nameInTemplate nameInHeader ab s
+            then Some nameInTemplate
+            else None)
         |> Array.choose id
 
-    if candidates.Length = 0
-    then None
-    else Some(candidates.[0], candidates.[candidates.Length - 1])
+    if candidates.Length > 0 then Some candidates.[0] else None
+
+/// getBestMatch, maybe 'takeFirst/takeLast' strategy is not enough
+let private getBestMatchWithStrategy (isExactMatch: bool)
+                                     (strecke: RouteInfo)
+                                     (nameInHeader: string)
+                                     (namesInTemplate: string [])
+                                     =
+    let matcher =
+        if isExactMatch then
+            (=)
+        else
+            (fun (x: string) (y: string) ->
+                x.StartsWith y
+                || y.StartsWith x
+                || y.EndsWith x
+                || checkReplaced y x)
+
+    let exactCandidate =
+        namesInTemplate
+        |> Array.tryFind (matcher nameInHeader)
+
+    if exactCandidate.IsSome then
+        Some(exactCandidate.Value, exactCandidate.Value)
+    else
+        let candidates =
+            namesInTemplate
+            |> Array.map (getMatchInReplacements isExactMatch strecke nameInHeader)
+            |> Array.choose id
+
+        if candidates.Length = 0
+        then None
+        else Some(candidates.[0], candidates.[candidates.Length - 1])
+
+let private getBestMatch (strecke: RouteInfo) (nameInHeader: string) (namesInTemplate: string []) =
+    match getBestMatchWithStrategy true strecke nameInHeader namesInTemplate with
+    | Some result -> Some result
+    | None -> getBestMatchWithStrategy false strecke nameInHeader namesInTemplate
 
 /// filter station list beginning and ending with a name  in 'fromTo'
 let private filterStations0 (fromTo: string []) (stations: StationOfInfobox []) =

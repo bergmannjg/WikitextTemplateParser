@@ -28,7 +28,7 @@ rm -f /tmp/compare-wiki.*
 tmpfile=$(mktemp /tmp/compare-wiki.XXXXXX)
 
 while read p; do
-    dotnet src/WikitextDbComparer/bin/Release/netcoreapp3.1/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
+    dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
 done < <(head -n $LINES ./titles.txt)
 
 sed -i -e '$ ! s/$/,/' "$tmpfile"

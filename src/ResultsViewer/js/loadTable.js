@@ -68,7 +68,7 @@ function loadStationOfInfoTable(id, url) {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
-            { title: "Station", field: "name" },
+            { title: "Station", headerFilter: "input", field: "name" },
             { title: "Symbols", field: "symbols", width: 150 },
             { title: "Distances", field: "distances", width: 150 }
         ],
@@ -84,6 +84,20 @@ function loadStationOfRouteTable(id, url) {
         columns: [
             { title: "Station", field: "name" },
             { title: "Distances", field: "kms", width: 150 }
+        ],
+    });
+
+}
+
+function loadDbStationOfRouteTable(id, url) {
+
+    new Tabulator(id, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        columns: [
+            { title: "Station", field: "name" },
+            { title: "Distance", field: "km", width: 150 },
+            { title: "Art", field: "STELLE_ART", width: 150 }
         ],
     });
 

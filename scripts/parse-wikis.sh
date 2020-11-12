@@ -7,7 +7,7 @@ fi
 
 rm -f ./wikidata/*.*
  
-dotnet build src/WikitextTemplateParser/WikitextTemplateParser.fsproj > /dev/null
+dotnet build -c Release src/WikitextTemplateParser/WikitextTemplateParser.fsproj > /dev/null
 if [ $? -ne 0 ]
 then
   echo "error in building project"
@@ -15,5 +15,5 @@ then
 fi
 
 while read p; do
-    dotnet src/WikitextTemplateParser/bin/Debug/netcoreapp3.1/WikitextTemplateParser.dll -parsetitle  "$p"
+    dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parsetitle  "$p"
 done <./titles.txt

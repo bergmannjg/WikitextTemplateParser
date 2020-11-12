@@ -28,6 +28,10 @@ let titleAndScripts (titleString: string) =
           .tabulator .tabulator-tableHolder {
                 background:white;
             }
+            .remark {
+                margin-left: 50px;
+                margin-bottom: 10px;
+            }
             .container {
                 width:1400px;
                 height:600px;
@@ -65,14 +69,16 @@ let index =
         ]
     ]
 
-let viewWithLeftRightBox (title: string) (wikititle: string) (scripttext: string) =
+let viewWithLeftRightBox (title: string) (wikititle: string) (scripttext: string) (extraNode: XmlNode option) =
     html [] [
         head [] (titleAndScripts title)
         body [] [
+            h1 [ _style "text-align:center" ] [
+                str title
+            ]
+            if extraNode.IsSome then extraNode.Value
+
             div [ _class "container" ] [
-                h1 [ _style "text-align:center" ] [
-                    str title
-                ]
                 div [ _id "leftbox" ] []
                 iframe [ _id "rightbox"
                          _src ("https://de.wikipedia.org/wiki/" + wikititle) ] []
@@ -90,6 +96,7 @@ let stationOfInfobox (title: string) =
         ("loadStationOfInfoTable(\"#leftbox\", \"/dump/"
          + title
          + "-StationOfInfobox.json\");")
+        None
 
 let stationOfRoute (title: string, route: int) =
     viewWithLeftRightBox
@@ -100,8 +107,42 @@ let stationOfRoute (title: string, route: int) =
          + "-"
          + route.ToString()
          + "-StationOfRoute.json\");")
+        None
+
+let dbStationOfRoute (title: string, route: int) =
+    viewWithLeftRightBox
+        ("DB Stations of Route "
+         + title
+         + " "
+         + route.ToString())
+        title
+        ("loadDbStationOfRouteTable(\"#leftbox\", \"/dump/"
+         + title
+         + "-"
+         + route.ToString()
+         + "-DbStationOfRoute.json\");")
+        None
 
 let stationOfDbWk (title: string, route: int) =
+    let extraNode =
+        div [ _class "remark" ] [
+            a [ _href
+                    ("/dbStationOfRoute/"
+                     + title
+                     + "/"
+                     + route.ToString()) ] [
+                str "Db stations of route"
+            ]
+            str " "
+            a [ _href
+                    ("/wkStationOfRoute/"
+                     + title
+                     + "/"
+                     + route.ToString()) ] [
+                str "Wiki stations of route"
+            ]
+        ]
+
     viewWithLeftRightBox
         ("DB/Wiki Stations "
          + title
@@ -113,3 +154,4 @@ let stationOfDbWk (title: string, route: int) =
          + "-"
          + route.ToString()
          + "-StationOfDbWk.json\");")
+        (Some extraNode)

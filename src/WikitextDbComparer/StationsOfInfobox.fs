@@ -7,8 +7,6 @@ open FSharp.Collections
 
 // see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
 
-let BorderSymbols = [| "TZOLLWo"; "GRENZE"; "xGRENZE" |]
-
 // "BS2l" "BS2r" are wrong symbols
 let BhfSymbolTypes =
     [| "BHF"
@@ -19,6 +17,9 @@ let BhfSymbolTypes =
        "KMW"
        "ABZ"
        "KRZ"
+       "GRENZE"
+       "TZOLLWo"
+       "xGRENZE"
        "BS2" |]
 
 type StationOfInfobox =
@@ -26,10 +27,15 @@ type StationOfInfobox =
       distances: float []
       name: string }
 
+
+let private hasReplaceDistance (name: string) (kms: float []) =
+    AdhocReplacements.maybeWrongDistances
+    |> Array.exists (fun (_, name0, distanceWrong, _) -> name = name0 && distanceWrong = kms)
+
 let private maybeReplaceDistances (name: string) (kms: float []) =
     let candidate =
         AdhocReplacements.maybeWrongDistances
-        |> Array.tryFind (fun (_, name0, distanceWrong, distance) -> name = name0 && distanceWrong = kms)
+        |> Array.tryFind (fun (_, name0, distanceWrong, _) -> name = name0 && distanceWrong = kms)
 
     match candidate with
     | Some (_, _, _, d) -> d
@@ -79,7 +85,14 @@ let private matchesType (parameters: List<Parameter>) (types: string []) =
     parameters
     |> List.exists (fun t ->
         match t with
-        | Parameter.String (n, v) when types |> Array.exists (fun t -> v.Contains(t)) -> true
+        | Parameter.String (_, v) when types |> Array.exists (fun t -> v.Contains(t)) -> true
+        | _ -> false)
+
+let private matchesParameterName (parameters: List<Parameter>) (names: string []) =
+    parameters
+    |> List.exists (fun t ->
+        match t with
+        | Parameter.String (n, _) when names |> Array.exists ((=) n) -> true
         | _ -> false)
 
 let private normalizeKms (kms: string) =
@@ -105,11 +118,12 @@ let private parse2float (km: string) =
 
 let private matchStationDistances (symbols: string []) (p: Parameter) (name: string) =
     try
-        match p with
+        match p with // todo: find index
         | Parameter.String (_, km) ->
             let km0 = normalizeKms km
             let kms = km0.Split " " |> Array.map parse2float
             Some(createStationOfInfobox symbols kms name)
+        | Parameter.Empty when hasReplaceDistance name [||] -> Some(createStationOfInfobox symbols [||] name)
         | Composite (_, cl) ->
             match cl with
             | Composite.Template (n, _, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
@@ -118,7 +132,7 @@ let private matchStationDistances (symbols: string []) (p: Parameter) (name: str
                     Some(createStationOfInfobox symbols [| (parse2float km); (parse2float k2) |] name)
                 | _ -> None
             | Composite.Template (n, _, lp) :: _ when n = "Coordinate" && lp.Length = 6 ->
-                match (lp.[4], getFirstStringValue lp.[4]) with // todo: find index
+                match (lp.[4], getFirstStringValue lp.[4]) with
                 | Parameter.String ("text", _), Some (km) ->
                     Some(createStationOfInfobox symbols [| (parse2float km) |] name)
                 | _ -> None
@@ -136,14 +150,6 @@ let private matchStationDistances (symbols: string []) (p: Parameter) (name: str
     with ex ->
         fprintfn stderr "error: %A, findKm parameter %A" ex p
         None
-
-let private containsBorderSymbols (parameters: List<Parameter>) =
-    getParameterStrings parameters
-    |> List.map (fun s ->
-        match s with
-        | Parameter.String (_, str) -> str
-        | _ -> "")
-    |> List.exists (fun s -> BorderSymbols |> Array.contains s)
 
 let private findSymbols (parameters: List<Parameter>) =
     getParameterStrings parameters
@@ -172,6 +178,12 @@ let findStationOfInfobox (t: Template) =
         match t with
         | (n, [], l) when ("BS" = n || "BSe" = n)
                           && l.Length
+                          >= 4
+                          && (matchesParameterName (List.take 2 l) [| "T" |])
+                          && (matchesType (List.take 2 l) BhfSymbolTypes) ->
+            matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
+        | (n, [], l) when ("BS" = n || "BSe" = n)
+                          && l.Length
                           >= 3
                           && (matchesType (List.take 1 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 1 l)) l.[1] (chooseNonEmptyParameter 2 l)
@@ -180,6 +192,12 @@ let findStationOfInfobox (t: Template) =
                           >= 4
                           && (matchesType (List.take 2 l) BhfSymbolTypes) ->
             matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
+        | (n, [], l) when ("BS3" = n || "BS3e" = n)
+                          && l.Length
+                          >= 8
+                          && (matchesParameterName (List.take 6 l) [| "T1"; "T2"; "T3" |])
+                          && (matchesType (List.take 6 l) BhfSymbolTypes) ->
+            matchStation (findSymbols (List.take 6 l)) l.[6] (chooseNonEmptyParameter 7 l)
         | (n, [], l) when ("BS3" = n || "BS3e" = n)
                           && l.Length
                           >= 5

@@ -2,7 +2,10 @@ module DbData
 
 open FSharp.Data
 
-type DbStationOfRoute = { km: float; name: string }
+type DbStationOfRoute =
+    { km: float
+      name: string
+      STELLE_ART: string }
 
 type Strecke =
     { STRNR: int
@@ -123,38 +126,24 @@ let removeRest (name: string) (pattern: string) =
 /// split streckekurzname like 'Bln-Spandau - Hamburg-Altona'
 let splitStreckekurzname (streckekurzname: string) =
     let split = streckekurzname.Split " - "
-    if (split.Length = 2) then
-        let _from = removeRest split.[0] ", "
-        let _to = removeRest split.[1] ", "
-        [| _from; _to |]
-    else
-        Array.empty
+    if (split.Length = 2) then split else Array.empty
 
+/// ignore meters < 100
+let kmIEqual (km_I0: int) (km_I1: int) = abs (km_I0 - km_I1) < 100
 
 let addRouteEndpoints (route: Strecke) (dbdata: BetriebsstelleRailwayRoutePosition []) =
     let indexAnf =
         dbdata
-        |> Array.tryFind (fun d -> d.KM_I = route.KMANF_E)
+        |> Array.tryFind (fun d -> kmIEqual d.KM_I route.KMANF_E)
 
     let indexEnd =
         dbdata
-        |> Array.tryFind (fun d -> d.KM_I = route.KMEND_E)
+        |> Array.tryFind (fun d -> kmIEqual d.KM_I route.KMEND_E)
 
     let split = splitStreckekurzname route.STRNAME
 
     if split.Length = 2
        && (indexAnf.IsNone || indexEnd.IsNone) then
-
-        let endNeu =
-            { STRECKE_NR = route.STRNR
-              RICHTUNG = 1
-              KM_I = route.KMEND_E
-              KM_L = route.KMEND_V
-              BEZEICHNUNG = split.[0]
-              STELLE_ART = "ANF"
-              KUERZEL = ""
-              GEOGR_BREITE = 0.0
-              GEOGR_LAENGE = 0.0 }
 
         Array.concat [ if indexAnf.IsNone then
                            yield
@@ -208,7 +197,8 @@ let loadDBStations routenr =
     loadDBRoutePosition routenr
     |> Array.map (fun p ->
         { km = getKMI2Float p.KM_I
-          name = p.BEZEICHNUNG })
+          name = p.BEZEICHNUNG 
+          STELLE_ART = p.STELLE_ART})
 
 let checkPersonenzugStreckenutzung (strecke: int) =
     let dbdata = loadStreckenutzungCsvData ()
@@ -223,3 +213,15 @@ let checkPersonenzugStreckenutzung (strecke: int) =
         |> Array.exists (fun bn -> bn.Contains "Pz")
 
     hasBahnnutzung || bahnnutzung.Length = 0
+
+let dump (title: string) (strecke: int) (stations: DbStationOfRoute []) =
+    let json =
+        (Serializer.Serialize<DbStationOfRoute []>(stations))
+
+    System.IO.File.WriteAllText
+        ("./dump/"
+         + title
+         + "-"
+         + strecke.ToString()
+         + "-DbStationOfRoute.json",
+         json)

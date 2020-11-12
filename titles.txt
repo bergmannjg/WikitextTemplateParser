@@ -812,7 +812,6 @@ Bahnstrecke_Alzey–Mainz
 Bahnstrecke_Annaberg-Buchholz–Schwarzenberg
 Bahnstrecke_Augsburg–Buchloe
 Hunsrückquerbahn
-Ausbau-_und_Neubaustrecke_Karlsruhe–Basel
 Bachbahn
 Bahnstrecke_Amberg–Schnaittenbach
 Bahnstrecke_Backnang–Ludwigsburg
@@ -1047,7 +1046,6 @@ Bahnstrecke_Düsseldorf-Unterrath–Düsseldorf_Flughafen_Terminal
 Bahnstrecke_Ebeleben–Mühlhausen
 Bahnstrecke_Ebermannstadt–Heiligenstadt
 Bahnstrecke_Essen–Gelsenkirchen
-Bahnstrecke_Flensburg–Husum–Tönning
 Bahnstrecke_Bodenburg–Elze
 Bahnstrecke_Forchheim–Behringersmühle
 Bahnstrecke_Friedberg–Mücke
@@ -1498,7 +1496,6 @@ Bahnstrecke_Aš–Adorf
 Bahnstrecke_Mannheim–Weinheim
 Bahnstrecke_Bieberehren–Creglingen
 Bahnstrecke_Węgliniec–Görlitz
-Bahnstrecke_Bentwisch–Poppendorf
 Bahnstrecke_Glasower_Damm_Ost–Bohnsdorf_Süd
 Bahnstrecke_Mannheim_Kurpfalzbrücke–Edingen–Heidelberg
 Bahnstrecke_Mannheim-Käfertal–Heddesheim

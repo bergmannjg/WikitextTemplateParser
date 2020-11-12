@@ -30,7 +30,8 @@ let webApp =
         routef "/dump/%s" ((+) "./dump/" >> jsonFile)
         routef "/js/%s" ((+) "./js/" >> jsonFile)
         routef "/stationOfDbWk/%s/%i" (Views.stationOfDbWk >> RenderView.AsString.htmlDocument >> htmlString)
-        routef "/stationOfRoute/%s/%i" (Views.stationOfRoute>>  RenderView.AsString.htmlDocument >> htmlString)
+        routef "/wkStationOfRoute/%s/%i" (Views.stationOfRoute>>  RenderView.AsString.htmlDocument >> htmlString)
+        routef "/dbStationOfRoute/%s/%i" (Views.dbStationOfRoute>>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/stationOfInfobox/%s" (Views.stationOfInfobox >> RenderView.AsString.htmlDocument >> htmlString)
         route "/" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.index ]
 
