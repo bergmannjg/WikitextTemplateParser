@@ -12,8 +12,16 @@ let compareMatch ((db0, wk0): DbStationOfRoute * StationOfRoute) ((db1, wk1): Db
     if wk0.kms.Length = 0 || wk1.kms.Length = 0 then
         0
     else
-        let diff0 = abs (db0.km - wk0.kms.[0])
-        let diff1 = abs (db1.km - wk1.kms.[0])
+        let diff0 =
+            wk0.kms
+            |> Array.map (fun k -> abs (db0.km - k))
+            |> Array.min
+
+        let diff1 =
+            wk1.kms
+            |> Array.map (fun k -> abs (db1.km - k))
+            |> Array.min
+
         if diff0 = diff1 then 0
         else if diff0 < diff1 then -1
         else 1
@@ -90,9 +98,22 @@ let dump (title: string)
          s)
 
 let printResult (resultOfRoute: ResultOfRoute) showDetails =
-    if (showDetails)
-    then printfn "%A" resultOfRoute
-    else printfn "%s" (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+    if (showDetails) then
+        if resultOfRoute.fromToNameOrig.Length = 2
+           && resultOfRoute.resultKind = Types.ResultKind.StartStopStationsNotFound then
+            printfn
+                "(\"%s\", %d, \"%s\", \"\")"
+                resultOfRoute.title
+                resultOfRoute.route
+                resultOfRoute.fromToNameOrig.[0]
+            printfn
+                "(\"%s\", %d, \"%s\", \"\")"
+                resultOfRoute.title
+                resultOfRoute.route
+                resultOfRoute.fromToNameOrig.[1]
+        printfn "%A" resultOfRoute
+    else
+        printfn "%s" (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
 
 let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
     let dbFirst = dbStations.[0]
@@ -151,7 +172,13 @@ let compare (title: string)
         && isDbRouteComplete results dbStations
 
     let resultkind =
-        getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound streckeMatched.railwayGuide
+        getResultKind
+            countWikiStops
+            countDbStops
+            countDbStopsFound
+            countDbStopsNotFound
+            streckeMatched.railwayGuide
+            (streckeMatched.routenameKind = Unmatched)
 
     let resultOfRoute =
         { route = streckeMatched.nummer

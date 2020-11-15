@@ -53,9 +53,17 @@ let guessRouteIsShutdown (railwayGuide: string option) =
     | Some v -> v.Contains "ehem" || v.Contains "alt"
     | None -> false
 
-let getResultKind countWikiStops countDbStops countDbStopsFound countDbStopsNotFound (railwayGuide: string option) =
+let getResultKind countWikiStops
+                  countDbStops
+                  countDbStopsFound
+                  countDbStopsNotFound
+                  (railwayGuide: string option)
+                  (unmatched: bool)
+                  =
     let dbStopsWithRoute = countDbStops > 0
     if countWikiStops = 0 && dbStopsWithRoute then
+        StartStopStationsNotFound
+    else if dbStopsWithRoute && unmatched then
         StartStopStationsNotFound
     else if countDbStopsFound > 0
             && dbStopsWithRoute

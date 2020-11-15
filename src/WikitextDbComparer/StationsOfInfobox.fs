@@ -15,6 +15,7 @@ let BhfSymbolTypes =
        "HST"
        "BST"
        "KMW"
+       "KRW"
        "ABZ"
        "KRZ"
        "GRENZE"

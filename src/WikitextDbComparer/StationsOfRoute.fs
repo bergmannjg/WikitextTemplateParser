@@ -63,12 +63,12 @@ let private getBestMatchWithStrategy (isExactMatch: bool)
                 || y.EndsWith x
                 || checkReplaced y x)
 
-    let exactCandidate =
+    let exactCandidates =
         namesInTemplate
-        |> Array.tryFind (matcher nameInHeader)
+        |> Array.filter (matcher nameInHeader)
 
-    if exactCandidate.IsSome then
-        Some(exactCandidate.Value, exactCandidate.Value)
+    if exactCandidates.Length > 0 then
+        Some(exactCandidates.[0], exactCandidates.[exactCandidates.Length - 1])
     else
         let candidates =
             namesInTemplate
@@ -233,7 +233,12 @@ let getMatchedRouteInfo (strecke0: RouteInfo) (stations: StationOfInfobox []) (r
 
     match getMatchedRouteStations strecke stations with
     | Some (f, t) -> { strecke with von = f; bis = t }
-    | _ -> if refillPossible then refillRouteInfo strecke stations else strecke
+    | _ ->
+        if refillPossible then
+            refillRouteInfo strecke stations
+        else
+            { strecke with
+                  routenameKind = Unmatched }
 
 let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =
     let json =
