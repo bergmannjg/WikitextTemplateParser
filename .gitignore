@@ -15,5 +15,7 @@ src/ResultsViewer/dist
 
 node_modules/
 
+results.db
+
 x.txt
 y.txt

@@ -4,7 +4,6 @@ open Wikidata
 open System.Text.RegularExpressions
 open Ast
 
-
 // prepare template string, todo: add to parser
 let prepare (s0: string) (title:string) =
     let regex0 = Regex(@"<ref[^>]*>.+?</ref>")
@@ -23,23 +22,21 @@ let loadBahnstreckeTemplate ((name,_,_):Template) (parseTemplates: (string -> un
 let checkBahnstreckeTemplate (templates:Templates) (parseTemplates: (string -> unit)) =
     templates|>List.iter (fun t-> match t with | (s,_,_) when s.StartsWith "Bahnstrecke" -> loadBahnstreckeTemplate t parseTemplates      | _ -> ())
 
-let rec parseTemplatesForWikiTitle title =
-    match loadTemplatesCached title with
+let rec parseTemplatesForWikiTitle reload title  =
+    match loadTemplates reload title with
     | Some t ->
         match Parser.parse (prepare t title) with
         | Success (result, _, _) -> 
             fprintfn stdout "Success: templates Length %d" result.Length
-            System.IO.File.WriteAllText ("./wikidata/" + title + ".json", Serializer.Serialize<Templates>(result))
-            System.IO.File.WriteAllText ("./wikidata/" + title + ".txt", sprintf "%A" result)
-            fprintfn stdout "see templates %s" ("./wikidata/" + title + ".txt")
-            checkBahnstreckeTemplate result parseTemplatesForWikiTitle
+            DataAccess.Templates.insert title (Serializer.Serialize<Templates>(result)) |> ignore
+            checkBahnstreckeTemplate result (parseTemplatesForWikiTitle reload)
         | Failure (errorMsg, _, _) -> fprintfn stderr "\n***Parser failure: %s" errorMsg
     | None -> 
         fprintfn stderr "***no templates found, title %s" title
 
 let parseTemplatesForRailwaynr railwaynr =
     match findWikiTitle railwaynr with
-    | Some title -> parseTemplatesForWikiTitle title
+    | Some title -> parseTemplatesForWikiTitle false title
     | None -> fprintfn stdout "findTitle failed, railwaynr %s" railwaynr
 
 [<EntryPoint>]
@@ -52,7 +49,7 @@ let main argv =
             parseTemplatesForRailwaynr railwaynr
         | _, _ -> fprintfn stdout "integer expected: %s" railwaynr
     | [| "-parsetitle"; title |] ->
-        parseTemplatesForWikiTitle title
+        parseTemplatesForWikiTitle false title 
     | [| "-showtitles"; strMaxTitles |] ->
         match System.Int32.TryParse strMaxTitles with
         | true, maxTitles ->
@@ -61,6 +58,6 @@ let main argv =
             |> Array.choose id
             |> Array.iter (fun t -> printfn "%s" t)
         | _, _ -> fprintfn stdout "integer expected: %s" strMaxTitles
-    | _ -> fprintfn stdout "args expected failed: arg %A" argv
+    | _ -> fprintfn stdout "usage: [-reload] -parsetitle title|"
     
     0

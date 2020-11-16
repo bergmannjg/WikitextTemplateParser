@@ -2,22 +2,14 @@ module Wikidata
 
 open Ast
 
-let private getPath (title: string) =
-    if title.StartsWith("./wikidata/") then title else "./wikidata/" + title + ".json"
+let private loadTemplates (title: string) =
+    fprintfn stderr "loading : '%s'" title
 
-let loadTemplatesForPath (path: string) =
-    fprintfn stderr "loading : '%s'" path
-
-    if System.IO.File.Exists path then
-        let wikitext = System.IO.File.ReadAllText path
-
-        let templates =
-            Serializer.Deserialize<list<Template>>(wikitext)
-
-        templates
-    else
-        fprintfn stderr "file not found: %s" path
-        List.empty
+    match DataAccess.Templates.query title |> List.tryHead with
+    | Some row -> Serializer.Deserialize<list<Template>>(row)
+    | None ->
+        fprintfn stderr "loadTemplates: title not found: %s" title
+        list.Empty
 
 let substituteTemplateParameter (fpl: list<FunctionParameter>) (tpl: list<Parameter>) =
     match fpl, tpl with
@@ -77,7 +69,7 @@ let evalFunctionInTemplates (templates: list<Template>) (tpl: list<Parameter>): 
 
 let evalTemplate (title: string) (tpl: list<Parameter>) =
     let templates =
-        loadTemplatesForPath ("./wikidata/Vorlage:" + title + ".json")
+        loadTemplates ("./wikidata/Vorlage:" + title)
 
     evalFunctionInTemplates templates tpl
 
@@ -90,7 +82,5 @@ let evalTemplates (templates: list<Template>) =
         | _ -> t :: st) templates List.empty
 
 let loadTemplatesForWikiTitle (title: string) showDetails =
-    let path = getPath title
-
-    let templates = loadTemplatesForPath path
+    let templates = loadTemplates title
     evalTemplates templates |> List.toArray

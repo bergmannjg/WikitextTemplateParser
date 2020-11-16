@@ -218,7 +218,5 @@ let findStationOfInfobox (t: Template) =
         None
 
 let dump (title: string) (precodedStations: StationOfInfobox []) =
-    let json =
-        (Serializer.Serialize<StationOfInfobox []>(precodedStations))
-
-    System.IO.File.WriteAllText("./dump/" + title + "-StationOfInfobox.json", json)
+    DataAccess.WkStationOfInfobox.insert title (Serializer.Serialize<StationOfInfobox []>(precodedStations))
+    |> ignore

@@ -112,8 +112,12 @@ let printResult (resultOfRoute: ResultOfRoute) showDetails =
                 resultOfRoute.route
                 resultOfRoute.fromToNameOrig.[1]
         printfn "%A" resultOfRoute
-    else
-        printfn "%s" (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+
+    DataAccess.ResultOfRoute.insert
+        resultOfRoute.title
+        resultOfRoute.route
+        (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+    |> ignore
 
 let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
     let dbFirst = dbStations.[0]
@@ -205,7 +209,6 @@ let compare (title: string)
     if (showDetails) then
         dump title streckeMatched precodedStations wikiStations results
         printfn "see wikitext ./cache/%s.txt" title
-        printfn "see templates ./wikidata/%s.txt" title
         printfn "see dumps ./dump/%s-%d.txt" title streckeMatched.nummer
 
     printResult resultOfRoute showDetails

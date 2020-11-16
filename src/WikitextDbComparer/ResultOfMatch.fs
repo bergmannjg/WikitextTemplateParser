@@ -121,71 +121,66 @@ let filterResultsOfRoute (results: ResultOfStation []) =
             | _ -> true)
     | _ -> [||]
 
-let showResults (path: string) =
-    if System.IO.File.Exists path then
-        let text = System.IO.File.ReadAllText path
+let showResults () =
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
 
-        let results =
-            Serializer.Deserialize<ResultOfRoute []>(text)
+    printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.route)).Length
+    printfn "articles count : %d" (results |> Array.countBy (fun r -> r.title)).Length
+    printfn
+        "route parameter empty: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterEmpty)).Length
+    printfn
+        "route parameter not parsed: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterNotParsed)).Length
+    printfn
+        "route is no passenger train: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsNoPassengerTrain)).Length
+    printfn
+        "start/stop stations of route not found: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.StartStopStationsNotFound)).Length
+    printfn
+        "found wikidata : %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataFoundInDbData)).Length
+    printfn
+        "not found wikidata in templates: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataNotFoundInTemplates)).Length
+    printfn
+        "not found wikidata in db data: %d"
+        (results
+         |> Array.filter (fun r ->
+             r.resultKind = ResultKind.WikidataNotFoundInDbData
+             && not  // check result of route with WikidataFoundInDbData and complete
+                 (results
+                  |> Array.exists (fun s ->
+                      s.route = r.route
+                      && s.resultKind = WikidataFoundInDbData
+                      && s.isCompleteDbRoute)))).Length
+    printfn
+        "no db data found, but has railway guide : %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithRailwayGuide)).Length
+    printfn
+        "route is shutdown : %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsShutdown)).Length
+    printfn
+        "no db data found: %d"
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithoutRailwayGuide)).Length
 
-        printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.route)).Length
-        printfn "articles count : %d" (results |> Array.countBy (fun r -> r.title)).Length
-        printfn
-            "route parameter empty: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterEmpty)).Length
-        printfn
-            "route parameter not parsed: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterNotParsed)).Length
-        printfn
-            "route is no passenger train: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsNoPassengerTrain)).Length
-        printfn
-            "start/stop stations of route not found: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.StartStopStationsNotFound)).Length
-        printfn
-            "found wikidata : %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataFoundInDbData)).Length
-        printfn
-            "not found wikidata in templates: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataNotFoundInTemplates)).Length
-        printfn
-            "not found wikidata in db data: %d"
-            (results
-             |> Array.filter (fun r ->
-                 r.resultKind = ResultKind.WikidataNotFoundInDbData
-                 && not  // check result of route with WikidataFoundInDbData and complete
-                     (results
-                      |> Array.exists (fun s ->
-                          s.route = r.route
-                          && s.resultKind = WikidataFoundInDbData
-                          && s.isCompleteDbRoute)))).Length
-        printfn
-            "no db data found, but has railway guide : %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithRailwayGuide)).Length
-        printfn
-            "route is shutdown : %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsShutdown)).Length
-        printfn
-            "no db data found: %d"
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithoutRailwayGuide)).Length
+    let countUndef =
+        (results
+         |> Array.filter (fun r -> r.resultKind = ResultKind.Undef)).Length
 
-        let countUndef =
-            (results
-             |> Array.filter (fun r -> r.resultKind = ResultKind.Undef)).Length
-
-        if countUndef > 0
-        then fprintf stderr "undef result kind unexpected, count %d" countUndef
-    else
-        fprintfn stderr "file not found: %s" path
+    if countUndef > 0
+    then fprintf stderr "undef result kind unexpected, count %d" countUndef
 
 type StationOfDbWk =
     { dbname: string
@@ -212,13 +207,5 @@ let dump (title: string) (route: int) (results: ResultOfStation []) =
                   wkname = wk.name
                   wkkms = wk.kms })
 
-    let json =
-        (Serializer.Serialize<StationOfDbWk []>(both))
-
-    System.IO.File.WriteAllText
-        ("./dump/"
-         + title
-         + "-"
-         + route.ToString()
-         + "-StationOfDbWk.json",
-         json)
+    DataAccess.DbWkStationOfRoute.insert title route (Serializer.Serialize<StationOfDbWk []>(both))
+    |> ignore

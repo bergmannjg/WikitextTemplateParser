@@ -13,7 +13,7 @@ RUN git clone https://github.com/bergmannjg/wikitext-template-parser.git
 
 WORKDIR /usr/src/apps/wikitext-template-parser
 
-RUN mkdir cache dump wikidata
+RUN mkdir dump
 
 RUN source ./scripts/restore.sh
 
@@ -29,7 +29,7 @@ RUN dotnet build ./src/ResultsViewer/ResultsViewer.fsproj
 
 WORKDIR /usr/src/apps/wikitext-template-parser/src/ResultsViewer
 
-RUN ln -s ../../dump dump
+RUN ln -s ../../results.db results.db
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:5000
 

@@ -197,8 +197,8 @@ let loadDBStations routenr =
     loadDBRoutePosition routenr
     |> Array.map (fun p ->
         { km = getKMI2Float p.KM_I
-          name = p.BEZEICHNUNG 
-          STELLE_ART = p.STELLE_ART})
+          name = p.BEZEICHNUNG
+          STELLE_ART = p.STELLE_ART })
 
 let checkPersonenzugStreckenutzung (strecke: int) =
     let dbdata = loadStreckenutzungCsvData ()
@@ -215,13 +215,5 @@ let checkPersonenzugStreckenutzung (strecke: int) =
     hasBahnnutzung || bahnnutzung.Length = 0
 
 let dump (title: string) (strecke: int) (stations: DbStationOfRoute []) =
-    let json =
-        (Serializer.Serialize<DbStationOfRoute []>(stations))
-
-    System.IO.File.WriteAllText
-        ("./dump/"
-         + title
-         + "-"
-         + strecke.ToString()
-         + "-DbStationOfRoute.json",
-         json)
+    DataAccess.DbStationOfRoute.insert title strecke (Serializer.Serialize<DbStationOfRoute []>(stations))
+    |> ignore

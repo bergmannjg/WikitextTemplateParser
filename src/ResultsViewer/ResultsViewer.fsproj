@@ -3,6 +3,9 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WikitextLibrary/WikitextLibrary.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Views.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

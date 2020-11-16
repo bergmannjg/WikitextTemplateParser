@@ -63,7 +63,7 @@ let index =
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
                 rawText """
-                loadResultsTable("#results-table", document.getElementById("statusMsg"), "/dump/results.json");
+                loadResultsTable("#results-table", document.getElementById("statusMsg"), "/data/results");
             """
             ]
         ]
@@ -90,23 +90,34 @@ let viewWithLeftRightBox (title: string) (wikititle: string) (scripttext: string
     ]
 
 let stationOfInfobox (title: string) =
+    let extraNode =
+        div [ _class "remark" ] [
+            a [ _href ("/data/Wikitext/" + title) ] [
+                str "Wikitext"
+            ]
+            str " "
+            a [ _href ("/data/Templates/" + title) ] [
+                str "Templates of wikitext"
+            ]
+        ]
+
     viewWithLeftRightBox
         ("StationsOfInfobox " + title)
         title
-        ("loadStationOfInfoTable(\"#leftbox\", \"/dump/"
+        ("loadStationOfInfoTable(\"#leftbox\", \"/data/StationOfInfobox/"
          + title
-         + "-StationOfInfobox.json\");")
-        None
+         + "\");")
+        (Some extraNode)
 
-let stationOfRoute (title: string, route: int) =
+let wkStationOfRoute (title: string, route: int) =
     viewWithLeftRightBox
         ("StationOfRoute " + title + " " + route.ToString())
         title
-        ("loadStationOfRouteTable(\"#leftbox\", \"/dump/"
+        ("loadStationOfRouteTable(\"#leftbox\", \"/data/WkStationOfRoute/"
          + title
-         + "-"
+         + "/"
          + route.ToString()
-         + "-StationOfRoute.json\");")
+         + "\");")
         None
 
 let dbStationOfRoute (title: string, route: int) =
@@ -116,11 +127,11 @@ let dbStationOfRoute (title: string, route: int) =
          + " "
          + route.ToString())
         title
-        ("loadDbStationOfRouteTable(\"#leftbox\", \"/dump/"
+        ("loadDbStationOfRouteTable(\"#leftbox\", \"/data/DbStationOfRoute/"
          + title
-         + "-"
+         + "/"
          + route.ToString()
-         + "-DbStationOfRoute.json\");")
+         + "\");")
         None
 
 let stationOfDbWk (title: string, route: int) =
@@ -149,9 +160,9 @@ let stationOfDbWk (title: string, route: int) =
          + " "
          + route.ToString())
         title
-        ("loadStationOfDbWkTable(\"#leftbox\", \"/dump/"
+        ("loadStationOfDbWkTable(\"#leftbox\", \"/data/StationOfDbWk/"
          + title
-         + "-"
+         + "/"
          + route.ToString()
-         + "-StationOfDbWk.json\");")
+         + "\");")
         (Some extraNode)

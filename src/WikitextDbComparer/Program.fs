@@ -61,7 +61,7 @@ let main argv =
     | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
     | [| "-comparetitle"; title |] -> comparetitle title false
     | [| "-verbose"; "-comparetitle"; title |] -> comparetitle title true
-    | [| "-showCompareResults"; path |] -> showResults(path)
+    | [| "-showCompareResults" |] -> showResults()
     | [| "-showClassifyResults"; path |] -> showRouteInfoResults(path)
-    | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showCompareResults path | -classify title | -showClassifyResults path"   
+    | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showCompareResults | -classify title | -showClassifyResults path"   
     0

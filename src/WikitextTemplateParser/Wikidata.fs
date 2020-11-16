@@ -75,13 +75,13 @@ let findWikiTitle (railwaynumber: string) =
     else
         None
 
-let tryFindEndOfTemplates (s: string) =
+let private tryFindEndOfTemplates (s: string) =
     let mutable last = s.IndexOf("{{BS-Trenner}}")
     if last < 0 then last <- s.IndexOf("|} |}")
     if last < 0 then last <- s.IndexOf("|} ")
     last
 
-let rec loadTemplates (wikiTitle: string) =
+let rec private loadTemplatesOnline (wikiTitle: string) =
     let url =
         "https://de.wikipedia.org/wiki/Spezial:Exportieren/"
         + wikiTitle
@@ -107,23 +107,18 @@ let rec loadTemplates (wikiTitle: string) =
 
             let m = regex.Match s
             if m.Success && m.Groups.Count = 2
-            then result <- loadTemplates m.Groups.[1].Value
+            then result <- loadTemplatesOnline m.Groups.[1].Value
     result
 
-let loadCached (directory: string) (filename: string) (loader: _ -> string option) =
-    let chachedFile = directory + "/" + filename
-    if System.IO.File.Exists chachedFile then
-        printfn "use cache: %s " chachedFile
-        Some(System.IO.File.ReadAllText chachedFile)
-    else
-        let maybeText = loader ()
-        match maybeText with
-        | Some text -> System.IO.File.WriteAllText(chachedFile, text)
-        | _ -> ()
-        maybeText
-
-let loadTemplatesCached (wikiTitle: string) =
-    let useCache = System.IO.Directory.Exists "./cache"
-    if useCache
-    then loadCached "./cache" (wikiTitle + ".txt") (fun () -> loadTemplates wikiTitle)
-    else loadTemplates wikiTitle
+let loadTemplates (reload: bool) (wikiTitle: string) =
+    match (reload,
+           DataAccess.Wikitext.query wikiTitle
+           |> List.tryHead) with
+    | (false, Some text) -> Some text
+    | _ ->
+        match loadTemplatesOnline wikiTitle with
+        | Some text ->
+            DataAccess.Wikitext.insert wikiTitle text
+            |> ignore
+            Some text
+        | None -> None

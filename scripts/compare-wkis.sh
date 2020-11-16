@@ -23,20 +23,6 @@ then
   exit 0
 fi
 
-rm -f /tmp/compare-wiki.*
-
-tmpfile=$(mktemp /tmp/compare-wiki.XXXXXX)
-
 while read p; do
-    dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -comparetitle  "$p" >> "$tmpfile"
+    dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -comparetitle  "$p"
 done < <(head -n $LINES ./titles.txt)
-
-sed -i -e '$ ! s/$/,/' "$tmpfile"
-
-OUTFILE=./dump/results.json
-
-echo "[" > $OUTFILE
-cat "$tmpfile" >>  $OUTFILE
-echo "]" >>  $OUTFILE
-
-rm "$tmpfile"

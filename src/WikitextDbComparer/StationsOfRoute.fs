@@ -241,13 +241,5 @@ let getMatchedRouteInfo (strecke0: RouteInfo) (stations: StationOfInfobox []) (r
                   routenameKind = Unmatched }
 
 let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =
-    let json =
-        (Serializer.Serialize<StationOfRoute []>(stations))
-
-    System.IO.File.WriteAllText
-        ("./dump/"
-         + title
-         + "-"
-         + strecke.nummer.ToString()
-         + "-StationOfRoute.json",
-         json)
+    DataAccess.WkStationOfRoute.insert title strecke.nummer (Serializer.Serialize<StationOfRoute []>(stations))
+    |> ignore
