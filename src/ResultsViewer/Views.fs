@@ -57,13 +57,37 @@ let index =
             h1 [ _style "text-align:center" ] [
                 str "Results"
             ]
+            div [ _style "margin-left:5%; margin-bottom:5px;" ] [
+                span [ _id "statusMsg" ] []
+                str " "
+                a [ _href ("/routeinfos") ] [
+                    str "Summary of route infos"
+                ]
+            ]
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+            script [ _type "application/javascript" ] [
+                rawText """
+                loadResultsTable("#results-table", document.getElementById("statusMsg"), "/data/results");
+            """
+            ]
+        ]
+    ]
+
+let routeinfos =
+    html [] [
+        head [] (titleAndScripts "Route Infos")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str "Route Infos"
+            ]
             div [ _id "statusMsg"
                   _style "margin-left:5%; margin-bottom:5px;" ] []
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
                 rawText """
-                loadResultsTable("#results-table", document.getElementById("statusMsg"), "/data/results");
+                loadRouteInfosTable("#results-table", document.getElementById("statusMsg"), "/data/routeinfos");
             """
             ]
         ]

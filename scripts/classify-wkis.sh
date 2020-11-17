@@ -12,18 +12,6 @@ then
   exit 0
 fi
 
-rm -f /tmp/compare-wiki.*
-
-tmpfile=$(mktemp /tmp/compare-wiki.XXXXXX)
-
 while read p; do
-    dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -classify  "$p" >> "$tmpfile"
+    dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -classify  "$p"
 done < <(head -2000 ./titles.txt)
-
-sed -i -e '$ ! s/$/,/' "$tmpfile"
-
-echo "[" 
-cat "$tmpfile"
-echo "]"
-
-rm "$tmpfile"

@@ -21,7 +21,7 @@ The route number and start/stop stations of a route are given in the 'STRECKENNR
 6185 (Oebisfelde–Berlin-Spandau)
 ```
 
-To compare the routes it is necessary that the station names in the 'STRECKENNR' template correspond to the station names in the 'BS' templates. In some instances there is no direct correspondence.
+The content f the template parameter is transformed in RouteInfo type using some regular expressions (*matching step 1*, see function RouteInfo.findRouteInfoInTemplates). 
 
 ## From Templates to StationsOfInfobox
 
@@ -29,13 +29,16 @@ All templates of an wiki info box with station data are extracted and transforme
 
 ## From StationsOfInfobox to StationsOfRoute of a route
 
-The stations of a route are filtered from the StationOfInfobox data with the RouteInfo and transformed in StationOfRoute type.
+The stations of a route are filtered from the StationOfInfobox data with the RouteInfo and transformed in StationOfRoute type:
+
+* find the stations from RouteInfo in the list of StationOfInfobox (*matching step 2*, see function StationsOfRoute.findRouteInfoStations)
+* filter the stations in the list of StationOfInfobox (see function StationsOfRoute.filterStations)
 
 ## Compare Wikitext Stations with DB Stations
 
 Compare the wikitext station data of a route with the corresponding db data, i.e. are the stations in db data a subset of the stations in wiki data.
 
-A wikitext station matches with a db station 
+A wikitext station matches with a db station (*matching step 3*, see function StationMatch.matchesWkStationWithDbStation)
 
 * if the distance differences are small 
 * and the the staion names have a common substring.

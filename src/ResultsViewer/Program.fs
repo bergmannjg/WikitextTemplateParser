@@ -55,6 +55,7 @@ let webApp =
         routef "/dist/css/%s" ((+) "./dist/css/" >> cssFile)
         routef "/dist/js/%s" ((+) "./dist/js/" >> jsonFile)
         route "/data/results" >=> (loadAll DataAccess.ResultOfRoute.queryAll)
+        route "/data/routeinfos" >=> (loadAll DataAccess.RouteInfo.queryAll)
         routef "/data/Wikitext/%s" loadWikitext
         routef "/data/Templates/%s" (loadWithTitle DataAccess.Templates.query)
         routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkStationOfInfobox.query)
@@ -66,6 +67,7 @@ let webApp =
         routef "/wkStationOfRoute/%s/%i" (Views.wkStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/dbStationOfRoute/%s/%i" (Views.dbStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/stationOfInfobox/%s" (Views.stationOfInfobox >> RenderView.AsString.htmlDocument >> htmlString)
+        route "/routeinfos" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.routeinfos
         route "/" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.index ]
 
 let configureApp (app : IApplicationBuilder) =

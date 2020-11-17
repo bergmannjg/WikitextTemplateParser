@@ -1,3 +1,3 @@
 # Comparison Results
 
-Viewer for the results of the wikitext db-data comparison.
+Web app to view the results of the wikitext db-data comparison.

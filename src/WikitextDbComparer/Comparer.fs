@@ -36,7 +36,7 @@ let getBestMatch (matches: (DbStationOfRoute * StationOfRoute) []) =
 let findStation (wikiStations: StationOfRoute []) (dbStation: DbStationOfRoute) =
     let res =
         wikiStations
-        |> Array.map (fun b -> getMatchedStation b dbStation)
+        |> Array.map (fun b -> matchesWkStationWithDbStation b dbStation)
         |> Array.choose id
 
     if res.Length = 0 then Failure(dbStation) else Success(getBestMatch res)
@@ -208,7 +208,6 @@ let compare (title: string)
 
     if (showDetails) then
         dump title streckeMatched precodedStations wikiStations results
-        printfn "see wikitext ./cache/%s.txt" title
         printfn "see dumps ./dump/%s-%d.txt" title streckeMatched.nummer
 
     printResult resultOfRoute showDetails

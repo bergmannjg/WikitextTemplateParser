@@ -62,6 +62,47 @@ function loadResultsTable(tableId, statusElementId, url) {
     });
 }
 
+function loadRouteInfosTable(tableId, statusElementId, url) {
+
+    let urlOfRoute = (cell) => {
+        return "/stationOfDbWk/" + cell.getData().title + '/' + cell.getValue();
+    }
+
+    new Tabulator(tableId, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        pagination: "local",
+        paginationSize: 20,
+        dataFiltered: function (filters, rows) {
+            //filters - array of filters currently applied
+            //rows - array of row components that pass the filters
+            statusElementId.textContent= rows.length + " rows selected"
+        },
+        columns: [
+            {
+                // var data = cell.getData();
+                title: "Route", field: "nummer", width: 60, headerFilter: "input", formatter: "link", formatterParams: {
+                    url: urlOfRoute,
+                    target: "_blank",
+                }
+            },
+            {
+                title: "Title", field: "title", width: 250, headerFilter: "input"
+            },
+            {
+                title: "From", field: "von", width: 150
+            },
+            {
+                title: "To", field: "bis", width: 150
+            },
+            {
+                title: "RoutenameKind", field: "routenameKind.Case", width: 150, headerFilter: "select", headerFilterParams:{values:["","Empty","SmallFormat","Parenthesis","Text","Unmatched"]}
+            },
+            { title: "Text", field: "searchstring", formatter:"textarea" },
+        ],
+    });
+}
+
 function loadStationOfInfoTable(id, url) {
 
     new Tabulator(id, {

@@ -225,7 +225,7 @@ let private maybeReplaceRouteStation (strecke: RouteInfo) =
     | None -> strecke
 
 /// match RouteInfo station names with station names of templates
-let getMatchedRouteInfo (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
+let findRouteInfoStations (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
     let strecke =
         strecke0
         |> maybeReplaceRouteNr

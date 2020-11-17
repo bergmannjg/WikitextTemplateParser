@@ -70,7 +70,7 @@ let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
     wikiDistances
     |> Array.exists (fun d -> abs (dbDistance - d) < 1.0)
 
-let getMatchedStation (wikiStation: StationOfRoute) (dbStation: DbStationOfRoute) =
+let matchesWkStationWithDbStation (wikiStation: StationOfRoute) (dbStation: DbStationOfRoute) =
     if (matchStationDistance wikiStation.kms dbStation.km
         && matchStationName wikiStation.name dbStation.name) then
         Some(dbStation, wikiStation)

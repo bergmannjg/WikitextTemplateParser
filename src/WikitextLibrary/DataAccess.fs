@@ -15,6 +15,16 @@ let private collectionQuery (collection: string) (map: Map<string, string>) =
     |> Seq.map (fun r -> r.value)
     |> Seq.toList
 
+let private toJsonArray (results: list<string>) =
+    if results.Length = 0 then
+        "[]"
+    else
+        let text =
+            results
+            |> Seq.reduce (fun text texts -> text + "," + texts)
+
+        "[" + text + "]"
+
 module Wikitext =
     let private toMap (title: string) = Map.empty.Add("title", title)
 
@@ -71,6 +81,19 @@ module WkStationOfRoute =
     let query title route =
         collectionQuery "WkStationOfRoute" (toMap title route)
 
+module RouteInfo =
+    let private toMap (title: string) (route: int) =
+        Map.empty.Add("title", title).Add("route", route.ToString())
+
+    let insert title route value =
+        collectionInsert "RouteInfo" (toMap title route) value
+
+    let query title route =
+        collectionQuery "RouteInfo" (toMap title route)
+
+    let queryAll () =
+        toJsonArray (collectionQuery "RouteInfo" Map.empty)
+
 module ResultOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
@@ -82,14 +105,4 @@ module ResultOfRoute =
         collectionQuery "ResultOfRoute" (toMap title route)
 
     let queryAll () =
-        let results =
-            collectionQuery "ResultOfRoute" Map.empty
-
-        if results.Length = 0 then
-            "[]"
-        else
-            let text =
-                results
-                |> Seq.reduce (fun text texts -> text + "," + texts)
-
-            "[" + text + "]"
+        toJsonArray (collectionQuery "ResultOfRoute" Map.empty)

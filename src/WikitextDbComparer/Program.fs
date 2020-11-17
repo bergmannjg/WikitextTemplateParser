@@ -7,24 +7,21 @@ open Comparer
 open Types
 open ResultsOfMatch
 open Wikidata
+open Ast
 
 let classifyBsDatenStreckenNr title showDetails =
     let templates = loadTemplatesForWikiTitle title showDetails
-    match findBsDatenStreckenNr templates title with
+    match findRouteInfoInTemplates templates title with
     | Some strecken ->
         strecken|>Array.iter (printRouteInfo showDetails) 
     | None -> 
         ()
 
-let comparetitle title showDetails =
-    let templates = loadTemplatesForWikiTitle title showDetails
-    let streckenAlle = match findBsDatenStreckenNr templates title with
+let findValidRouteInfoInTemplates (templates: Template []) title showDetails =
+    let streckenAlle = match findRouteInfoInTemplates templates title with
                        | Some strecken ->
                             if strecken.Length = 0  then 
                                 printResult (createResult title 0 RouteParameterNotParsed) showDetails
-                                if showDetails then 
-                                    printfn "see wikitext ./cache/%s.txt" title
-                                    printfn "see templates ./wikidata/%s.txt" title
                             strecken
                        | None -> 
                             printResult (createResult title 0 RouteParameterEmpty) showDetails
@@ -39,29 +36,32 @@ let comparetitle title showDetails =
             ResultsOfMatch.dump title nr (ResultsOfMatch.toResultOfStation dbStations)
             )
         if showDetails then fprintfn stderr "%s, keine Fernbahnnutzung %A" title streckenOhne 
-   
+    strecken
+
+let comparetitle title showDetails =
+    let templates = loadTemplatesForWikiTitle title showDetails
+    let strecken = findValidRouteInfoInTemplates templates title showDetails
     if strecken.Length>0 then
-        let precodedStations = templates |> Array.map findStationOfInfobox |> Array.choose id
-        StationsOfInfobox.dump title precodedStations
+        let stationsOfInfobox = templates |> Array.map findStationOfInfobox |> Array.choose id
+        StationsOfInfobox.dump title stationsOfInfobox
         strecken
         |> Array.iter (fun route -> 
-            let routeMatched = getMatchedRouteInfo route precodedStations (strecken.Length = 1)
+            let routeMatched = findRouteInfoStations route stationsOfInfobox (strecken.Length = 1)
             let dbStations = loadDBStations routeMatched.nummer
-            let wikiStations = match dbStations.Length > 0 with 
-                                | true -> filterStations routeMatched precodedStations
-                                | _ -> [||]
-            StationsOfRoute.dump title route wikiStations
-            DbData.dump title route.nummer dbStations
-            compare title route routeMatched wikiStations dbStations precodedStations showDetails)
+            DbData.dump title routeMatched.nummer dbStations
+            let wikiStations = if dbStations.Length > 0 then filterStations routeMatched stationsOfInfobox else [||]
+            StationsOfRoute.dump title routeMatched wikiStations
+            compare title route routeMatched wikiStations dbStations stationsOfInfobox showDetails)
 
 [<EntryPoint>]
 let main argv =
     Serializer.addConverters ([| |])
     match argv with
-    | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
     | [| "-comparetitle"; title |] -> comparetitle title false
     | [| "-verbose"; "-comparetitle"; title |] -> comparetitle title true
     | [| "-showCompareResults" |] -> showResults()
-    | [| "-showClassifyResults"; path |] -> showRouteInfoResults(path)
+    | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
+    | [| "-verbose"; "-classify"; title |] -> classifyBsDatenStreckenNr title true
+    | [| "-showClassifyResults" |] -> showRouteInfoResults()
     | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showCompareResults | -classify title | -showClassifyResults path"   
     0
