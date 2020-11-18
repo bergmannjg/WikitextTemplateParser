@@ -69,7 +69,7 @@ let evalFunctionInTemplates (templates: list<Template>) (tpl: list<Parameter>): 
 
 let evalTemplate (title: string) (tpl: list<Parameter>) =
     let templates =
-        loadTemplates ("./wikidata/Vorlage:" + title)
+        loadTemplates ("Vorlage:" + title)
 
     evalFunctionInTemplates templates tpl
 

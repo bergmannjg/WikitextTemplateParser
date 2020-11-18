@@ -13,6 +13,7 @@ let classifyBsDatenStreckenNr title showDetails =
     let templates = loadTemplatesForWikiTitle title showDetails
     match findRouteInfoInTemplates templates title with
     | Some strecken ->
+        DataAccess.RouteInfo.delete title |> ignore
         strecken|>Array.iter (printRouteInfo showDetails) 
     | None -> 
         ()
@@ -39,6 +40,7 @@ let findValidRouteInfoInTemplates (templates: Template []) title showDetails =
     strecken
 
 let comparetitle title showDetails =
+    DataAccess.ResultOfRoute.delete title |> ignore
     let templates = loadTemplatesForWikiTitle title showDetails
     let strecken = findValidRouteInfoInTemplates templates title showDetails
     if strecken.Length>0 then

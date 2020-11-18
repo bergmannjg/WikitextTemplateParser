@@ -51,7 +51,7 @@ function loadResultsTable(tableId, statusElementId, url) {
                 },
             },
             {
-                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams:{values:["","WikidataFoundInDbData","WikidataNotFoundInDbData","RouteParameterEmpty", "NoDbDataFoundWithRailwayGuide", "NoDbDataFoundWithoutRailwayGuide", "RouteIsNoPassengerTrain", "StartStopStationsNotFound", "RouteIsShutdown"]}
+                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams:{values:["","WikidataFoundInDbData","WikidataNotFoundInDbData","RouteParameterEmpty", "NoDbDataFoundWithRailwayGuide", "NoDbDataFoundWithoutRailwayGuide", "RouteIsNoPassengerTrain", "StartStopStationsNotFound", "RouteIsShutdown","RouteParameterNotParsed"]}
             },
             { title: "WikiStops", field: "countWikiStops", width: 100 },
             { title: "DbFound", field: "countDbStopsFound", width: 100 },
@@ -96,9 +96,9 @@ function loadRouteInfosTable(tableId, statusElementId, url) {
                 title: "To", field: "bis", width: 150
             },
             {
-                title: "RoutenameKind", field: "routenameKind.Case", width: 150, headerFilter: "select", headerFilterParams:{values:["","Empty","SmallFormat","Parenthesis","Text","Unmatched"]}
+                title: "RoutenameKind", field: "routenameKind.Case", width: 150, headerFilter: "select", headerFilterParams:{values:["","Empty","EmptyWithIgnored","SmallFormat","Parenthesis","Text","Unmatched"]}
             },
-            { title: "Text", field: "searchstring", formatter:"textarea" },
+            { title: "Text", field: "searchstring", headerFilter: "input", formatter:"textarea" },
         ],
     });
 }

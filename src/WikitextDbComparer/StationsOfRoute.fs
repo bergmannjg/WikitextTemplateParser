@@ -38,7 +38,9 @@ let private getMatchInReplacements (isExactMatch: bool)
                                    =
     let candidates =
         AdhocReplacements.replacementsInRouteStation
-        |> Array.filter (fun (_, route, _, _) -> route = 0 || route = strecke.nummer)
+        |> Array.filter (fun (title, route, _, _) ->
+            (route = 0 && title = strecke.title)
+            || route = strecke.nummer)
         |> Array.map (fun (_, _, ab, s) ->
             if getMatchInReplacement isExactMatch strecke nameInTemplate nameInHeader ab s
             then Some nameInTemplate

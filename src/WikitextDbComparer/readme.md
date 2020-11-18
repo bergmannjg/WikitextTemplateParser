@@ -21,7 +21,7 @@ The route number and start/stop stations of a route are given in the 'STRECKENNR
 6185 (Oebisfelde–Berlin-Spandau)
 ```
 
-The content f the template parameter is transformed in RouteInfo type using some regular expressions (*matching step 1*, see function RouteInfo.findRouteInfoInTemplates). 
+The content of the template parameter is transformed in RouteInfo type (*matching step 1*, see function RouteInfo.findRouteInfoInTemplates). 
 
 ## From Templates to StationsOfInfobox
 

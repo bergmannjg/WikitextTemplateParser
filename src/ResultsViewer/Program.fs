@@ -30,7 +30,9 @@ let cssFile (filePath : string) : HttpHandler =
     sendFile filePath contentTypeCss
 
 let loadAll (query: (_) -> string)  : HttpHandler =
-    sendText (query()) contentTypeJson
+    fun (_ : HttpFunc) (ctx : HttpContext) ->
+        ctx.SetContentType contentTypeJson
+        ctx.WriteStringAsync (query())
 
 let loadWithTitle (query: string -> list<string>) (title:string) : HttpHandler =
     match query title |> Seq.tryHead with

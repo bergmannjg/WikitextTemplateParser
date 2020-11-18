@@ -9,6 +9,13 @@ let private collectionInsert (collection: string) (map: Map<string, string>) (va
     use db = new Database(dbname)
     db.InsertUnique collection (Guid.NewGuid()) map value
 
+let private collectionDelete (collection: string) (map: Map<string, string>) =
+    use db = new Database(dbname)
+    db.Query collection map
+    |> Seq.toList
+    |> List.map (fun r -> db.Delete collection r.id)
+    |> List.forall ((=) true)
+
 let private collectionQuery (collection: string) (map: Map<string, string>) =
     use db = new Database(dbname)
     db.Query collection map
@@ -88,6 +95,9 @@ module RouteInfo =
     let insert title route value =
         collectionInsert "RouteInfo" (toMap title route) value
 
+    let delete title =
+        collectionDelete "RouteInfo" (Map.empty.Add("title", title))
+
     let query title route =
         collectionQuery "RouteInfo" (toMap title route)
 
@@ -100,6 +110,9 @@ module ResultOfRoute =
 
     let insert title route value =
         collectionInsert "ResultOfRoute" (toMap title route) value
+
+    let delete title =
+        collectionDelete "ResultOfRoute" (Map.empty.Add("title", title))
 
     let query title route =
         collectionQuery "ResultOfRoute" (toMap title route)

@@ -5,13 +5,21 @@ open Types
 
 let ignoreStringsInRoutename =
     [| ", 3. Gl."
+       ", 3./4. Gleis"
        "3. Gleis"
+       "/9"
        ", Ferngleise"
        ", Vorortgleise"
        ", P-Bahn"
        "+EVS"
        "sä.WB"
+       "; sä.DEH"
+       "; sä.DE"
+       "sä.DE"
+       "(parallel)"
+       "parallel"
        "ABS"
+       "SFS"
        "äußeres Gleispaar"
        "aus Hbf"
        "Bestandsstrecke"
@@ -27,12 +35,36 @@ let ignoreStringsInRoutename =
        "Güterstrecke"
        "NBS"
        "nach Hbf"
+       "Außengl."
        "Neutrassierung"
        "Personenverkehr"
+       "Umgehungsstrecke"
        "S-Bahn"
        "Schnellfahrstrecke"
        "Südgleis"
        "Verbindungskurve" |]
+
+let  prefixesOfEmptyRouteNames =
+    [| "; sä"
+       ";sä"
+       "(sä"
+       "+"
+       "–"
+       ","
+       "ex"
+       "()"
+       "/"
+       "(ex"
+       "PLK"
+       "NBS"
+       "ABS"
+       "S-Bahn"
+       "Güterstr"
+       "Ostseite"
+       "Güterumfahrung"
+       "alte Trasse"
+       "Vorortgleise"
+       "Ortsgleise" |]
 
 let replacementsInRouteStation =
     [| ("Bahnstrecke_Berlin–Dresden", 6135, "Bln. Südkreuz", "Berlin Südkreuz")
@@ -68,8 +100,7 @@ let replacementsInRouteStation =
        ("Berliner_Außenring", 6087, "Karower Kreuz", "Abzw Berlin-Karow West")
        ("Neckartalbahn", 4110, "HD Hbf (alt)", "Heidelberg-Altstadt")
        ("Westbahn_(Württemberg)", 4800, "Bietigheim-B.", "Bietigheim-Bissingen")
-       ("Bahnstrecke_Köln–Duisburg", 2650, "Köln-Deutz", "Köln Messe/Deutz")
-       ("Bahnstrecke_Köln–Duisburg", 2400, "Köln-Deutz", "Köln Messe/Deutz")
+       ("Bahnstrecke_Köln–Duisburg", 0, "Köln-Deutz", "Köln Messe/Deutz")
        ("Bahnstrecke_Berlin_Frankfurter_Allee–Berlin-Rummelsburg", 6140, "Frankfurter Allee", "Berlin Frankfurter Allee")
        ("Bahnstrecke_Berlin_Frankfurter_Allee–Berlin-Rummelsburg", 6140, "Rummelsburg", "Berlin-Rummelsburg")
        ("Bahnstrecke_Wuppertal-Oberbarmen–Solingen", 2700, "W-Oberbarmen", "Wuppertal-Oberbarmen")
@@ -134,6 +165,9 @@ let replacementsInRouteStation =
        ("Bahnstrecke_Kassel–Warburg", 3913, "Kassel-Oberzwehren", "Güterstrecke nach Kassel-Wilhelmshöhe")
        ("Neckartalbahn", 4100, "HD-Altstadt", "Heidelberg-Altstadt")
        ("Bahnstrecke_Berlin–Wriezen", 6072, "B-Lichtenberg", "Berlin-Lichtenberg")
+       ("Bahnstrecke_Gemünden–Ebenhausen", 5233, "Ebenhausen Unterfranken", "Ebenhausen (Unterfr)")
+       ("Bahnstrecke_Leipzig–Eilenburg", 6371, "Le Eilb Bf", "Leipzig Eilenburger Bf")
+       ("Bahnstrecke_Leipzig–Eilenburg", 6371, "Abzw Heiterblick", "Abzw Leipzig-Heiterblick")
         |]
 
 /// errors in wikidata
@@ -147,6 +181,7 @@ let maybeWrongRouteStation =
 /// errors in wikidata
 let maybeWrongDistances =
     [| (1100, "Schwartau-Waldhalle", [| 5.6 |], [| 4.6 |])
+       (6186, "Selchow West", [||], [| 29.9 |])  // fill empty distance
        (6078, "Biesdorfer Kreuz West", [||], [| 6.1 |])  // fill empty distance
        (6067, "Biesdorfer Kreuzmit derOstbahn", [||], [| 0.8 |])  // fill empty distance
        (6126, "Berliner AußenringzumGrünauer Kreuz", [||], [| 40.7 |])  // fill empty distance
