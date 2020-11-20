@@ -8,7 +8,9 @@ open DbData
 open StationMatch
 open ResultsOfMatch
 
-let compareMatch ((db0, wk0): DbStationOfRoute * StationOfRoute) ((db1, wk1): DbStationOfRoute * StationOfRoute) =
+let compareMatch ((db0, wk0, _): DbStationOfRoute * StationOfRoute * MatchKind)
+                 ((db1, wk1, _): DbStationOfRoute * StationOfRoute * MatchKind)
+                 =
     if wk0.kms.Length = 0 || wk1.kms.Length = 0 then
         0
     else
@@ -26,7 +28,7 @@ let compareMatch ((db0, wk0): DbStationOfRoute * StationOfRoute) ((db1, wk1): Db
         else if diff0 < diff1 then -1
         else 1
 
-let getBestMatch (matches: (DbStationOfRoute * StationOfRoute) []) =
+let getBestMatch (matches: (DbStationOfRoute * StationOfRoute * MatchKind) []) =
     if matches.Length > 1 then
         let sorted = matches |> Array.sortWith compareMatch
         sorted.[0]
@@ -82,11 +84,11 @@ let dump (title: string)
     results
     |> Array.iter (fun result ->
         match result with
-        | Success (db, wk) ->
-            sprintf "find db station %s %.1f for wk station %s" db.name db.km wk.name
+        | Success (db, wk, mk) ->
+            sprintf "find db station '%s' %.1f for wk station '%s', matchkind %A" db.name db.km wk.name mk
             |> lines.Add
         | Failure p ->
-            sprintf "*** failed to find station for position %s %A" p.name p.km
+            sprintf "*** failed to find station for position '%s' %A" p.name p.km
             |> lines.Add)
     let s = String.concat "\n" lines
     System.IO.File.WriteAllText
@@ -96,28 +98,6 @@ let dump (title: string)
          + strecke.nummer.ToString()
          + ".txt",
          s)
-
-let printResult (resultOfRoute: ResultOfRoute) showDetails =
-    if (showDetails) then
-        if resultOfRoute.fromToNameOrig.Length = 2
-           && resultOfRoute.resultKind = Types.ResultKind.StartStopStationsNotFound then
-            printfn
-                "(\"%s\", %d, \"%s\", \"\")"
-                resultOfRoute.title
-                resultOfRoute.route
-                resultOfRoute.fromToNameOrig.[0]
-            printfn
-                "(\"%s\", %d, \"%s\", \"\")"
-                resultOfRoute.title
-                resultOfRoute.route
-                resultOfRoute.fromToNameOrig.[1]
-        printfn "%A" resultOfRoute
-
-    DataAccess.ResultOfRoute.insert
-        resultOfRoute.title
-        resultOfRoute.route
-        (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
-    |> ignore
 
 let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
     let dbFirst = dbStations.[0]
@@ -137,7 +117,7 @@ let existsWkStationInResultSuccess (station: string) results =
     results
     |> Array.exists (fun result ->
         match result with
-        | Success (_, wk) when wk.name = station -> true
+        | Success (_, wk, _) when wk.name = station -> true
         | _ -> false)
 
 let private maybeReplaceResultkind (strecke: RouteInfo) (resultOfRoute: ResultOfRoute) =
@@ -153,27 +133,27 @@ let private maybeReplaceResultkind (strecke: RouteInfo) (resultOfRoute: ResultOf
     | None -> resultOfRoute
 
 let compare (title: string)
-            (streckeOrig: RouteInfo)
-            (streckeMatched: RouteInfo)
+            (routeInfoOrig: RouteInfo)
+            (routeInfoMatched: RouteInfo)
             (wikiStations: StationOfRoute [])
             (dbStations: DbStationOfRoute [])
-            (precodedStations: StationOfInfobox [])
-            showDetails
             =
-    let results =
+    let resultsOfMatch =
         if wikiStations.Length > 0 && dbStations.Length > 0
-        then checkDbDataInWikiData streckeMatched.nummer wikiStations dbStations
+        then checkDbDataInWikiData routeInfoMatched.nummer wikiStations dbStations
         else [||]
+
+    ResultsOfMatch.dump title routeInfoMatched.nummer resultsOfMatch
 
     let countWikiStops = wikiStations.Length
     let countDbStops = dbStations.Length
-    let countDbStopsFound = countResultSuccess results
-    let countDbStopsNotFound = countResultFailures results
-    let minmaxkm = (getSuccessMinMaxDbKm results)
+    let countDbStopsFound = countResultSuccess resultsOfMatch
+    let countDbStopsNotFound = countResultFailures resultsOfMatch
+    let minmaxkm = (getSuccessMinMaxDbKm resultsOfMatch)
 
     let isCompleteDbRoute =
         dbStations.Length > 0
-        && isDbRouteComplete results dbStations
+        && isDbRouteComplete resultsOfMatch dbStations
 
     let resultkind =
         getResultKind
@@ -181,16 +161,16 @@ let compare (title: string)
             countDbStops
             countDbStopsFound
             countDbStopsNotFound
-            streckeMatched.railwayGuide
-            (streckeMatched.routenameKind = Unmatched)
+            routeInfoMatched.railwayGuide
+            (routeInfoMatched.routenameKind = Unmatched)
 
     let resultOfRoute =
-        { route = streckeMatched.nummer
+        { route = routeInfoMatched.nummer
           title = title
-          fromToNameOrig = [| streckeOrig.von; streckeOrig.bis |]
+          fromToNameOrig = [| routeInfoOrig.von; routeInfoOrig.bis |]
           fromToNameMatched =
-              [| streckeMatched.von
-                 streckeMatched.bis |]
+              [| routeInfoMatched.von
+                 routeInfoMatched.bis |]
           fromToKm = minmaxkm
           countWikiStops = countWikiStops
           countDbStops = countDbStops
@@ -198,16 +178,23 @@ let compare (title: string)
           countDbStopsNotFound = countDbStopsNotFound
           resultKind = resultkind
           railwayGuide =
-              match streckeMatched.railwayGuide with
+              match routeInfoMatched.railwayGuide with
               | Some s -> s
               | None -> ""
           isCompleteDbRoute = isCompleteDbRoute }
-        |> maybeReplaceResultkind streckeMatched
+        |> maybeReplaceResultkind routeInfoMatched
 
-    ResultsOfMatch.dump title streckeMatched.nummer results
+    (resultOfRoute, resultsOfMatch)
 
+let printResult (title: string)
+                (streckeMatched: RouteInfo)
+                (wikiStations: StationOfRoute [])
+                (stationsOfInfobox: StationOfInfobox [])
+                showDetails
+                ((resultOfRoute, resultsOfMatch): (ResultOfRoute * ResultOfStation []))
+                =
     if (showDetails) then
-        dump title streckeMatched precodedStations wikiStations results
+        dump title streckeMatched stationsOfInfobox wikiStations resultsOfMatch
         printfn "see dumps ./dump/%s-%d.txt" title streckeMatched.nummer
 
-    printResult resultOfRoute showDetails
+    printResultOfRoute showDetails resultOfRoute

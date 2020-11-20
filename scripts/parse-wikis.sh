@@ -14,6 +14,9 @@ then
   exit 0
 fi
 
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection Wikitext
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection Templates
+
 while read p; do
     dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parsetitle  "$p"
 done <./titles.txt

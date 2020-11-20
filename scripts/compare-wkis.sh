@@ -16,6 +16,12 @@ if [ $# -eq 1 ]; then
   LINES="$1"
 fi
 
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection DbStationOfRoute
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfInfobox
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection DbWkStationOfRoute
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfRoute
+dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection ResultOfRoute
+
 dotnet build -c Release src/WikitextDbComparer/WikitextDbComparer.fsproj > /dev/null
 if [ $? -ne 0 ]
 then

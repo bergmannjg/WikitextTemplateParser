@@ -5,6 +5,17 @@ open StationsOfRoute
 open DbData
 open System.Text.RegularExpressions
 
+/// kind of match of wk station name and db sttaion name
+type MatchKind =
+    | Failed
+    | Equal
+    | StartsWith
+    | EndsWith
+    | EqualWithoutIgnored
+    | EqualWithoutParentheses
+    | Levenshtein
+    | SameSubstring
+
 /// see http://www.fssnip.net/bj/title/Levenshtein-distance
 let private levenshtein (word1: string) (word2: string) =
     let preprocess =
@@ -31,39 +42,49 @@ let private levenshtein (word1: string) (word2: string) =
                 table.[i, j] <- List.min [ delete; insert; substitute ]
     table.[m, n] //return distance
 
+let private nomatches =
+    [ "Hbf"
+      "Pbf"
+      "Vorbahnhof"
+      "Awanst"
+      "Abzw" ]
+
+let private sameSubstring (s0: string) (s1: string) =
+    let checkchars = 5
+    s0.Length
+    >= checkchars
+    && s1.Length >= checkchars
+    && s0.Substring(0, checkchars) = s1.Substring(0, checkchars)
+
+let replaceWithBlank (c: char) (s: string) = s.Replace(c, ' ')
+
 /// no strict matching af names, assuming the distance check has succeeded
 let private matchStationName (wikiName: string) (dbName: string) =
-    let nomatches = [ "Hbf"; "Pbf"; "Vorbahnhof"; "Awanst"; "Abzw" ]
-
-    let sameSubstring (s0: string) (s1: string) =
-        let checkchars = 5
-        s0.Length
-        >= checkchars
-        && s1.Length >= checkchars
-        && s0.Substring(0, checkchars) = s1.Substring(0, checkchars)
-
     let wikiName0 =
         nomatches
         |> List.fold (fun (x: string) y -> x.Replace(y, "").Trim()) wikiName
+        |> replaceWithBlank '-'
 
     let dbName0 =
         nomatches
         |> List.fold (fun (x: string) y -> x.Replace(y, "")) dbName
+        |> replaceWithBlank '-'
 
     // remove parentheses
     let regex1 = Regex(@"\([^\)]+\)")
     let wikiNamex = regex1.Replace(wikiName0, "").Trim()
     let dbNamex = regex1.Replace(dbName0, "").Trim()
 
-    wikiName = dbName
-    || wikiName0 = dbName0
-    || dbName0.StartsWith wikiName0
-    || dbName0.EndsWith wikiName0
-    || wikiName0.StartsWith dbName0
-    || wikiName0.EndsWith dbName0
-    || wikiNamex = dbNamex
-    || (levenshtein wikiNamex dbNamex) <= 3
-    || sameSubstring wikiName0 dbName0
+    if wikiName = dbName then MatchKind.Equal
+    else if wikiName0 = dbName0 then MatchKind.EqualWithoutIgnored
+    else if dbName0.StartsWith wikiName0 then MatchKind.StartsWith
+    else if dbName0.EndsWith wikiName0 then MatchKind.EndsWith
+    else if wikiName0.StartsWith dbName0 then MatchKind.StartsWith
+    else if wikiName0.EndsWith dbName0 then MatchKind.EndsWith
+    else if wikiNamex = dbNamex then MatchKind.EqualWithoutParentheses
+    else if (levenshtein wikiNamex dbNamex) <= 3 then MatchKind.Levenshtein
+    else if sameSubstring wikiName0 dbName0 then MatchKind.SameSubstring
+    else MatchKind.Failed
 
 /// the distance matches, if any of the wikiDistances matches with the dbDistance
 let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
@@ -71,8 +92,10 @@ let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
     |> Array.exists (fun d -> abs (dbDistance - d) < 1.0)
 
 let matchesWkStationWithDbStation (wikiStation: StationOfRoute) (dbStation: DbStationOfRoute) =
-    if (matchStationDistance wikiStation.kms dbStation.km
-        && matchStationName wikiStation.name dbStation.name) then
-        Some(dbStation, wikiStation)
+    if matchStationDistance wikiStation.kms dbStation.km then
+        let mk =
+            matchStationName wikiStation.name dbStation.name
+
+        if mk <> MatchKind.Failed then Some(dbStation, wikiStation, mk) else None
     else
         None

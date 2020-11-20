@@ -4,7 +4,9 @@ module ResultsOfMatch
 open DbData
 open Types
 open StationsOfRoute
+open StationMatch
 
+/// result of route match
 type ResultOfRoute =
     { route: int
       title: string
@@ -19,9 +21,18 @@ type ResultOfRoute =
       railwayGuide: string
       isCompleteDbRoute: bool }
 
+/// result of station match
 type ResultOfStation =
-    | Success of DbStationOfRoute * StationOfRoute
+    | Success of DbStationOfRoute * StationOfRoute * MatchKind
     | Failure of DbStationOfRoute
+
+/// view of ResultOfStation.Success
+type StationOfDbWk =
+    { dbname: string
+      dbkm: float
+      wkname: string
+      wkkms: float []
+      matchkind: MatchKind }
 
 let createResult title route resultKind =
     { route = route
@@ -45,12 +56,20 @@ let guessRailwayGuideIsValid (value: string option) =
             v.Substring(0, index - 1)
             |> Seq.forall System.Char.IsDigit
         else
-            v |> Seq.forall System.Char.IsDigit
+            v
+            |> Seq.forall (fun c ->
+                (System.Char.IsDigit(c)
+                 || System.Char.IsPunctuation(c)
+                 || System.Char.IsSeparator(c)))
     | None -> false
 
 let guessRouteIsShutdown (railwayGuide: string option) =
     match railwayGuide with
-    | Some v -> v.Contains "ehem" || v.Contains "alt"
+    | Some v ->
+        v.StartsWith "ehem"
+        || v.StartsWith "alt"
+        || v.StartsWith "zuletzt"
+        || v.StartsWith "ex"
     | None -> false
 
 let getResultKind countWikiStops
@@ -89,7 +108,7 @@ let existsInDbSuccessResults (pred: DbStationOfRoute -> bool) (results: ResultOf
     results
     |> Array.exists (fun result ->
         match result with
-        | Success (db, _) -> pred (db)
+        | Success (db, _, _) -> pred (db)
         | _ -> false)
 
 let getSuccessMinMaxDbKm (results: ResultOfStation []) =
@@ -97,7 +116,7 @@ let getSuccessMinMaxDbKm (results: ResultOfStation []) =
         results
         |> Array.map (fun result ->
             match result with
-            | Success (db, _) -> Some(db.km)
+            | Success (db, _, _) -> Some(db.km)
             | _ -> None)
         |> Array.choose id
 
@@ -182,14 +201,67 @@ let showResults () =
     if countUndef > 0
     then fprintf stderr "undef result kind unexpected, count %d" countUndef
 
-type StationOfDbWk =
-    { dbname: string
-      dbkm: float
-      wkname: string
-      wkkms: float [] }
+let showMatchKindStatistic (mk: MatchKind) (l: List<MatchKind * int>) =
+    match l |> List.tryFind (fun (mk0, _) -> mk = mk0) with
+    | Some (mk, len) -> printfn "%A %d" mk len
+    | None -> ()
+
+let showMatchKindStatistics () =
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
+
+    let stationsOfRoute =
+        [ for r in results do
+            if r.resultKind = ResultKind.WikidataFoundInDbData
+               || r.resultKind = ResultKind.WikidataNotFoundInDbData then
+                for s in DataAccess.DbWkStationOfRoute.query r.title r.route do
+                    yield! Serializer.Deserialize<StationOfDbWk []>(s) ]
+
+    let groups =
+        stationsOfRoute
+        |> List.groupBy (fun r -> r.matchkind)
+        |> List.map (fun (k, l) ->
+            printfn
+                "kind %A %A"
+                k
+                ((List.take 3 l)
+                 |> List.map (fun e -> (e.dbname, e.wkname)))
+            (k, l.Length))
+
+    printfn "MatchKindStatistics"
+    showMatchKindStatistic MatchKind.Equal groups
+    showMatchKindStatistic MatchKind.EqualWithoutIgnored groups
+    showMatchKindStatistic MatchKind.EqualWithoutParentheses groups
+    showMatchKindStatistic MatchKind.StartsWith groups
+    showMatchKindStatistic MatchKind.EndsWith groups
+    showMatchKindStatistic MatchKind.Levenshtein groups
+    showMatchKindStatistic MatchKind.SameSubstring groups
 
 let toResultOfStation (stations: DbStationOfRoute []) =
     stations |> Array.map (fun db -> Failure(db))
+
+let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
+    if (showDetails) then
+        if resultOfRoute.fromToNameOrig.Length = 2
+           && resultOfRoute.resultKind = Types.ResultKind.StartStopStationsNotFound then
+            printfn
+                "(\"%s\", %d, \"%s\", \"\")"
+                resultOfRoute.title
+                resultOfRoute.route
+                resultOfRoute.fromToNameOrig.[0]
+            printfn
+                "(\"%s\", %d, \"%s\", \"\")"
+                resultOfRoute.title
+                resultOfRoute.route
+                resultOfRoute.fromToNameOrig.[1]
+        printfn "%A" resultOfRoute
+
+    DataAccess.ResultOfRoute.insert
+        resultOfRoute.title
+        resultOfRoute.route
+        (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+    |> ignore
+
 
 let dump (title: string) (route: int) (results: ResultOfStation []) =
     let both =
@@ -200,12 +272,14 @@ let dump (title: string) (route: int) (results: ResultOfStation []) =
                 { dbname = db.name
                   dbkm = db.km
                   wkname = ""
-                  wkkms = [||] }
-            | Success (db, wk) ->
+                  wkkms = [||]
+                  matchkind = MatchKind.Failed }
+            | Success (db, wk, mk) ->
                 { dbname = db.name
                   dbkm = db.km
                   wkname = wk.name
-                  wkkms = wk.kms })
+                  wkkms = wk.kms
+                  matchkind = mk })
 
     DataAccess.DbWkStationOfRoute.insert title route (Serializer.Serialize<StationOfDbWk []>(both))
     |> ignore

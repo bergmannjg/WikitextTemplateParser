@@ -5,6 +5,10 @@ open Database
 
 let dbname = @"results.db"
 
+let dropCollection (collectionName: string) =
+    use db = new Database(dbname)
+    db.DropCollection collectionName
+
 let private collectionInsert (collection: string) (map: Map<string, string>) (value: string) =
     use db = new Database(dbname)
     db.InsertUnique collection (Guid.NewGuid()) map value
@@ -34,56 +38,63 @@ let private toJsonArray (results: list<string>) =
 
 module Wikitext =
     let private toMap (title: string) = Map.empty.Add("title", title)
+    let collection = "Wikitext"
 
     let insert title value =
-        collectionInsert "Wikitext" (toMap title) value
+        collectionInsert collection (toMap title) value
 
-    let query title = collectionQuery "Wikitext" (toMap title)
+    let query title = collectionQuery collection (toMap title)
 
 module Templates =
     let private toMap (title: string) = Map.empty.Add("title", title)
+    let collection = "Templates"
 
     let insert title value =
-        collectionInsert "Templates" (toMap title) value
+        collectionInsert collection (toMap title) value
 
-    let query title =
-        collectionQuery "Templates" (toMap title)
+    let query title = collectionQuery collection (toMap title)
 
 module DbStationOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
+    let collection = "DbStationOfRoute"
+
     let insert title route value =
-        collectionInsert "DbStationOfRoute" (toMap title route) value
+        collectionInsert collection (toMap title route) value
 
     let query title route =
-        collectionQuery "DbStationOfRoute" (toMap title route)
+        collectionQuery collection (toMap title route)
 
 module WkStationOfInfobox =
     let private toMap (title: string) = Map.empty.Add("title", title)
+    let collection = "WkStationOfInfobox"
 
     let insert title value =
-        collectionInsert "WkStationOfInfobox" (toMap title) value
+        collectionInsert collection (toMap title) value
 
-    let query title =
-        collectionQuery "WkStationOfInfobox" (toMap title)
+    let query title = collectionQuery collection (toMap title)
 
 module DbWkStationOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
+    let collection = "DbWkStationOfRoute"
+
     let insert title route value =
-        collectionInsert "DbWkStationOfRoute" (toMap title route) value
+        collectionInsert collection (toMap title route) value
 
     let query title route =
-        collectionQuery "DbWkStationOfRoute" (toMap title route)
+        collectionQuery collection (toMap title route)
 
 module WkStationOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
+    let collection = "WkStationOfRoute"
+
     let insert title route value =
-        collectionInsert "WkStationOfRoute" (toMap title route) value
+        collectionInsert collection (toMap title route) value
 
     let query title route =
         collectionQuery "WkStationOfRoute" (toMap title route)
@@ -92,30 +103,34 @@ module RouteInfo =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
+    let collection = "RouteInfo"
+
     let insert title route value =
-        collectionInsert "RouteInfo" (toMap title route) value
+        collectionInsert collection (toMap title route) value
 
     let delete title =
-        collectionDelete "RouteInfo" (Map.empty.Add("title", title))
+        collectionDelete collection (Map.empty.Add("title", title))
 
     let query title route =
-        collectionQuery "RouteInfo" (toMap title route)
+        collectionQuery collection (toMap title route)
 
     let queryAll () =
-        toJsonArray (collectionQuery "RouteInfo" Map.empty)
+        toJsonArray (collectionQuery collection Map.empty)
 
 module ResultOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
+    let collection = "ResultOfRoute"
+
     let insert title route value =
-        collectionInsert "ResultOfRoute" (toMap title route) value
+        collectionInsert collection (toMap title route) value
 
     let delete title =
-        collectionDelete "ResultOfRoute" (Map.empty.Add("title", title))
+        collectionDelete collection (Map.empty.Add("title", title))
 
     let query title route =
-        collectionQuery "ResultOfRoute" (toMap title route)
+        collectionQuery collection (toMap title route)
 
     let queryAll () =
-        toJsonArray (collectionQuery "ResultOfRoute" Map.empty)
+        toJsonArray (collectionQuery collection Map.empty)

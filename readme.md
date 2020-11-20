@@ -33,3 +33,16 @@ The extraction of the route info (i.e. route number, start and stop station) in 
 | station names in &lt;small&gt; format tags|571|6135 &lt;small>(Bln. Südkreuz–Elsterwerda)&lt;/small>|
 | station names in text|22|1101 Lütjenbrode–Heiligenhafen|
 | route info not matched|0||
+
+<br/>
+The matching of db station names with wiki station names gives the follwing results:
+
+| Count | Value | Example |
+|---|-----:|---|
+|equal names|5722|Vaihingen (Enz) - Vaihingen (Enz)|
+|equal names with some fixed parts removed (i.e. Hbf) |169|Stendal - Stendal Hbf|
+|equal names with parentheses removed |38|Reichenbach (Oberlausitz) - Reichenbach (OL)|
+|names starts with equal substring|847|Bamberg, W 112 - Bamberg|
+|names ends with equal substring|121|Berlin Potsdamer Platz - Potsdamer Platz|
+|Levenshtein distance <= 3|57|Sersheim, Streckenwechsel - Sersheim Streckenwechsel|
+|substring with at least 5 chars|166|Illingen, Streckenw. 4842/4800 - Illingen Streckenwechsel 4842/4800|

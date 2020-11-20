@@ -24,6 +24,8 @@ type Database(file: string) =
         | (k, v) :: rest -> Query.And(Query.EQ(keyPrefix + k, BsonValue v), (toQuery rest))
         | _ -> failwith "toQuery: map is empty"
 
+    member __.DropCollection(collectionName: string) = db.DropCollection collectionName
+
     member __.Insert (collectionName: string) (id: Guid) (keyValues: Map<string, string>) (value: string) =
         let collection = db.GetCollection(collectionName)
         let doc = BsonDocument()

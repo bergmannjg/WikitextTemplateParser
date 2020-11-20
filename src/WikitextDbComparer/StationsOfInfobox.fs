@@ -5,9 +5,14 @@ open Ast
 open System.Text.RegularExpressions
 open FSharp.Collections
 
-// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
+type StationOfInfobox =
+    { symbols: string []
+      distances: float []
+      name: string }
 
-// "BS2l" "BS2r" are wrong symbols
+
+/// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
+/// "BS2l" "BS2r" are wrong symbols
 let BhfSymbolTypes =
     [| "BHF"
        "DST"
@@ -22,12 +27,6 @@ let BhfSymbolTypes =
        "TZOLLWo"
        "xGRENZE"
        "BS2" |]
-
-type StationOfInfobox =
-    { symbols: string []
-      distances: float []
-      name: string }
-
 
 let private hasReplaceDistance (name: string) (kms: float []) =
     AdhocReplacements.maybeWrongDistances
