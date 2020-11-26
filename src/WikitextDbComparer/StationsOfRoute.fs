@@ -5,7 +5,10 @@ open StationsOfInfobox
 open RouteInfo
 open FSharp.Collections
 
-type StationOfRoute = { kms: float []; name: string }
+type StationOfRoute =
+    { kms: float []
+      name: string
+      shortname: string }
 
 let private checkReplacedWithChar (s1: string) (s2: string) (c: char) = s1.Replace(c, ' ') = s2.Replace(c, ' ')
 
@@ -102,8 +105,12 @@ let private filterStations0 (fromTo: string []) (stations: StationOfInfobox []) 
         |> Array.fold (fun (s: List<StationOfRoute>, routeActive: bool, indexes: List<int>) bhf ->
             let mutable (s0, routeActive0, indexes0) = (s, routeActive, indexes)
 
-            if routeActive
-            then s0 <- { kms = bhf.distances; name = bhf.name } :: s0
+            if routeActive then
+                s0 <-
+                    { kms = bhf.distances
+                      name = bhf.name
+                      shortname = bhf.shortname }
+                    :: s0
             if fromTo.Length > 0 then
                 let index =
                     fromTo |> Array.tryFindIndex ((=) bhf.name)
@@ -118,7 +125,11 @@ let private filterStations0 (fromTo: string []) (stations: StationOfInfobox []) 
                     routeActive0 <- false
                 else if not routeActive && routeWillChange then
                     routeActive0 <- true
-                    s0 <- { kms = bhf.distances; name = bhf.name } :: s0
+                    s0 <-
+                        { kms = bhf.distances
+                          name = bhf.name
+                          shortname = bhf.shortname }
+                        :: s0
 
             (s0, routeActive0, indexes0))
                (List.empty<StationOfRoute>, fromTo.Length = 0 || (not indexes.IsEmpty), indexes)

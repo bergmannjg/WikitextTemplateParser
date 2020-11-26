@@ -13,7 +13,7 @@ function loadResultsTable(tableId, statusElementId, url) {
         dataFiltered: function (filters, rows) {
             //filters - array of filters currently applied
             //rows - array of row components that pass the filters
-            statusElementId.textContent= rows.length + " rows selected"
+            statusElementId.textContent = rows.length + " rows selected"
         },
         columns: [
             {
@@ -51,7 +51,7 @@ function loadResultsTable(tableId, statusElementId, url) {
                 },
             },
             {
-                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams:{values:["","WikidataFoundInDbData","WikidataNotFoundInDbData","RouteParameterEmpty", "NoDbDataFoundWithRailwayGuide", "NoDbDataFoundWithoutRailwayGuide", "RouteIsNoPassengerTrain", "StartStopStationsNotFound", "RouteIsShutdown","RouteParameterNotParsed"]}
+                title: "ResultKind", field: "resultKind.Case", headerFilter: "select", headerFilterParams: { values: ["", "WikidataFoundInDbData", "WikidataNotFoundInDbData", "RouteParameterEmpty", "NoDbDataFoundWithRailwayGuide", "NoDbDataFoundWithoutRailwayGuide", "RouteIsNoPassengerTrain", "StartStopStationsNotFound", "RouteIsShutdown", "RouteParameterNotParsed"] }
             },
             { title: "WikiStops", field: "countWikiStops", width: 100 },
             { title: "DbFound", field: "countDbStopsFound", width: 100 },
@@ -76,7 +76,7 @@ function loadRouteInfosTable(tableId, statusElementId, url) {
         dataFiltered: function (filters, rows) {
             //filters - array of filters currently applied
             //rows - array of row components that pass the filters
-            statusElementId.textContent= rows.length + " rows selected"
+            statusElementId.textContent = rows.length + " rows selected"
         },
         columns: [
             {
@@ -96,22 +96,60 @@ function loadRouteInfosTable(tableId, statusElementId, url) {
                 title: "To", field: "bis", width: 150
             },
             {
-                title: "RoutenameKind", field: "routenameKind.Case", width: 150, headerFilter: "select", headerFilterParams:{values:["","Empty","EmptyWithIgnored","SmallFormat","Parenthesis","Text","Unmatched"]}
+                title: "RoutenameKind", field: "routenameKind.Case", width: 150, headerFilter: "select", headerFilterParams: { values: ["", "Empty", "EmptyWithIgnored", "SmallFormat", "Parenthesis", "Text", "Unmatched"] }
             },
-            { title: "Text", field: "searchstring", headerFilter: "input", formatter:"textarea" },
+            { title: "Text", field: "searchstring", headerFilter: "input", formatter: "textarea" },
+        ],
+    });
+}
+
+function loadStopsTable(tableId, statusElementId, url) {
+
+    let urlOfWikitext = (cell) => {
+        return "/data/WikitextOfStop/" + cell.getValue();
+    }
+
+    new Tabulator(tableId, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        pagination: "local",
+        paginationSize: 20,
+        dataFiltered: function (filters, rows) {
+            //filters - array of filters currently applied
+            //rows - array of row components that pass the filters
+            statusElementId.textContent = rows.length + " rows selected"
+        },
+        columns: [
+            {
+                title: "Title", field: "title", headerFilter: "input", formatter: "link", formatterParams: {
+                    url: urlOfWikitext,
+                    target: "_blank",
+                }
+            }
         ],
     });
 }
 
 function loadStationOfInfoTable(id, url) {
 
+    let urlOfWikitext = (cell) => {
+        return "/data/WikitextOfStop/" + cell.getValue();
+    }
+
     new Tabulator(id, {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
             { title: "Station", headerFilter: "input", field: "name" },
+            {
+                title: "Link", headerFilter: "input", field: "link", formatter: "link", formatterParams: {
+                    url: urlOfWikitext,
+                    target: "_blank",
+                }
+            },
+            { title: "DS100", field: "shortname", width: 80 },
             { title: "Symbols", field: "symbols", width: 150 },
-            { title: "Distances", field: "distances", width: 150 }
+            { title: "Distances", field: "distances", width: 80 }
         ],
     });
 
@@ -152,13 +190,15 @@ function loadStationOfDbWkTable(id, url) {
         columns: [
             { title: "DB Station", field: "dbname" },
             {
-                title: "Db Distance", field: "dbkm", width: 100, formatter: function (cell, formatterParams, onRendered) {
+                title: "Db Distance", field: "dbkm", width: 90, formatter: function (cell, formatterParams, onRendered) {
                     return cell.getValue().toFixed(1);
                 },
             },
             { title: "Wk Station", field: "wkname" },
-            { title: "Wk Distances", field: "wkkms", width: 100 }
+            { title: "Wk Distances", field: "wkkms", width: 90 },
+            { title: "Match", field: "matchkind.Case", width: 120 }
         ],
     });
 
 }
+

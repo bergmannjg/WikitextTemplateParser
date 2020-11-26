@@ -2,8 +2,8 @@ module Wikidata
 
 open Ast
 
-let private loadTemplates (title: string) =
-    fprintfn stderr "loading : '%s'" title
+let loadTemplates (title: string) =
+    fprintfn stderr "loading: '%s'" title
 
     match DataAccess.Templates.query title |> List.tryHead with
     | Some row -> Serializer.Deserialize<list<Template>>(row)

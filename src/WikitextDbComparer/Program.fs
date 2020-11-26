@@ -9,6 +9,26 @@ open ResultsOfMatch
 open Wikidata
 open Ast
 
+let markersOfStop = [| "BHF"; "DST"; "HST" |]
+
+let excludes (link:string) =
+    link.StartsWith "Bahnstrecke" || link.StartsWith "Datei" || link.Contains "#" || link.Contains ":" || link.Contains "&"
+
+let getStationLinksOfTemplates (title:string) = 
+    loadTemplates title
+    |> findLinks markersOfStop
+    |> List.filter (fun (link,_) -> not (excludes link))
+    |> List.map (fun (link,_) -> 
+        fprintfn stderr "link: %s" link
+        link)
+    
+let getStationLinks () = 
+    DataAccess.Templates.queryKeys()
+    |> List.collect getStationLinksOfTemplates
+    |> List.distinct
+    |> List.sort
+    |> List.iter (fun s -> printfn "%s" s)
+
 let classifyBsDatenStreckenNr title showDetails =
     let templates = loadTemplatesForWikiTitle title showDetails
     match findRouteInfoInTemplates templates title with
@@ -44,7 +64,7 @@ let findPassengerRouteInfoInTemplates (templates: Template []) title showDetails
             )
     passengerRoutes
 
-let comparetitle title showDetails =
+let comparetitle showDetails title =
     let templates = loadTemplatesForWikiTitle title showDetails
     let stationsOfInfobox = templates |> Array.map findStationOfInfobox |> Array.choose id
     StationsOfInfobox.dump title stationsOfInfobox
@@ -59,13 +79,30 @@ let comparetitle title showDetails =
         compare title route routeMatched wikiStations dbStations
         |> printResult title routeMatched wikiStations stationsOfInfobox showDetails)
 
+let take numLines (lines: List<string>) =
+    let numLines0 =
+        if numLines > lines.Length then lines.Length else numLines
+
+    lines
+    |> List.take numLines0
+
+let comparetitles numLines =
+    DataAccess.Templates.queryKeys()
+    |> take numLines
+    |> List.iter (comparetitle false)
+
 [<EntryPoint>]
 let main argv =
     Serializer.addConverters ([| |])
     match argv with
     | [| "-dropCollection"; collection |] -> DataAccess.dropCollection collection |> ignore
-    | [| "-comparetitle"; title |] -> comparetitle title false
-    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle title true
+    | [| "-getStationLinks" |] -> getStationLinks ()
+    | [| "-comparetitle"; title |] -> comparetitle  false title
+    | [| "-comparetitles"; strNumLines |] -> 
+        match System.Int32.TryParse  strNumLines with
+        | (true, numLines) -> comparetitles numLines
+        | _, _ -> fprintfn stdout "integers expected: %s" strNumLines
+    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle  true title
     | [| "-showCompareResults" |] -> showResults()
     | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
     | [| "-verbose"; "-classify"; title |] -> classifyBsDatenStreckenNr title true

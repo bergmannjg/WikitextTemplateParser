@@ -43,8 +43,8 @@ type Database(file: string) =
     member __.Query (collectionName: string) (keyValues: Map<string, string>) =
         let collection = db.GetCollection(collectionName)
         if keyValues.IsEmpty
-        then collection.Find(Query.All(), 0, 2000)
-        else collection.Find(toQuery (keyValues |> Map.toList), 0, 2000)
+        then collection.Find(Query.All(), 0, 10000)
+        else collection.Find(toQuery (keyValues |> Map.toList), 0, 10000)
         |> Seq.map (fun doc ->
             { id = doc.["_id"].AsGuid
               keyValues = toMap doc

@@ -26,6 +26,12 @@ let private collectionQuery (collection: string) (map: Map<string, string>) =
     |> Seq.map (fun r -> r.value)
     |> Seq.toList
 
+let private collectionQueryKeys (collection: string) (map: Map<string, string>) =
+    use db = new Database(dbname)
+    db.Query collection map
+    |> Seq.map (fun r -> r.keyValues)
+    |> Seq.toList
+
 let private toJsonArray (results: list<string>) =
     if results.Length = 0 then
         "[]"
@@ -36,6 +42,8 @@ let private toJsonArray (results: list<string>) =
 
         "[" + text + "]"
 
+let private toJson (key: string) (value: string) = sprintf "{\"%s\":\"%s\"}" key value
+
 module Wikitext =
     let private toMap (title: string) = Map.empty.Add("title", title)
     let collection = "Wikitext"
@@ -45,9 +53,44 @@ module Wikitext =
 
     let query title = collectionQuery collection (toMap title)
 
+    let queryKeys () =
+        collectionQueryKeys collection Map.empty
+        |> List.map (fun k -> k.["title"])
+
+module WikitextOfStop =
+    let private toMap (title: string) = Map.empty.Add("title", title)
+    let collection = "WikitextOfStop"
+
+    let insert title value =
+        collectionInsert collection (toMap title) value
+
+    let query title = collectionQuery collection (toMap title)
+
+    let queryKeysAsJson () =
+        toJsonArray
+            (collectionQueryKeys collection Map.empty
+             |> List.map (fun k -> toJson "title" k.["title"]))
+
+    let queryKeys () =
+        collectionQueryKeys collection Map.empty
+        |> List.map (fun k -> k.["title"])
+
 module Templates =
     let private toMap (title: string) = Map.empty.Add("title", title)
     let collection = "Templates"
+
+    let insert title value =
+        collectionInsert collection (toMap title) value
+
+    let query title = collectionQuery collection (toMap title)
+
+    let queryKeys () =
+        collectionQueryKeys collection Map.empty
+        |> List.map (fun k -> k.["title"])
+
+module TemplatesOfStop =
+    let private toMap (title: string) = Map.empty.Add("title", title)
+    let collection = "TemplatesOfStop"
 
     let insert title value =
         collectionInsert collection (toMap title) value

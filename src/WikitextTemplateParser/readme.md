@@ -1,6 +1,9 @@
 # Wikitext Template Parser
 
-Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) [templates](https://www.mediawiki.org/wiki/Help:Templates)
+Parse wikitext [templates](https://www.mediawiki.org/wiki/Help:Templates) of type
+
+* [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) - route diagrams in germany,
+* [Station](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnhof) - the stations from the route diagrams.
 
 The wikipedia articles are collected from wikidata with the following SPARGL query:
 
@@ -47,6 +50,7 @@ type Templates = Template list
 Usage example of parser:
 
 ```
+dotnet run --project src/WikitextTemplateParser/WikitextTemplateParser.fsproj -showtitles 2000
 dotnet run --project src/WikitextTemplateParser/WikitextTemplateParser.fsproj -parsetitle Bahnstrecke_Nürnberg–Feucht
 ```
 

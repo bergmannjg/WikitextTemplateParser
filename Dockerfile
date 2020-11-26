@@ -1,9 +1,9 @@
-# docker build --build-arg LINES=2000 -t wikitext .
+# docker build --build-arg LINES=200 -t wikitext .
 # docker run -p 5000:5000 -it wikitext
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine
 
-ARG LINES=100
+ARG LINES=20000
 
 RUN apk add git bash
 
@@ -17,11 +17,9 @@ RUN mkdir dump
 
 RUN source ./scripts/restore.sh
 
-RUN cp titles.txt titles.orig.txt
+RUN ./scripts/parse-wikis.sh 0 ${LINES}
 
-RUN head -n ${LINES} titles.orig.txt > titles.txt
-
-RUN ./scripts/parse-wikis.sh
+RUN ./scripts/parse-stations.sh 0 ${LINES}
 
 RUN ./scripts/compare-wkis.sh
 

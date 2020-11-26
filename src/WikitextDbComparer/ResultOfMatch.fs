@@ -5,6 +5,7 @@ open DbData
 open Types
 open StationsOfRoute
 open StationMatch
+open System.Text.RegularExpressions
 
 /// result of route match
 type ResultOfRoute =
@@ -51,16 +52,7 @@ let createResult title route resultKind =
 let guessRailwayGuideIsValid (value: string option) =
     match value with
     | Some v ->
-        let index = v.IndexOf "<br" // maybe valid
-        if index > 1 then
-            v.Substring(0, index - 1)
-            |> Seq.forall System.Char.IsDigit
-        else
-            v
-            |> Seq.forall (fun c ->
-                (System.Char.IsDigit(c)
-                 || System.Char.IsPunctuation(c)
-                 || System.Char.IsSeparator(c)))
+        Regex("\d{3}").Match(v).Success // 3 digits of kbs
     | None -> false
 
 let guessRouteIsShutdown (railwayGuide: string option) =
@@ -70,6 +62,7 @@ let guessRouteIsShutdown (railwayGuide: string option) =
         || v.StartsWith "alt"
         || v.StartsWith "zuletzt"
         || v.StartsWith "ex"
+        || Regex("\(\d{4}\)").Match(v).Success // year of shutdown
     | None -> false
 
 let getResultKind countWikiStops
@@ -229,7 +222,8 @@ let showMatchKindStatistics () =
             (k, l.Length))
 
     printfn "MatchKindStatistics"
-    showMatchKindStatistic MatchKind.Equal groups
+    showMatchKindStatistic MatchKind.EqualNames groups
+    showMatchKindStatistic MatchKind.EqualShortNames groups
     showMatchKindStatistic MatchKind.EqualWithoutIgnored groups
     showMatchKindStatistic MatchKind.EqualWithoutParentheses groups
     showMatchKindStatistic MatchKind.StartsWith groups

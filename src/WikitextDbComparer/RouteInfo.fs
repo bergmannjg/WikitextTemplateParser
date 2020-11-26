@@ -108,13 +108,13 @@ let isEmpytIgnoredRouteName (name: string) =
      |> Array.exists (fun s -> name.StartsWith(s)))
 
 let private makeRouteÎnfo (nr: int)
-                      (namenValue: string)
-                      (searchstring: string)
-                      (von: string)
-                      (bis: string)
-                      (hasRailwayGuide: string option)
-                      (title: string)
-                      =
+                          (namenValue: string)
+                          (searchstring: string)
+                          (von: string)
+                          (bis: string)
+                          (hasRailwayGuide: string option)
+                          (title: string)
+                          =
     let routenameKind =
         if namenValue.Contains "<small>" then RoutenameKind.SmallFormat else RoutenameKind.Text
 
@@ -155,11 +155,31 @@ let private findBsHeaderInTemplates (templates: Template []) =
         | _ -> ("", "")
     | Option.None -> ("", "")
 
-let private rmHtmlTags (value: string) =
-    let value0 =
-        value.Replace("<br />", " ").Replace("<br/>", " ").Replace("<br>", " ").Replace("</span>", " ")
+let removeSubstring (fromStr: string) (toStr: string) (s: string) =
+    let refFrom = s.IndexOf(fromStr)
+    let refto = s.IndexOf(toStr)
+    if refFrom > 0 && refto > refFrom then
+        s.Substring(0, refFrom)
+        + s.Substring(refto + toStr.Length)
+    else
+        s
 
-    Regex(@"<span[^>]*>").Replace(value0, "")
+let removeRegex pattern s = Regex(pattern).Replace(s, "")
+
+let replace (l: string []) (s: string) =
+    l
+    |> Array.fold (fun (x: string) y -> x.Replace(y, "")) s
+
+let private rmHtmlTags (value: string) =
+    value
+    |> replace [| "<br />"
+                  "<br/>"
+                  "<br>"
+                  "</span>"
+                  "<!-- -->" |]
+    |> removeSubstring "<ref" "/ref>"
+    |> removeRegex @"<span[^>]*>"
+    |> removeRegex @"<ref[^>]*>"
 
 let findRouteInfoInTemplates (templates: Template []) title =
     let (von, bis) = findBsHeaderInTemplates templates

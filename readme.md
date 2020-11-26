@@ -24,7 +24,7 @@ Currently the comparison of wiki data with db data gives the follwing results:
 |routes with no db data found|505|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
 
 <br/>
-The extraction of the route info (i.e. route number, start and stop station) in 'STRECKENNR' template gives the follwing results:
+Extracting the route infos (i.e. route number, start and stop station) in 'STRECKENNR' template gives the follwing results:
 
 | Count | Value | Example |
 |---|-----:|---|
@@ -35,14 +35,24 @@ The extraction of the route info (i.e. route number, start and stop station) in 
 | route info not matched|0||
 
 <br/>
-The matching of db station names with wiki station names gives the follwing results:
+Matching the db station names with wiki station names gives the follwing results:
 
 | Count | Value | Example |
 |---|-----:|---|
-|equal names|5722|Vaihingen (Enz) - Vaihingen (Enz)|
-|equal names with some fixed parts removed (i.e. Hbf) |169|Stendal - Stendal Hbf|
-|equal names with parentheses removed |38|Reichenbach (Oberlausitz) - Reichenbach (OL)|
-|names starts with equal substring|847|Bamberg, W 112 - Bamberg|
-|names ends with equal substring|121|Berlin Potsdamer Platz - Potsdamer Platz|
-|Levenshtein distance <= 3|57|Sersheim, Streckenwechsel - Sersheim Streckenwechsel|
-|substring with at least 5 chars|166|Illingen, Streckenw. 4842/4800 - Illingen Streckenwechsel 4842/4800|
+|equal shortnames|1730|Hamm (Westf) Pbf - EHM|
+|equal names|4026|Vaihingen (Enz) - Vaihingen (Enz)|
+|equal names with some fixed parts removed (i.e. Hbf) |138|Schönwalde - Abzw Schönwalde|
+|equal names with parentheses removed |27|Reichenbach (Oberlausitz) - Reichenbach (OL)|
+|names starts with equal substring|847|Köln-Mülheim, W 233 - Köln-Mülheim|
+|names ends with equal substring|121|Mosbach-Neckarelz - Neckarelz|
+|Levenshtein distance <= 3|41|Sersheim, Streckenwechsel - Sersheim Streckenwechsel|
+|substring with at least 5 chars|161|Illingen, Streckenw. 4842/4800 - Illingen Streckenwechsel 4842/4800|
+
+<br/>
+Analyzing the articles of the wiki stations in the route diagrams gives the follwing results:
+
+| Count | Value | Example |
+|---|-----:|---|
+|distinct stations with links to articles |12753||
+|articles with infobox Bahnhof and station [shortname](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)|2143|[Wuppertal](https://de.wikipedia.org/wiki/Wuppertal_Hauptbahnhof) in route [Düsseldorf–Elberfeld](https://de.wikipedia.org/wiki/Bahnstrecke_D%C3%BCsseldorf%E2%80%93Elberfeld)|
+|articles without infobox Bahnhof |10610|[Troisdorf](https://de.wikipedia.org/wiki/Troisdorf#Eisenbahnverkehr) in route [Rechte Rheinstrecke](https://de.wikipedia.org/wiki/Rechte_Rheinstrecke)|

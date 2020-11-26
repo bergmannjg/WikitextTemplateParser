@@ -41,7 +41,7 @@ Compare the wikitext station data of a route with the corresponding db data, i.e
 A wikitext station matches with a db station (*matching step 3*, see function StationMatch.matchesWkStationWithDbStation)
 
 * if the distance differences are small 
-* and the the staion names have a common substring.
+* and station shortnames ([DS100](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)) are equal or the station names have a common substring.
 
 ### Usage
 

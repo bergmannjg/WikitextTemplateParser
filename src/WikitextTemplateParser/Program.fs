@@ -17,47 +17,98 @@ let prepare (s0: string) (title:string) =
 
 /// load Vorlage:Bahnstrecke, ex. template 'Bahnstrecke Köln–Troisdorf' in title 'Siegstrecke'
 let loadBahnstreckeTemplate ((name,_,_):Template) (parseTemplates: (string -> unit)) =
-    parseTemplates ("Vorlage:" + name)
+    let name = "Vorlage:" + name
+    loadTemplatesOfRoutes false [|name|]
+    parseTemplates name
 
 let checkBahnstreckeTemplate (templates:Templates) (parseTemplates: (string -> unit)) =
     templates|>List.iter (fun t-> match t with | (s,_,_) when s.StartsWith "Bahnstrecke" -> loadBahnstreckeTemplate t parseTemplates      | _ -> ())
 
-let rec parseTemplatesForWikiTitle reload title  =
-    match loadTemplates reload title with
-    | Some t ->
-        match Parser.parse (prepare t title) with
+let rec parseTemplatesOfType (maybeCheck: (Templates -> (string -> unit) -> unit) option) (query: string -> list<string>) (insert: string -> string -> System.Guid) title =
+    fprintfn stdout "parseTemplates: %s" title 
+    match (query title |> List.tryHead) with
+    | Some text -> 
+        match Parser.parse text with
         | Success (result, _, _) -> 
-            fprintfn stdout "Success: templates Length %d" result.Length
-            DataAccess.Templates.insert title (Serializer.Serialize<Templates>(result)) |> ignore
-            checkBahnstreckeTemplate result (parseTemplatesForWikiTitle reload)
+            fprintfn stdout "Success: %s, templates Length %d" title result.Length
+            insert title (Serializer.Serialize<Templates>(result)) |> ignore
+            match maybeCheck with
+            | Some check -> check result (parseTemplatesOfType None query insert)
+            | None -> ()
         | Failure (errorMsg, _, _) -> fprintfn stderr "\n***Parser failure: %s" errorMsg
-    | None -> 
-        fprintfn stderr "***no templates found, title %s" title
+    | None -> ()
 
-let parseTemplatesForRailwaynr railwaynr =
-    match findWikiTitle railwaynr with
-    | Some title -> parseTemplatesForWikiTitle false title
-    | None -> fprintfn stdout "findTitle failed, railwaynr %s" railwaynr
+let parseTemplatesOfRoute title =
+    parseTemplatesOfType (Some checkBahnstreckeTemplate) DataAccess.Wikitext.query DataAccess.Templates.insert title
+
+let parseTemplatesOfRoutes () =
+    DataAccess.Wikitext.queryKeys()
+    |> List.iter parseTemplatesOfRoute
+
+let parseTemplatesOfStop title =
+    parseTemplatesOfType None DataAccess.WikitextOfStop.query DataAccess.TemplatesOfStop.insert title
+
+let parseTemplatesOfStops () =
+    DataAccess.WikitextOfStop.queryKeys()
+    |> List.iter parseTemplatesOfStop
+
+let skipAndTake startLine numLines (lines: string []) =
+    if startLine >= lines.Length then
+        Array.empty
+    else
+        let numLines0 =
+            if startLine + numLines > lines.Length then lines.Length - startLine else numLines
+
+        lines
+        |> Array.skip startLine
+        |> Array.take numLines0
+
+let loadTemplatesOfRoutesFromFile filename startLine numLines =
+    System.IO.File.ReadAllLines filename
+    |> skipAndTake startLine numLines
+    |> loadTemplatesOfRoutes false
+
+let loadTemplatesOfStopsFromFile filename startLine numLines =
+    System.IO.File.ReadAllLines filename
+    |> skipAndTake startLine numLines
+    |> loadTemplatesOfStops false
 
 [<EntryPoint>]
 let main argv =
     Serializer.addConverters ([| |])
     match argv with
-    | [| "-railwaynr"; railwaynr |] ->
-        match System.Int32.TryParse railwaynr with
-        | true, _ ->
-            parseTemplatesForRailwaynr railwaynr
-        | _, _ -> fprintfn stdout "integer expected: %s" railwaynr
-    | [| "-parsetitle"; title |] ->
-        parseTemplatesForWikiTitle false title 
+    | [| "-loadroute"; route |] ->
+        loadTemplatesOfRoutes true [|route|]  
+    | [| "-loadroutes"; filename; strStartLine; strNumLines |] ->
+        match System.Int32.TryParse strStartLine, System.Int32.TryParse strNumLines with
+        | (true, startLine), (true, numLines) -> loadTemplatesOfRoutesFromFile filename startLine numLines
+        | _, _ -> fprintfn stdout "integers expected: %s %s" strStartLine strNumLines
+    | [| "-parseroute"; route |] -> 
+        parseTemplatesOfRoute route  
+    | [| "-parseroutes" |] -> 
+        parseTemplatesOfRoutes ()
+    | [| "-loadstop"; stop |] ->
+        loadTemplatesOfStops true [|stop|]  
+    | [| "-loadstops"; filename; strStartLine; strNumLines |] ->
+        match System.Int32.TryParse strStartLine, System.Int32.TryParse strNumLines with
+        | (true, startLine), (true, numLines) -> loadTemplatesOfStopsFromFile filename startLine numLines
+        | _, _ -> fprintfn stdout "integers expected: %s %s" strStartLine strNumLines
+    | [| "-parsestop"; stop |] -> 
+        parseTemplatesOfStop stop  
+    | [| "-parsestops" |] -> 
+        parseTemplatesOfStops ()
     | [| "-showtitles"; strMaxTitles |] ->
         match System.Int32.TryParse strMaxTitles with
         | true, maxTitles ->
             getWikipediaArticles maxTitles 
-            |> getTitles
-            |> Array.choose id
             |> Array.iter (fun t -> printfn "%s" t)
         | _, _ -> fprintfn stdout "integer expected: %s" strMaxTitles
-    | _ -> fprintfn stdout "usage: [-reload] -parsetitle title|"
+    | [| "-showstations"; strMaxTitles |] ->
+        match System.Int32.TryParse strMaxTitles with
+        | true, maxTitles ->
+            getWikipediaStations maxTitles 
+            |> Array.iter (fun t -> printfn "%A" t)
+        | _, _ -> fprintfn stdout "integer expected: %s" strMaxTitles
+    | _ -> fprintfn stdout "usage: [-reload] -parsetitle title|-parsestop stop"
     
     0

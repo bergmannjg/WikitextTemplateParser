@@ -8,7 +8,9 @@ open FSharp.Collections
 type StationOfInfobox =
     { symbols: string []
       distances: float []
-      name: string }
+      name: string
+      link: string
+      shortname: string } // ds100
 
 
 /// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
@@ -41,14 +43,49 @@ let private maybeReplaceDistances (name: string) (kms: float []) =
     | Some (_, _, _, d) -> d
     | _ -> kms
 
-let private createStationOfInfobox (symbols: string []) (kms: float []) (name: string) =
+let markersOfStop = [| "BHF"; "DST"; "HST" |]
+
+let findShortName (title: string) =
+    let templates =
+        match DataAccess.TemplatesOfStop.query title
+              |> List.tryHead with
+        | Some row ->
+            Serializer.Deserialize<list<Template>>(row)
+            |> List.toArray
+        | None -> Array.empty
+
+    match findTemplateParameterString templates "Infobox Bahnhof" "Abkürzung" with
+    | Some value when not (System.String.IsNullOrEmpty value) ->
+        let regex0 = Regex(@"^(\w+)")
+        let m = regex0.Match(value)
+        if m.Success && m.Groups.Count = 2 then m.Groups.[1].Value else ""
+    | _ -> ""
+
+let NOBREAKSPACE = '\xA0' // NO-BREAK SPACE U+00A0
+
+let private createStationOfInfobox (symbols: string []) (kms: float []) (name: string) (link: string) =
     let name0 =
-        name.Replace(" -", "-").Replace("- ", "-")
+        name.Replace(" -", "-").Replace("- ", "-").Replace(NOBREAKSPACE, ' ')
+
+    let isStation =
+        symbols
+        |> Array.exists (fun s -> (markersOfStop |> Array.exists s.Contains))
+
+    let link0 = if isStation then link else ""
+
+    let shortname =
+        if isStation
+           && not (System.String.IsNullOrEmpty link0) then
+            findShortName link0
+        else
+            ""
 
     let kms0 = maybeReplaceDistances name0 kms
     { symbols = symbols
       distances = kms0
-      name = name0 }
+      name = name0
+      link = link0
+      shortname = shortname }
 
 let isValidText (s: string) =
     not (System.String.IsNullOrEmpty(s))
@@ -61,24 +98,25 @@ let private normalizeTextOfLink (link: Link) = (textOfLink link).Replace("&nbsp;
 let private findStationName (p: Parameter) =
     match p with // try first string
     | Composite (_, Composite.String (_) :: Link link :: Composite.String (s) :: _) when isValidText (s) ->
-        Some(normalizeTextOfLink link + " " + s)
+        Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
     | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
         Some
             (normalizeTextOfLink link1
              + s
-             + normalizeTextOfLink link2)
+             + normalizeTextOfLink link2,
+             linktextOfLink link1)
     | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
-        Some(normalizeTextOfLink link + " " + s)
+        Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
     | Composite (_, Composite.String (s) :: Composite.Link link :: _) when isValidText (s) ->
-        Some(s + " " + normalizeTextOfLink link)
+        Some(s + " " + normalizeTextOfLink link, linktextOfLink link)
     | Composite (_, cl) ->
         match getFirstLinkInList cl with
-        | Some (link) -> Some(normalizeTextOfLink link)
+        | Some (link) -> Some(normalizeTextOfLink link, linktextOfLink link)
         | _ ->
             match cl with
-            | Composite.String (s) :: _ -> Some(s)
+            | Composite.String (s) :: _ -> Some(s, "")
             | _ -> None
-    | Parameter.String (_, n) -> Some(n.Trim())
+    | Parameter.String (_, n) -> Some(n.Trim(), "")
     | _ -> None
 
 let private matchesType (parameters: List<Parameter>) (types: string []) =
@@ -116,40 +154,34 @@ let private parse2float (km: string) =
 
     System.Math.Round(f, 1)
 
-let private matchStationDistances (symbols: string []) (p: Parameter) (name: string) =
+let private matchStationDistances (p: Parameter) (name: string) =
     try
         match p with // todo: find index
         | Parameter.String (_, km) ->
             let km0 = normalizeKms km
-            let kms = km0.Split " " |> Array.map parse2float
-            Some(createStationOfInfobox symbols kms name)
-        | Parameter.Empty when hasReplaceDistance name [||] -> Some(createStationOfInfobox symbols [||] name)
+            km0.Split " " |> Array.map parse2float
+        | Parameter.Empty when hasReplaceDistance name [||] -> [||]
         | Composite (_, cl) ->
             match cl with
             | Composite.Template (n, _, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
                 match (getFirstStringValue lp.[0]), (getFirstStringValue lp.[1]) with
-                | Some (km), Some (k2) ->
-                    Some(createStationOfInfobox symbols [| (parse2float km); (parse2float k2) |] name)
-                | _ -> None
+                | Some (km), Some (k2) -> [| (parse2float km); (parse2float k2) |]
+                | _ -> [||]
             | Composite.Template (n, _, lp) :: _ when n = "Coordinate" && lp.Length = 6 ->
                 match (lp.[4], getFirstStringValue lp.[4]) with
-                | Parameter.String ("text", _), Some (km) ->
-                    Some(createStationOfInfobox symbols [| (parse2float km) |] name)
-                | _ -> None
+                | Parameter.String ("text", _), Some (km) -> [| (parse2float km) |]
+                | _ -> [||]
             | _ ->
-                let kms =
-                    getCompositeStrings cl
-                    |> List.map (fun s ->
-                        match s with
-                        | Composite.String (f) -> parse2float f
-                        | _ -> -1.0)
-                    |> List.toArray
-
-                Some(createStationOfInfobox symbols kms name)
-        | _ -> None
+                getCompositeStrings cl
+                |> List.map (fun s ->
+                    match s with
+                    | Composite.String (f) -> parse2float f
+                    | _ -> -1.0)
+                |> List.toArray
+        | _ -> [||]
     with ex ->
         fprintfn stderr "error: %A, findKm parameter %A" ex p
-        None
+        [||]
 
 let private findSymbols (parameters: List<Parameter>) =
     getParameterStrings parameters
@@ -161,8 +193,10 @@ let private findSymbols (parameters: List<Parameter>) =
 
 let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
     match findStationName p2, symbols with
-    | Some (name), _ -> matchStationDistances symbols p1 name
-    | _, [| "xKMW" |] -> matchStationDistances symbols p1 "Kilometrierungswechsel"
+    | Some (name, link), _ -> Some(createStationOfInfobox symbols (matchStationDistances p1 name) name link)
+    | _, [| "xKMW" |] ->
+        let name = "Kilometrierungswechsel"
+        Some(createStationOfInfobox symbols (matchStationDistances p1 name) name "")
     | _ -> None
 
 let chooseNonEmptyParameter (index: int) (l: Parameter list) =

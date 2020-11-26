@@ -5,7 +5,8 @@ open FSharp.Data
 type DbStationOfRoute =
     { km: float
       name: string
-      STELLE_ART: string }
+      STELLE_ART: string
+      KUERZEL: string }
 
 type Strecke =
     { STRNR: int
@@ -198,7 +199,8 @@ let loadDBStations routenr =
     |> Array.map (fun p ->
         { km = getKMI2Float p.KM_I
           name = p.BEZEICHNUNG
-          STELLE_ART = p.STELLE_ART })
+          STELLE_ART = p.STELLE_ART
+          KUERZEL = p.KUERZEL })
 
 let checkPersonenzugStreckenutzung (strecke: int) =
     let dbdata = loadStreckenutzungCsvData ()

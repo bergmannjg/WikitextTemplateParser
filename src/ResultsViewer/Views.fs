@@ -63,6 +63,10 @@ let index =
                 a [ _href ("/routeinfos") ] [
                     str "Summary of route infos"
                 ]
+                str " "
+                a [ _href ("/stops") ] [
+                    str "Summary of stops"
+                ]
             ]
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
@@ -88,6 +92,25 @@ let routeinfos =
             script [ _type "application/javascript" ] [
                 rawText """
                 loadRouteInfosTable("#results-table", document.getElementById("statusMsg"), "/data/routeinfos");
+            """
+            ]
+        ]
+    ]
+
+let stops =
+    html [] [
+        head [] (titleAndScripts "Stops")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str "Stops"
+            ]
+            div [ _id "statusMsg"
+                  _style "margin-left:5%; margin-bottom:5px;" ] []
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+            script [ _type "application/javascript" ] [
+                rawText """
+                loadStopsTable("#results-table", document.getElementById("statusMsg"), "/data/stops");
             """
             ]
         ]
@@ -175,6 +198,10 @@ let stationOfDbWk (title: string, route: int) =
                      + "/"
                      + route.ToString()) ] [
                 str "Wiki stations of route"
+            ]
+            str " "
+            a [ _href ("/stationOfInfobox/" + title) ] [
+                str "Wiki stations of infobox"
             ]
         ]
 

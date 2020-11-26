@@ -60,6 +60,10 @@ let textOfLink (link: Link) =
     match link with
     | (t, n) -> if not (System.String.IsNullOrEmpty(n)) then n.Trim() else t.Trim()
 
+let linktextOfLink (link: Link) =
+    match link with
+    | (t, _) -> t.Trim()
+
 let getFirstLinkInList (cl: list<Composite>) =
     cl
     |> List.tryFind (fun e ->
@@ -99,3 +103,16 @@ let getFirstStringValue (p: Parameter) =
             | Composite.String (str) -> Some str
             | _ -> None)
     | _ -> None
+
+let findLinks  (markers: string []) (templates: list<Template>) =
+    [ for (_, _, parameters) in templates do
+        let mutable foundMarker = false
+        for p in parameters do
+            match p with
+            | Parameter.String (_, v) when not foundMarker -> foundMarker <- (markers |> Array.exists v.Contains)
+            | Composite (_, composites) ->
+                for c in composites do
+                    match c with
+                    | Link (link) -> if foundMarker then yield link
+                    | _ -> ()
+            | _ -> () ]
