@@ -26,13 +26,14 @@ if [ $# -eq 2 ]; then
   LINES="$2"
 fi
 
-if [ $# -eq 0 -o $LINES -ge $LINESOFFILE ]; then
+if [ $# -eq 0 ] || [ $LINES -ge $LINESOFFILE ]; then
   dotnet run --project src/WikitextDbComparer/WikitextDbComparer.fsproj -dropCollection Wikitext
 fi
 
 dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -loadroutes ./titles.txt $STARTLINE $LINES
 
-if [ $# -eq 0 -o $LINES -ge $LINESOFFILE ]; then
+if [ $# -eq 0 ] || [ $LINES -ge $LINESOFFILE ]; then
   dotnet run --project src/WikitextDbComparer/WikitextDbComparer.fsproj -dropCollection Templates
-  dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parseroutes
 fi
+
+dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parseroutes

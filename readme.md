@@ -28,8 +28,8 @@ Extracting the route infos (i.e. route number, start and stop station) in 'STREC
 
 | Count | Value | Example |
 |---|-----:|---|
-| route number withpout station names|1014|4250|
-| route number withpout station names and text ignored|124|6967; sä.MN|
+| route number without station names|1014|4250|
+| route number without station names and text ignored|124|6967; sä.MN|
 | station names in &lt;small&gt; format tags|571|6135 &lt;small>(Bln. Südkreuz–Elsterwerda)&lt;/small>|
 | station names in text|22|1101 Lütjenbrode–Heiligenhafen|
 | route info not matched|0||

@@ -5,7 +5,7 @@ if [ ! -d "./scripts" ]; then
     exit 1
 fi
 
-dotnet build -c Release src/WikitextDbComparer/WikitextDbComparer.fsproj > /dev/null
+dotnet build -c Release src/WikitextDbComparer/WikitextDbComparer.fsproj &> /dev/null
 if [ $? -ne 0 ]
 then
   echo "error in building project"
@@ -19,11 +19,11 @@ if [ $# -eq 1 ]; then
 fi
 
 if [ $? -eq 0 ]; then
-  dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection DbStationOfRoute
-  dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfInfobox
-  dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection DbWkStationOfRoute
-  dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfRoute
-  dotnet src/WikitextDbComparer/bin/Debug/net5.0/WikitextDbComparer.dll -dropCollection ResultOfRoute
+  dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -dropCollection DbStationOfRoute
+  dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfInfobox
+  dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -dropCollection DbWkStationOfRoute
+  dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -dropCollection WkStationOfRoute
+  dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -dropCollection ResultOfRoute
 fi
 
 dotnet src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll -comparetitles $LINES

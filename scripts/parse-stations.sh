@@ -35,5 +35,6 @@ dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll 
 
 if [ $# -eq 0 -o $LINES -ge $LINESOFFILE ]; then
   dotnet run --project src/WikitextDbComparer/WikitextDbComparer.fsproj -dropCollection TemplatesOfStop
-  dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parsestops
 fi
+
+dotnet src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll -parsestops
