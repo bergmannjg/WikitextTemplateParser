@@ -9,6 +9,7 @@ open System.Text.RegularExpressions
 type MatchKind =
     | Failed
     | EqualShortNames
+    | EqualShortNamesNotDistance
     | EqualNames
     | StartsWith
     | EndsWith
@@ -60,11 +61,8 @@ let private sameSubstring (s0: string) (s1: string) =
 let replaceWithBlank (c: char) (s: string) = s.Replace(c, ' ')
 
 /// no strict matching af names, assuming the distance check has succeeded
-let private matchStationName (wikiName: string) (wikishortname: string) (dbName: string) (dbshortname: string) =
-    if wikishortname.Length > 0
-       && wikishortname = dbshortname then
-        MatchKind.EqualShortNames
-    else if System.String.Compare(wikiName, dbName, true) = 0 then
+let private matchStationName (wikiName: string) (dbName: string) =
+    if System.String.Compare(wikiName, dbName, true) = 0 then
         MatchKind.EqualNames
     else
         let wikiName0 =
@@ -107,9 +105,19 @@ let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
     |> Array.exists (fun d -> abs (dbDistance - d) < 1.0)
 
 let matchesWkStationWithDbStation (wikiStation: StationOfRoute) (dbStation: DbStationOfRoute) =
+    if wikiStation.shortname.Length > 0
+       && wikiStation.shortname = dbStation.KUERZEL then
+        let mk =
+            if matchStationDistance wikiStation.kms dbStation.km
+            then EqualShortNames
+            else EqualShortNamesNotDistance
+
+        Some(dbStation, wikiStation, mk)
+    else
+
     if matchStationDistance wikiStation.kms dbStation.km then
         let mk =
-            matchStationName wikiStation.name wikiStation.shortname dbStation.name dbStation.KUERZEL
+            matchStationName wikiStation.name dbStation.name
 
         if mk <> MatchKind.Failed then Some(dbStation, wikiStation, mk) else None
     else

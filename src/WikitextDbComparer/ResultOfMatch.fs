@@ -51,8 +51,7 @@ let createResult title route resultKind =
 
 let guessRailwayGuideIsValid (value: string option) =
     match value with
-    | Some v ->
-        Regex("\d{3}").Match(v).Success // 3 digits of kbs
+    | Some v -> Regex("\d{3}").Match(v).Success
     | None -> false
 
 let guessRouteIsShutdown (railwayGuide: string option) =
@@ -62,7 +61,7 @@ let guessRouteIsShutdown (railwayGuide: string option) =
         || v.StartsWith "alt"
         || v.StartsWith "zuletzt"
         || v.StartsWith "ex"
-        || Regex("\(\d{4}\)").Match(v).Success // year of shutdown
+        || Regex("\(\d{4}\)").Match(v).Success
     | None -> false
 
 let getResultKind countWikiStops
@@ -71,6 +70,8 @@ let getResultKind countWikiStops
                   countDbStopsNotFound
                   (railwayGuide: string option)
                   (unmatched: bool)
+                  (countAciveStations: int)
+                  (countShutdownStations: int)
                   =
     let dbStopsWithRoute = countDbStops > 0
     if countWikiStops = 0 && dbStopsWithRoute then
@@ -90,7 +91,11 @@ let getResultKind countWikiStops
     else if countWikiStops = 0 && dbStopsWithRoute then
         WikidataNotFoundInTemplates
     else if not dbStopsWithRoute then
-        if guessRailwayGuideIsValid railwayGuide then
+        if countShutdownStations
+           >= 2
+           && countAciveStations <= 2 then
+            RouteIsShutdown
+        else if guessRailwayGuideIsValid railwayGuide then
             NoDbDataFoundWithRailwayGuide
         else
             NoDbDataFoundWithoutRailwayGuide
@@ -208,22 +213,25 @@ let showMatchKindStatistics () =
             if r.resultKind = ResultKind.WikidataFoundInDbData
                || r.resultKind = ResultKind.WikidataNotFoundInDbData then
                 for s in DataAccess.DbWkStationOfRoute.query r.title r.route do
-                    yield! Serializer.Deserialize<StationOfDbWk []>(s) ]
+                    yield!
+                        Serializer.Deserialize<StationOfDbWk []>(s)
+                        |> Array.map (fun s -> (r.route, s)) ]
 
     let groups =
         stationsOfRoute
-        |> List.groupBy (fun r -> r.matchkind)
+        |> List.groupBy (fun (r, s) -> s.matchkind)
         |> List.map (fun (k, l) ->
             printfn
                 "kind %A %A"
                 k
                 ((List.take 3 l)
-                 |> List.map (fun e -> (e.dbname, e.wkname)))
+                 |> List.map (fun (r, s) -> (r, s.dbname, s.wkname)))
             (k, l.Length))
 
     printfn "MatchKindStatistics"
     showMatchKindStatistic MatchKind.EqualNames groups
     showMatchKindStatistic MatchKind.EqualShortNames groups
+    showMatchKindStatistic MatchKind.EqualShortNamesNotDistance groups
     showMatchKindStatistic MatchKind.EqualWithoutIgnored groups
     showMatchKindStatistic MatchKind.EqualWithoutParentheses groups
     showMatchKindStatistic MatchKind.StartsWith groups

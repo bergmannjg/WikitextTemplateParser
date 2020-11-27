@@ -29,13 +29,17 @@ let getStationLinks () =
     |> List.sort
     |> List.iter (fun s -> printfn "%s" s)
 
-let classifyBsDatenStreckenNr title showDetails =
+let classifyBsDatenStreckenNr showDetails title  =
     let templates = loadTemplatesForWikiTitle title showDetails
     match findRouteInfoInTemplates templates title with
     | Some strecken ->
         strecken|>Array.iter (printRouteInfo showDetails) 
     | None -> 
         ()
+
+let classifyBsDatenStreckenNrTitles () =
+    DataAccess.Templates.queryKeys()
+    |> List.iter (classifyBsDatenStreckenNr false)
 
 let findRouteInfoInTemplatesWithParameter (templates: Template []) title showDetails =
     match findRouteInfoInTemplates templates title with
@@ -76,7 +80,7 @@ let comparetitle showDetails title =
         DbData.dump title routeMatched.nummer dbStations
         let wikiStations = if dbStations.Length > 0 then filterStations routeMatched stationsOfInfobox else [||]
         StationsOfRoute.dump title routeMatched wikiStations
-        compare title route routeMatched wikiStations dbStations
+        compare title route routeMatched wikiStations dbStations stationsOfInfobox
         |> printResult title routeMatched wikiStations stationsOfInfobox showDetails)
 
 let take numLines (lines: List<string>) =
@@ -98,14 +102,14 @@ let main argv =
     | [| "-dropCollection"; collection |] -> DataAccess.dropCollection collection |> ignore
     | [| "-getStationLinks" |] -> getStationLinks ()
     | [| "-comparetitle"; title |] -> comparetitle  false title
+    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle  true title
     | [| "-comparetitles"; strNumLines |] -> 
         match System.Int32.TryParse  strNumLines with
         | (true, numLines) -> comparetitles numLines
         | _, _ -> fprintfn stdout "integers expected: %s" strNumLines
-    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle  true title
+    | [| "-comparetitles" |] -> comparetitles System.Int32.MaxValue
     | [| "-showCompareResults" |] -> showResults()
-    | [| "-classify"; title |] -> classifyBsDatenStreckenNr title false
-    | [| "-verbose"; "-classify"; title |] -> classifyBsDatenStreckenNr title true
+    | [| "-classify" |] -> classifyBsDatenStreckenNrTitles ()
     | [| "-showClassifyResults" |] -> showRouteInfoResults()
     | [| "-showMatchKindStatistics" |] -> showMatchKindStatistics()
     | _ -> fprintfn stderr "usage: [-verbose] -comparetitle title | -showCompareResults | -classify title | -showClassifyResults | -showMatchKindStatistics"   

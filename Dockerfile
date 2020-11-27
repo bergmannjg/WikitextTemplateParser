@@ -17,9 +17,7 @@ RUN mkdir dump
 
 RUN source ./scripts/restore.sh
 
-RUN ./scripts/parse-wikis.sh 0 ${LINES}
-
-RUN ./scripts/parse-stations.sh 0 ${LINES}
+RUN source ./scripts/rebuild.sh $LINES
 
 RUN ./scripts/compare-wkis.sh
 

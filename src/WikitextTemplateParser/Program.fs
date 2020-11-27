@@ -52,25 +52,12 @@ let parseTemplatesOfStops () =
     DataAccess.WikitextOfStop.queryKeys()
     |> List.iter parseTemplatesOfStop
 
-let skipAndTake startLine numLines (lines: string []) =
-    if startLine >= lines.Length then
-        Array.empty
-    else
-        let numLines0 =
-            if startLine + numLines > lines.Length then lines.Length - startLine else numLines
-
-        lines
-        |> Array.skip startLine
-        |> Array.take numLines0
-
-let loadTemplatesOfRoutesFromFile filename startLine numLines =
+let loadTemplatesOfRoutesFromFile filename =
     System.IO.File.ReadAllLines filename
-    |> skipAndTake startLine numLines
     |> loadTemplatesOfRoutes false
 
-let loadTemplatesOfStopsFromFile filename startLine numLines =
+let loadTemplatesOfStopsFromFile filename  =
     System.IO.File.ReadAllLines filename
-    |> skipAndTake startLine numLines
     |> loadTemplatesOfStops false
 
 [<EntryPoint>]
@@ -79,36 +66,26 @@ let main argv =
     match argv with
     | [| "-loadroute"; route |] ->
         loadTemplatesOfRoutes true [|route|]  
-    | [| "-loadroutes"; filename; strStartLine; strNumLines |] ->
-        match System.Int32.TryParse strStartLine, System.Int32.TryParse strNumLines with
-        | (true, startLine), (true, numLines) -> loadTemplatesOfRoutesFromFile filename startLine numLines
-        | _, _ -> fprintfn stdout "integers expected: %s %s" strStartLine strNumLines
+    | [| "-loadroutes"; filename |] ->
+        loadTemplatesOfRoutesFromFile filename
     | [| "-parseroute"; route |] -> 
         parseTemplatesOfRoute route  
     | [| "-parseroutes" |] -> 
         parseTemplatesOfRoutes ()
     | [| "-loadstop"; stop |] ->
         loadTemplatesOfStops true [|stop|]  
-    | [| "-loadstops"; filename; strStartLine; strNumLines |] ->
-        match System.Int32.TryParse strStartLine, System.Int32.TryParse strNumLines with
-        | (true, startLine), (true, numLines) -> loadTemplatesOfStopsFromFile filename startLine numLines
-        | _, _ -> fprintfn stdout "integers expected: %s %s" strStartLine strNumLines
+    | [| "-loadstops"; filename |] ->
+        loadTemplatesOfStopsFromFile filename
     | [| "-parsestop"; stop |] -> 
         parseTemplatesOfStop stop  
     | [| "-parsestops" |] -> 
         parseTemplatesOfStops ()
-    | [| "-showtitles"; strMaxTitles |] ->
-        match System.Int32.TryParse strMaxTitles with
-        | true, maxTitles ->
-            getWikipediaArticles maxTitles 
-            |> Array.iter (fun t -> printfn "%s" t)
-        | _, _ -> fprintfn stdout "integer expected: %s" strMaxTitles
-    | [| "-showstations"; strMaxTitles |] ->
-        match System.Int32.TryParse strMaxTitles with
-        | true, maxTitles ->
-            getWikipediaStations maxTitles 
-            |> Array.iter (fun t -> printfn "%A" t)
-        | _, _ -> fprintfn stdout "integer expected: %s" strMaxTitles
+    | [| "-showtitles" |] ->
+        getWikipediaArticles 10000 
+        |> Array.iter (fun t -> printfn "%s" t)
+    | [| "-showstations" |] ->
+        getWikipediaStations 10000 
+        |> Array.iter (fun t -> printfn "%A" t)
     | _ -> fprintfn stdout "usage: [-reload] -parsetitle title|-parsestop stop"
     
     0

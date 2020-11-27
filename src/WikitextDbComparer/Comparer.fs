@@ -99,7 +99,7 @@ let dump (title: string)
          + ".txt",
          s)
 
-let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
+let private isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
     let dbFirst = dbStations.[0]
     let dbLast = dbStations.[dbStations.Length - 1]
 
@@ -113,7 +113,7 @@ let isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRout
 
     foundFirst && foundLast
 
-let existsWkStationInResultSuccess (station: string) results =
+let private existsWkStationInResultSuccess (station: string) results =
     results
     |> Array.exists (fun result ->
         match result with
@@ -132,11 +132,34 @@ let private maybeReplaceResultkind (strecke: RouteInfo) (resultOfRoute: ResultOf
     | Some (_, _, _, rk) -> { resultOfRoute with resultKind = rk }
     | None -> resultOfRoute
 
+let private BhfSymbolTypes = [| "BHF"; "DST"; "ÜST"; "HST"; "BST" |]
+
+let private isStation (symbols: string []) =
+    symbols
+    |> Array.exists (fun s -> BhfSymbolTypes |> Array.exists s.Contains)
+
+let private isShutdownStation (symbols: string []) =
+    symbols
+    |> Array.exists (fun s -> s.StartsWith "x" || s.StartsWith "ex")
+
+let private countShutdownStations (stationsOfInfobox: StationOfInfobox []) =
+    stationsOfInfobox
+    |> Array.filter (fun s -> isStation s.symbols && isShutdownStation s.symbols)
+    |> Array.length
+
+let private countActivedownStations (stationsOfInfobox: StationOfInfobox []) =
+    stationsOfInfobox
+    |> Array.filter (fun s ->
+        isStation s.symbols
+        && not (isShutdownStation s.symbols))
+    |> Array.length
+
 let compare (title: string)
             (routeInfoOrig: RouteInfo)
             (routeInfoMatched: RouteInfo)
             (wikiStations: StationOfRoute [])
             (dbStations: DbStationOfRoute [])
+            (stationsOfInfobox: StationOfInfobox [])
             =
     let resultsOfMatch =
         if wikiStations.Length > 0 && dbStations.Length > 0
@@ -163,11 +186,15 @@ let compare (title: string)
             countDbStopsNotFound
             routeInfoMatched.railwayGuide
             (routeInfoMatched.routenameKind = Unmatched)
+            (countActivedownStations stationsOfInfobox)
+            (countShutdownStations stationsOfInfobox)
 
     let resultOfRoute =
         { route = routeInfoMatched.nummer
           title = title
-          fromToNameOrig = [| routeInfoOrig.von; routeInfoOrig.bis |]
+          fromToNameOrig =
+              [| routeInfoOrig.von
+                 routeInfoOrig.bis |]
           fromToNameMatched =
               [| routeInfoMatched.von
                  routeInfoMatched.bis |]
