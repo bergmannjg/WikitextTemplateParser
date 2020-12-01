@@ -45,10 +45,10 @@ let TestCompareAltenbekenKreiensen () =
 
     Assert.That(templates.Length, Is.EqualTo(45))
 
-    match findBsDatenStreckenNr templates "Bahnstrecke_Altenbeken–Kreiensen" with
+    match findRouteInfoInTemplates templates "Bahnstrecke_Altenbeken–Kreiensen" with
     | Some strecken -> 
         Assert.That(strecken.Length, Is.EqualTo(3))
         let bahnhöfe = findStations strecken.[1] templates 
-        Assert.That(bahnhöfe.Length, Is.EqualTo(15))
+        Assert.That(bahnhöfe.Length, Is.EqualTo(19))
         checkStationDistance bahnhöfe "Langeland" "3.5"
     | None -> Assert.Fail("no stations found")

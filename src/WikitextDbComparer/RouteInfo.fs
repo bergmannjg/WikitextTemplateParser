@@ -1,6 +1,8 @@
 /// determine RouteInfo from STRECKENNR template
 module RouteInfo
 
+// fsharplint:disable RecordFieldNames
+
 open Ast
 open System.Text.RegularExpressions
 open FSharp.Collections
@@ -22,14 +24,14 @@ type RouteInfo =
       routenameKind: RoutenameKind
       searchstring: string }
 
-let createRouteInfo (nummer: int)
-                    (title: string)
-                    (von: string)
-                    (bis: string)
-                    (hasRailwayGuide: string option)
-                    (routenameKind: RoutenameKind)
-                    (searchstring: string)
-                    =
+let private createRouteInfo (nummer: int)
+                            (title: string)
+                            (von: string)
+                            (bis: string)
+                            (hasRailwayGuide: string option)
+                            (routenameKind: RoutenameKind)
+                            (searchstring: string)
+                            =
     { nummer = nummer
       title = title
       von = von
@@ -44,7 +46,7 @@ let printRouteInfo showDetails (routeInfo: RouteInfo) =
     DataAccess.RouteInfo.insert routeInfo.title routeInfo.nummer (Serializer.Serialize<RouteInfo>(routeInfo))
     |> ignore
 
-let lengthOfKind kind results =
+let private lengthOfKind kind results =
     (results
      |> Array.filter (fun r -> r.routenameKind = kind)).Length
 
@@ -83,29 +85,31 @@ let private spitstring (s: string) =
     | Some ar -> ar
     | _ -> Array.empty
 
-let (|SplitRouteNames|_|) names =
-    match (spitstring names) |> Array.map trim with
+let private (|SplitRouteNames|_|) names =
+    match (spitstring names)
+          |> Array.map StringUtilities.trim with
     | [| von0; bis0 |] when not (System.String.IsNullOrEmpty bis0) -> Some(von0, bis0)
     | [| von0; _; bis0 |] when not (System.String.IsNullOrEmpty bis0) -> Some(von0, bis0)
     | [| von0; _; bis0; _ |] when not (System.String.IsNullOrEmpty bis0) -> Some(von0, bis0)
     | _ -> None
 
-let private tagsInRoutename = [| "<small>"; "</small>" |]
+let private tagsInRoutename = [ "<small>"; "</small>" ]
 
-let private ignoreStrings (s0: string) =
-    let s1 =
-        Array.concat [| tagsInRoutename
-                        AdhocReplacements.ignoreStringsInRoutename |]
-        |> Array.fold (fun (s: string) v -> s.Replace(v, "")) s0
+let private replacements =
+    List.concat [ tagsInRoutename
+                  AdhocReplacements.ignoreStringsInRoutename ]
 
-    s1.Trim([| ' '; ','; ':'; '('; ')'; ''' |])
+let private applayReplacements (s: string) =
+    s
+    |> StringUtilities.replaceFromListToEmpty replacements
+    |> StringUtilities.trimChars ([| ' '; ','; ':'; '('; ')'; ''' |])
 
-let isEmpytRouteName (name: string) =
+let private isEmpytRouteName (name: string) =
     System.String.IsNullOrEmpty(name) || name = ","
 
-let isEmpytIgnoredRouteName (name: string) =
-    (AdhocReplacements.prefixesOfEmptyRouteNames
-     |> Array.exists (fun s -> name.StartsWith(s)))
+let private isEmpytIgnoredRouteName (name: string) =
+    AdhocReplacements.prefixesOfEmptyRouteNames
+    |> Array.exists (fun s -> name.StartsWith(s))
 
 let private makeRouteÎnfo (nr: int)
                           (namenValue: string)
@@ -118,7 +122,7 @@ let private makeRouteÎnfo (nr: int)
     let routenameKind =
         if namenValue.Contains "<small>" then RoutenameKind.SmallFormat else RoutenameKind.Text
 
-    let namen = (ignoreStrings namenValue).Trim()
+    let namen = (applayReplacements namenValue).Trim()
 
     match namen with
     | SplitRouteNames (von, bis) -> createRouteInfo nr title von bis hasRailwayGuide routenameKind searchstring
@@ -130,75 +134,68 @@ let private makeRouteÎnfo (nr: int)
         else
             createRouteInfo nr title "" "" hasRailwayGuide Unmatched searchstring
 
-let (|GroupsOfRegex|_|) pattern value =
-    let regex = Regex(pattern)
-    let mc = regex.Matches value
+let private regexRoutes = Regex(@"(\d{4})(\D+\d\D+|\D*)")
+
+let private findRoutes value =
+    let mc = regexRoutes.Matches value
     if mc.Count > 0 then
         let l =
             [ for m in mc do
                 if m.Groups.Count = 3
                 then yield (m.Groups.[1].Value |> int, m.Groups.[2].Value) ]
 
-        if l.Length > 0 then Some l else None
+        if l.Length > 0 then l else List.empty
     else
-        None
+        List.empty
 
 let private strContainsNumber (s: string) = s |> Seq.exists System.Char.IsDigit
 
 let private normalizeRailwayGuide (value: string) = value.Replace("'", "")
 
-let private findBsHeaderInTemplates (templates: Template []) =
+let private findBsHeaderInTemplates templates =
     match findTemplateParameterString templates "BS-header" "" with
     | Some value ->
-        match (value.Split "–" |> Array.map trim) with
+        match (value.Split "–" |> Array.map StringUtilities.trim) with
         | [| von; bis |] -> (von, bis)
         | _ -> ("", "")
     | Option.None -> ("", "")
 
-let removeSubstring (fromStr: string) (toStr: string) (s: string) =
-    let refFrom = s.IndexOf(fromStr)
-    let refto = s.IndexOf(toStr)
-    if refFrom > 0 && refto > refFrom then
-        s.Substring(0, refFrom)
-        + s.Substring(refto + toStr.Length)
-    else
-        s
-
-let removeRegex pattern s = Regex(pattern).Replace(s, "")
-
-let replace (l: string []) (s: string) =
-    l
-    |> Array.fold (fun (x: string) y -> x.Replace(y, "")) s
-
 let private rmHtmlTags (value: string) =
     value
-    |> replace [| "<br />"
-                  "<br/>"
-                  "<br>"
-                  "</span>"
-                  "<!-- -->" |]
-    |> removeSubstring "<ref" "/ref>"
-    |> removeRegex @"<span[^>]*>"
-    |> removeRegex @"<ref[^>]*>"
+    |> StringUtilities.replaceFromListToEmpty [ "<br />"
+                                                "<br/>"
+                                                "<br>"
+                                                "</span>"
+                                                "<!-- -->" ]
+    |> StringUtilities.removeSubstring "<ref" "/ref>"
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexSpanOPen
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRefSelfClosed
 
-let findRouteInfoInTemplates (templates: Template []) title =
+let findRouteInfoInTemplates templates title =
     let (von, bis) = findBsHeaderInTemplates templates
 
-    let railwayGuide =
-        match findTemplateParameterString templates "BS-daten" "KBS" with
-        | Some value when not (System.String.IsNullOrEmpty value) -> Some(normalizeRailwayGuide value)
-        | _ -> None
+    let kbsTemplates =
+        findTemplateParameterTemplates templates "BS-daten" "KBS"
 
-    match findTemplateParameterString templates "BS-daten" "STRECKENNR" with
+    let railwayGuide =
+        if kbsTemplates |> Seq.isEmpty then
+            match findTemplateParameterString templates "BS-daten" "KBS" with
+            | Some value when not (System.String.IsNullOrEmpty value) -> Some(normalizeRailwayGuide value)
+            | _ -> None
+        else
+            match findTemplateParameterString kbsTemplates "Kursbuchlink" "Nummer" with
+            | Some value when not (System.String.IsNullOrEmpty value) -> Some(normalizeRailwayGuide value)
+            | _ -> None
+
+    match findTemplateParameterString templates "BS-daten" "STRECKENNR"
+          |> Option.bind (rmHtmlTags >> Option.Some) with
     | Some value when strContainsNumber value ->
-        let value0 = rmHtmlTags value
-        match value0 with
-        | GroupsOfRegex @"(\d{4})(\D+\d\D+|\D*)" routes ->
+        let routes = findRoutes value
+        if routes.Length > 0 then
             Some
                 (routes
-                 |> List.map (fun (nr, namen) -> makeRouteÎnfo nr namen value0 von bis railwayGuide title)
-                 |> List.toArray)
-        | _ ->
-            fprintfn stderr "%s, findRouteInfoInTemplates failed, '%s'" title value0
-            Some(Array.empty)
+                 |> List.map (fun (nr, namen) -> makeRouteÎnfo nr namen value von bis railwayGuide title))
+        else
+            fprintfn stderr "%s, findRouteInfoInTemplates failed, '%s'" title value
+            Some(List.empty)
     | _ -> Option.None

@@ -1,6 +1,8 @@
 /// type of matching result
 module ResultsOfMatch
 
+// fsharplint:disable RecordFieldNames 
+
 open DbData
 open Types
 open StationsOfRoute
@@ -102,28 +104,28 @@ let getResultKind countWikiStops
     else
         Undef
 
-let existsInDbSuccessResults (pred: DbStationOfRoute -> bool) (results: ResultOfStation []) =
+let existsInDbSuccessResults (pred: DbStationOfRoute -> bool) (results: seq<ResultOfStation>) =
     results
-    |> Array.exists (fun result ->
+    |> Seq.exists (fun result ->
         match result with
         | Success (db, _, _) -> pred (db)
         | _ -> false)
 
-let getSuccessMinMaxDbKm (results: ResultOfStation []) =
+let getSuccessMinMaxDbKm (results: seq<ResultOfStation>) =
     let dbkm =
         results
-        |> Array.map (fun result ->
+        |> Seq.map (fun result ->
             match result with
             | Success (db, _, _) -> Some(db.km)
             | _ -> None)
-        |> Array.choose id
+        |> Seq.choose id
 
-    if dbkm.Length > 0 then
-        let dbMin = dbkm |> Array.min
-        let dbMax = dbkm |> Array.max
-        [| dbMin; dbMax |]
-    else
+    if Seq.isEmpty dbkm then
         [| 0.0; 0.0 |]
+    else
+        let dbMin = dbkm |> Seq.min
+        let dbMax = dbkm |> Seq.max
+        [| dbMin; dbMax |]
 
 /// filter results outside of current route
 let filterResultsOfRoute (results: ResultOfStation []) =
@@ -136,7 +138,7 @@ let filterResultsOfRoute (results: ResultOfStation []) =
             match result with
             | Failure s -> (s.km) >= fromKm && (s.km) <= toKm
             | _ -> true)
-    | _ -> [||]
+    | _ -> Array.empty
 
 let showResults () =
     let results =
@@ -239,8 +241,8 @@ let showMatchKindStatistics () =
     showMatchKindStatistic MatchKind.Levenshtein groups
     showMatchKindStatistic MatchKind.SameSubstring groups
 
-let toResultOfStation (stations: DbStationOfRoute []) =
-    stations |> Array.map (fun db -> Failure(db))
+let toResultOfStation (stations: seq<DbStationOfRoute>) =
+    stations |> Seq.map (fun db -> Failure(db))
 
 let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
     if (showDetails) then
@@ -265,10 +267,10 @@ let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
     |> ignore
 
 
-let dump (title: string) (route: int) (results: ResultOfStation []) =
+let dump (title: string) (route: int) (results: seq<ResultOfStation>) =
     let both =
         results
-        |> Array.map (fun result ->
+        |> Seq.map (fun result ->
             match result with
             | Failure db ->
                 { dbname = db.name
@@ -282,6 +284,7 @@ let dump (title: string) (route: int) (results: ResultOfStation []) =
                   wkname = wk.name
                   wkkms = wk.kms
                   matchkind = mk })
+        |> Seq.toList
 
-    DataAccess.DbWkStationOfRoute.insert title route (Serializer.Serialize<StationOfDbWk []>(both))
+    DataAccess.DbWkStationOfRoute.insert title route (Serializer.Serialize<list<StationOfDbWk>>(both))
     |> ignore

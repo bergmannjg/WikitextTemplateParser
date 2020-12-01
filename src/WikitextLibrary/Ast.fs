@@ -23,12 +23,9 @@ and Template = string * FunctionParameter list * Parameter list
 
 type Templates = Template list
 
-
-let trim (s: string) = s.Trim()
-
-let concatCompositeStrings (cl: list<Composite>) =
+let private concatCompositeStrings (cl: seq<Composite>) =
     cl
-    |> List.fold (fun s e ->
+    |> Seq.fold (fun s e ->
         let c =
             match e with
             | Composite.String (str) -> str
@@ -37,24 +34,49 @@ let concatCompositeStrings (cl: list<Composite>) =
 
         s + c) ""
 
-let findTemplateParameterString (templates: Template []) (templateName: string) (parameterName: string) =
+let private findCompositeTemplate (cl: seq<Composite>) =
+    cl
+    |> Seq.map (fun e ->
+        match e with
+        | Composite.Template (t) -> Some t
+        | _ -> None)
+    |> Seq.choose id
+
+let findTemplateParameterString (templates: seq<Template>) (templateName: string) (parameterName: string) =
     templates
-    |> Array.map (fun t ->
+    |> Seq.map (fun t ->
         match t with
         | (n, _, l) when templateName = n -> Some l
         | _ -> None)
-    |> Array.choose id
-    |> Array.collect List.toArray
-    |> Array.map (fun p ->
+    |> Seq.choose id
+    |> Seq.collect id
+    |> Seq.map (fun p ->
         match p with
         | Parameter.String (n, v) when ("DE-" + parameterName = n) || parameterName = n -> Some v
         | Composite (n, v) when ("DE-" + parameterName = n)
                                 || parameterName = n
                                 && v.Length > 0 -> Some(concatCompositeStrings v)
         | _ -> None)
-    |> Array.choose id
-    |> Array.tryExactlyOne
+    |> Seq.choose id
+    |> Seq.tryExactlyOne
     |> Option.bind (fun s -> if System.String.IsNullOrEmpty s then None else Some s)
+
+let findTemplateParameterTemplates (templates: seq<Template>) (templateName: string) (parameterName: string) =
+    templates
+    |> Seq.map (fun t ->
+        match t with
+        | (n, _, l) when templateName = n -> Some l
+        | _ -> None)
+    |> Seq.choose id
+    |> Seq.collect id
+    |> Seq.map (fun p ->
+        match p with
+        | Composite (n, v) when ("DE-" + parameterName = n)
+                                || parameterName = n
+                                && v.Length > 0 -> Some(findCompositeTemplate v)
+        | _ -> None)
+    |> Seq.choose id
+    |> Seq.collect id
 
 let textOfLink (link: Link) =
     match link with
@@ -64,9 +86,9 @@ let linktextOfLink (link: Link) =
     match link with
     | (t, _) -> t.Trim()
 
-let getFirstLinkInList (cl: list<Composite>) =
+let getFirstLinkInList (cl: seq<Composite>) =
     cl
-    |> List.tryFind (fun e ->
+    |> Seq.tryFind (fun e ->
         match e with
         | Link (_) -> true
         | _ -> false)
@@ -75,16 +97,36 @@ let getFirstLinkInList (cl: list<Composite>) =
         | Composite.Link link -> Some link
         | _ -> None)
 
-let getParameterStrings (pl: list<Parameter>) =
+let getParameterStrings (pl: seq<Parameter>) =
     pl
-    |> List.filter (fun e ->
+    |> Seq.filter (fun e ->
         match e with
         | Parameter.String (_, str) -> not (System.String.IsNullOrEmpty str)
         | _ -> false)
 
-let getCompositeStrings (cl: list<Composite>) =
+let existsParameterStringNameInList (strings: seq<string>)
+                                    (chooser: string -> string -> bool)
+                                    (parameters: seq<Parameter>)
+                                    =
+    parameters
+    |> Seq.exists (fun t ->
+        match t with
+        | Parameter.String (n, _) when strings |> Seq.exists (chooser n) -> true
+        | _ -> false)
+
+let existsParameterStringValueInList (strings: seq<string>)
+                                     (chooser: string -> string -> bool)
+                                     (parameters: seq<Parameter>)
+                                     =
+    parameters
+    |> Seq.exists (fun t ->
+        match t with
+        | Parameter.String (_, v) when strings |> Seq.exists (chooser v) -> true
+        | _ -> false)
+
+let getCompositeStrings (cl: seq<Composite>) =
     cl
-    |> List.filter (fun e ->
+    |> Seq.filter (fun e ->
         match e with
         | Composite.String (_) -> true
         | _ -> false)
@@ -104,7 +146,7 @@ let getFirstStringValue (p: Parameter) =
             | _ -> None)
     | _ -> None
 
-let findLinks  (markers: string []) (templates: list<Template>) =
+let findLinks (markers: string []) (templates: seq<Template>) =
     [ for (_, _, parameters) in templates do
         let mutable foundMarker = false
         for p in parameters do

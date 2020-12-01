@@ -1,6 +1,8 @@
 /// collect StationOfInfobox data from templates
 module StationsOfInfobox
 
+// fsharplint:disable RecordFieldNames 
+
 open Ast
 open System.Text.RegularExpressions
 open FSharp.Collections
@@ -45,20 +47,21 @@ let private maybeReplaceDistances (name: string) (kms: float []) =
 
 let markersOfStop = [| "BHF"; "DST"; "HST" |]
 
+let regexChars = Regex(@"^(\w+)")
+
 let findShortName (title: string) =
     let templates =
         match DataAccess.TemplatesOfStop.query title
               |> List.tryHead with
         | Some row ->
             Serializer.Deserialize<list<Template>>(row)
-            |> List.toArray
-        | None -> Array.empty
+        | None -> List.empty
 
     match findTemplateParameterString templates "Infobox Bahnhof" "Abkürzung" with
     | Some value when not (System.String.IsNullOrEmpty value) ->
-        let regex0 = Regex(@"^(\w+)")
-        let m = regex0.Match(value)
-        if m.Success && m.Groups.Count = 2 then m.Groups.[1].Value else ""
+        match StringUtilities.regexMatchedValues regexChars value with
+        | [ shortName ] -> shortName
+        | _ -> ""
     | _ -> ""
 
 let NOBREAKSPACE = '\xA0' // NO-BREAK SPACE U+00A0
@@ -119,40 +122,25 @@ let private findStationName (p: Parameter) =
     | Parameter.String (_, n) -> Some(n.Trim(), "")
     | _ -> None
 
-let private matchesType (parameters: List<Parameter>) (types: string []) =
+let private matchesSymbolType (parameters: seq<Parameter>) =
     parameters
-    |> List.exists (fun t ->
-        match t with
-        | Parameter.String (_, v) when types |> Array.exists (fun t -> v.Contains(t)) -> true
-        | _ -> false)
+    |> existsParameterStringValueInList BhfSymbolTypes (fun x y -> x.Contains(y))
 
-let private matchesParameterName (parameters: List<Parameter>) (names: string []) =
+let private matchesParameterName (parameters: seq<Parameter>) (names: string []) =
     parameters
-    |> List.exists (fun t ->
-        match t with
-        | Parameter.String (n, _) when names |> Array.exists ((=) n) -> true
-        | _ -> false)
+    |> existsParameterStringNameInList names (=)
+
+let private regexSpaces = Regex(@"\s+")
 
 let private normalizeKms (kms: string) =
-    let km0 =
-        kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", "")
+    StringUtilities.replaceFromRegexToString regexSpaces " " (kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", ""))
 
-    let regex1 = Regex(@"\s+")
-    regex1.Replace(km0, " ").Trim()
-
-let private convertfloattxt (km: string) =
-    let regex0 = Regex(@"^([0-9\.]+)")
-
-    let m =
-        regex0.Match(km.Replace(",", ".").Replace("(", "").Replace(")", ""))
-
-    if m.Success && m.Groups.Count = 2 then m.Groups.[1].Value else "-1.0"
+let private regexFloat = Regex(@"^([0-9\.]+)")
 
 let private parse2float (km: string) =
-    let f =
-        double (System.Single.Parse(convertfloattxt km))
-
-    System.Math.Round(f, 1)
+    match StringUtilities.regexMatchedValues regexFloat (km.Replace(",", ".").Replace("(", "").Replace(")", "")) with
+    | [ float ] -> System.Math.Round(double (System.Single.Parse(float)), 1)
+    | _ -> -1.0
 
 let private matchStationDistances (p: Parameter) (name: string) =
     try
@@ -163,7 +151,7 @@ let private matchStationDistances (p: Parameter) (name: string) =
         | Parameter.Empty when hasReplaceDistance name [||] -> [||]
         | Composite (_, cl) ->
             match cl with
-            | Composite.Template (n, _, lp) :: _ when n = "BSkm" && lp.Length = 2 ->
+            | Composite.Template (n, _, lp) :: _ when (n = "BSkm" || n = "BSkmL") && lp.Length = 2 ->
                 match (getFirstStringValue lp.[0]), (getFirstStringValue lp.[1]) with
                 | Some (km), Some (k2) -> [| (parse2float km); (parse2float k2) |]
                 | _ -> [||]
@@ -173,11 +161,11 @@ let private matchStationDistances (p: Parameter) (name: string) =
                 | _ -> [||]
             | _ ->
                 getCompositeStrings cl
-                |> List.map (fun s ->
+                |> Seq.map (fun s ->
                     match s with
                     | Composite.String (f) -> parse2float f
                     | _ -> -1.0)
-                |> List.toArray
+                |> Seq.toArray
         | _ -> [||]
     with ex ->
         fprintfn stderr "error: %A, findKm parameter %A" ex p
@@ -185,11 +173,11 @@ let private matchStationDistances (p: Parameter) (name: string) =
 
 let private findSymbols (parameters: List<Parameter>) =
     getParameterStrings parameters
-    |> List.map (fun s ->
+    |> Seq.map (fun s ->
         match s with
         | Parameter.String (_, str) -> str
         | _ -> "")
-    |> List.toArray
+    |> Seq.toArray
 
 let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
     match findStationName p2, symbols with
@@ -214,36 +202,36 @@ let findStationOfInfobox (t: Template) =
                           && l.Length
                           >= 4
                           && (matchesParameterName (List.take 2 l) [| "T" |])
-                          && (matchesType (List.take 2 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 2 l)) ->
             matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
         | (n, [], l) when ("BS" = n || "BSe" = n)
                           && l.Length
                           >= 3
-                          && (matchesType (List.take 1 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 1 l)) ->
             matchStation (findSymbols (List.take 1 l)) l.[1] (chooseNonEmptyParameter 2 l)
         | (n, [], l) when ("BS2" = n || "BS2e" = n)
                           && l.Length
                           >= 4
-                          && (matchesType (List.take 2 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 2 l)) ->
             matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
         | (n, [], l) when ("BS3" = n || "BS3e" = n)
                           && l.Length
                           >= 8
                           && (matchesParameterName (List.take 6 l) [| "T1"; "T2"; "T3" |])
-                          && (matchesType (List.take 6 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 6 l)) ->
             matchStation (findSymbols (List.take 6 l)) l.[6] (chooseNonEmptyParameter 7 l)
         | (n, [], l) when ("BS3" = n || "BS3e" = n)
                           && l.Length
                           >= 5
-                          && (matchesType (List.take 3 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 3 l)) ->
             matchStation (findSymbols (List.take 3 l)) l.[3] (chooseNonEmptyParameter 4 l)
         | (n, [], l) when "BS4" = n
                           && l.Length >= 6
-                          && (matchesType (List.take 4 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 4 l)) ->
             matchStation (findSymbols (List.take 4 l)) l.[4] l.[5]
         | (n, [], l) when "BS5" = n
                           && l.Length >= 7
-                          && (matchesType (List.take 5 l) BhfSymbolTypes) ->
+                          && (matchesSymbolType (List.take 5 l)) ->
             matchStation (findSymbols (List.take 5 l)) l.[5] l.[6]
         | _ -> None
     with ex ->

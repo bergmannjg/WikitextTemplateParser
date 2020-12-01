@@ -1,3 +1,4 @@
+/// load Wikidata templates from db and eval ParserFunctions #ifeq and #switch
 module Wikidata
 
 open Ast
@@ -11,14 +12,14 @@ let loadTemplates (title: string) =
         fprintfn stderr "loadTemplates: title not found: %s" title
         list.Empty
 
-let substituteTemplateParameter (fpl: list<FunctionParameter>) (tpl: list<Parameter>) =
+let private substituteTemplateParameter (fpl: list<FunctionParameter>) (tpl: list<Parameter>) =
     match fpl, tpl with
     | (FunctionParameter.String ("1") :: _, Parameter.String (_, hd) :: _) -> hd /// todo
     | _ ->
         fprintfn stderr "unexpected template parameter: %A" fpl
         ""
 
-let evalIfeqInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Parameter>) (tpl: list<Parameter>) =
+let private evalIfeqInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Parameter>) (tpl: list<Parameter>) =
     match pl with
     | Parameter.String (_, s2) :: Parameter.String (_, s3) :: Parameter.String (_, s4) :: _ ->
         let v = substituteTemplateParameter fpl tpl
@@ -30,7 +31,7 @@ let evalIfeqInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Para
         fprintfn stderr "unexpected ifeq parameters: %A" pl
         Composite.Template(n, List.empty, pl)
 
-let evalSwitchInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Parameter>) (tpl: list<Parameter>) =
+let private evalSwitchInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Parameter>) (tpl: list<Parameter>) =
     match pl with
     | Parameter.String (sw1, v1) :: Parameter.String (sw2, v2) :: _ -> /// todo
         let v = substituteTemplateParameter fpl tpl
@@ -41,7 +42,7 @@ let evalSwitchInTemplate (n: string) (fpl: list<FunctionParameter>) (pl: list<Pa
         fprintfn stderr "unexpected switch parameters: %A" pl
         Composite.Template(n, List.empty, pl)
 
-let evalFunctionInComposites (composites: list<Composite>) (tpl: list<Parameter>) =
+let private evalFunctionInComposites (composites: list<Composite>) (tpl: list<Parameter>) =
     List.foldBack (fun (c: Composite) st ->
         let newc =
             match c with
@@ -51,7 +52,7 @@ let evalFunctionInComposites (composites: list<Composite>) (tpl: list<Parameter>
 
         newc :: st) composites List.empty
 
-let evalFunctionInParameters (parameters: list<Parameter>) (tpl: list<Parameter>) =
+let private evalFunctionInParameters (parameters: list<Parameter>) (tpl: list<Parameter>) =
     List.foldBack (fun (p: Parameter) st ->
         let newp =
             match p with
@@ -60,27 +61,23 @@ let evalFunctionInParameters (parameters: list<Parameter>) (tpl: list<Parameter>
 
         p :: st) parameters List.empty
 
-let evalFunctionInTemplates (templates: list<Template>) (tpl: list<Parameter>): list<Template> =
+let private evalFunctionInTemplates (templates: list<Template>) (tpl: list<Parameter>): list<Template> =
     List.foldBack (fun ((n, _, pl): Template) st ->
         let newt =
             (n, List.empty, evalFunctionInParameters pl tpl)
 
         newt :: st) templates List.empty
 
-let evalTemplate (title: string) (tpl: list<Parameter>) =
-    let templates =
-        loadTemplates ("Vorlage:" + title)
+let private evalTemplate (title: string) (tpl: list<Parameter>) =
+    evalFunctionInTemplates (loadTemplates title) tpl
 
-    evalFunctionInTemplates templates tpl
-
-let evalTemplates (templates: list<Template>) =
+let private evalTemplates (templates: list<Template>) =
     List.foldBack (fun (t: Template) st ->
         match t with
-        | (n, _, pl) when n.StartsWith "Bahnstrecke" ->
-            let tl = evalTemplate n pl
-            tl @ st
+        | (n, _, pl) when n.StartsWith "Bahnstrecke" -> (evalTemplate ("Vorlage:" + n) pl) @ st
         | _ -> t :: st) templates List.empty
 
-let loadTemplatesForWikiTitle (title: string) showDetails =
-    let templates = loadTemplates title
-    evalTemplates templates |> List.toArray
+let loadTemplatesForWikiTitle (title: string) =
+    loadTemplates title
+    |> evalTemplates
+    |> List.toArray

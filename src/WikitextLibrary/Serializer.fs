@@ -8,7 +8,7 @@ open Microsoft.FSharp.Reflection
 type UnionValueConverter<'a>() =
     inherit JsonConverter<'a>()
 
-    static member fromString<'a>(s: string) =
+    static member FromString<'a>(s: string) =
         match FSharpType.GetUnionCases typeof<'a>
               |> Array.filter (fun case -> String.Compare(case.Name, s, StringComparison.OrdinalIgnoreCase) = 0) with
         | [| case |] -> Some(FSharpValue.MakeUnion(case, [||]) :?> 'a)
@@ -18,7 +18,7 @@ type UnionValueConverter<'a>() =
         let s =
             JsonSerializer.Deserialize<string>(&reader, options)
 
-        match UnionValueConverter.fromString<'a> s with
+        match UnionValueConverter.FromString<'a> s with
         | Some v -> v
         | None -> failwith (sprintf "connot convert value '%s'" s)
 

@@ -7,6 +7,7 @@ open StationsOfRoute
 open DbData
 open StationMatch
 open ResultsOfMatch
+open Ast
 
 let compareMatch ((db0, wk0, _): DbStationOfRoute * StationOfRoute * MatchKind)
                  ((db1, wk1, _): DbStationOfRoute * StationOfRoute * MatchKind)
@@ -77,9 +78,9 @@ let dump (title: string)
     |> lines.Add
     sprintf "precodedStations:" |> lines.Add
     precodedStations
-    |> Array.iter (sprintf "%A" >> lines.Add)
+    |> Seq.iter (sprintf "%A" >> lines.Add)
     sprintf "stations:" |> lines.Add
-    stations |> Array.iter (sprintf "%A" >> lines.Add)
+    stations |> Seq.iter (sprintf "%A" >> lines.Add)
     sprintf "results:" |> lines.Add
     results
     |> Array.iter (fun result ->
@@ -132,39 +133,49 @@ let private maybeReplaceResultkind (strecke: RouteInfo) (resultOfRoute: ResultOf
     | Some (_, _, _, rk) -> { resultOfRoute with resultKind = rk }
     | None -> resultOfRoute
 
-let private BhfSymbolTypes = [| "BHF"; "DST"; "ÜST"; "HST"; "BST" |]
+let private checkIsActiveBhfSymbolTypes = [| "BHF"; "ÜST"; "HST"; "BST" |]
 
-let private isStation (symbols: string []) =
+let private checkIsShutdownBhfSymbolTypes =
+    [| "BHF"
+       "DST"
+       "ABZ"
+       "ÜST"
+       "HST"
+       "BST" |]
+
+let private isStation (symbols: string []) (symbolsToCheck: string []) =
     symbols
-    |> Array.exists (fun s -> BhfSymbolTypes |> Array.exists s.Contains)
+    |> Array.exists (fun s -> symbolsToCheck |> Array.exists s.Contains)
 
 let private isShutdownStation (symbols: string []) =
     symbols
-    |> Array.exists (fun s -> s.StartsWith "x" || s.StartsWith "ex")
+    |> Array.exists (fun s -> s.StartsWith "x" || s.StartsWith "e")
 
-let private countShutdownStations (stationsOfInfobox: StationOfInfobox []) =
+let private countShutdownStations (stationsOfInfobox: seq<StationOfInfobox>) =
     stationsOfInfobox
-    |> Array.filter (fun s -> isStation s.symbols && isShutdownStation s.symbols)
-    |> Array.length
+    |> Seq.filter (fun s ->
+        isStation s.symbols checkIsShutdownBhfSymbolTypes
+        && isShutdownStation s.symbols)
+    |> Seq.length
 
-let private countActivedownStations (stationsOfInfobox: StationOfInfobox []) =
+let private countActiveStations (stationsOfInfobox: seq<StationOfInfobox>) =
     stationsOfInfobox
-    |> Array.filter (fun s ->
-        isStation s.symbols
+    |> Seq.filter (fun s ->
+        isStation s.symbols checkIsActiveBhfSymbolTypes
         && not (isShutdownStation s.symbols))
-    |> Array.length
+    |> Seq.length
 
-let compare (title: string)
-            (routeInfoOrig: RouteInfo)
-            (routeInfoMatched: RouteInfo)
-            (wikiStations: StationOfRoute [])
-            (dbStations: DbStationOfRoute [])
-            (stationsOfInfobox: StationOfInfobox [])
-            =
+let private compareStations (title: string)
+                            (routeInfoOrig: RouteInfo)
+                            (routeInfoMatched: RouteInfo)
+                            (wikiStations: StationOfRoute [])
+                            (dbStations: DbStationOfRoute [])
+                            (stationsOfInfobox: StationOfInfobox [])
+                            =
     let resultsOfMatch =
         if wikiStations.Length > 0 && dbStations.Length > 0
         then checkDbDataInWikiData routeInfoMatched.nummer wikiStations dbStations
-        else [||]
+        else Array.empty
 
     ResultsOfMatch.dump title routeInfoMatched.nummer resultsOfMatch
 
@@ -186,7 +197,7 @@ let compare (title: string)
             countDbStopsNotFound
             routeInfoMatched.railwayGuide
             (routeInfoMatched.routenameKind = Unmatched)
-            (countActivedownStations stationsOfInfobox)
+            (countActiveStations stationsOfInfobox)
             (countShutdownStations stationsOfInfobox)
 
     let resultOfRoute =
@@ -213,15 +224,77 @@ let compare (title: string)
 
     (resultOfRoute, resultsOfMatch)
 
-let printResult (title: string)
-                (streckeMatched: RouteInfo)
-                (wikiStations: StationOfRoute [])
-                (stationsOfInfobox: StationOfInfobox [])
-                showDetails
-                ((resultOfRoute, resultsOfMatch): (ResultOfRoute * ResultOfStation []))
-                =
+let private printResult (title: string)
+                        (streckeMatched: RouteInfo)
+                        (wikiStations: StationOfRoute [])
+                        (stationsOfInfobox: StationOfInfobox [])
+                        showDetails
+                        ((resultOfRoute, resultsOfMatch): (ResultOfRoute * ResultOfStation []))
+                        =
     if (showDetails) then
         dump title streckeMatched stationsOfInfobox wikiStations resultsOfMatch
+        printfn
+            "countActiveStations %d countShutdownStations %d"
+            (countActiveStations stationsOfInfobox)
+            (countShutdownStations stationsOfInfobox)
         printfn "see dumps ./dump/%s-%d.txt" title streckeMatched.nummer
 
     printResultOfRoute showDetails resultOfRoute
+
+let private findRouteInfoInTemplatesWithParameter (templates: seq<Template>) title showDetails =
+    match findRouteInfoInTemplates templates title with
+    | Some routeInfos ->
+        if routeInfos.Length = 0  then 
+            printResultOfRoute showDetails (createResult title 0 Types.ResultKind.RouteParameterNotParsed) 
+        routeInfos
+    | None -> 
+        printResultOfRoute showDetails (createResult title 0 Types.ResultKind.RouteParameterEmpty) 
+        List.empty
+
+let private difference (ri0:list<RouteInfo>) (ri1:list<RouteInfo>) =
+    Set.difference (Set ri0) (Set ri1) |> Set.toList
+
+let private findPassengerRouteInfoInTemplates (templates: seq<Template>) title showDetails =
+    let routeInfosFromParameter =
+        findRouteInfoInTemplatesWithParameter templates title showDetails
+
+    let passengerRoutes =
+        routeInfosFromParameter
+        |> List.filter (fun s -> checkPersonenzugStreckenutzung s.nummer)
+
+    if routeInfosFromParameter.Length > passengerRoutes.Length then
+        difference routeInfosFromParameter passengerRoutes
+        |> Seq.iter (fun route ->
+            printResultOfRoute showDetails (createResult title route.nummer Types.ResultKind.RouteIsNoPassengerTrain)
+            let dbStations = loadDBStations route.nummer
+            DbData.dump title route.nummer dbStations
+            ResultsOfMatch.dump title route.nummer (ResultsOfMatch.toResultOfStation dbStations))
+    passengerRoutes
+
+let compare showDetails title templates =
+    let stationsOfInfobox =
+        templates
+        |> Array.map findStationOfInfobox
+        |> Array.choose id
+
+    StationsOfInfobox.dump title stationsOfInfobox
+
+    let routeInfos =
+        findPassengerRouteInfoInTemplates templates title showDetails
+
+    routeInfos
+    |> Seq.iter (fun route ->
+        let routeMatched =
+            findRouteInfoStations route stationsOfInfobox (routeInfos.Length = 1)
+
+        let dbStations = loadDBStations routeMatched.nummer
+        DbData.dump title routeMatched.nummer dbStations
+
+        let wikiStations =
+            if dbStations.Length > 0
+            then filterStations routeMatched stationsOfInfobox
+            else Array.empty
+
+        StationsOfRoute.dump title routeMatched wikiStations
+        compareStations title route routeMatched wikiStations dbStations stationsOfInfobox
+        |> printResult title routeMatched wikiStations stationsOfInfobox showDetails)

@@ -1,50 +1,54 @@
-/// replacements in wiki data to pass the matchings 
+/// replacements in wiki data to pass the matchings
 module AdhocReplacements
 
 open Types
+open System.Text.RegularExpressions
+
+let regexRefSelfClosed = Regex(@"<ref[^/]*/>")
+let regexSpanOPen = Regex(@"<span[^>]+>")
 
 let ignoreStringsInRoutename =
-    [| ", 3. Gl."
-       ", 3./4. Gleis"
-       "3. Gleis"
-       "/9"
-       ", Ferngleise"
-       ", Vorortgleise"
-       ", P-Bahn"
-       "+EVS"
-       "sä.WB"
-       "; sä.DEH"
-       "; sä.DE"
-       "sä.DE"
-       "(parallel)"
-       "parallel"
-       "ABS"
-       "SFS"
-       "äußeres Gleispaar"
-       "aus Hbf"
-       "Bestandsstrecke"
-       "drittes Gleis"
-       "drittes Gl."
-       "ehem. Trasse"
-       "Fernbahn"
-       "Ferngleise"
-       "Fern- und Gütergleise"
-       "Gesamtstrecke"
-       "Gütergl."
-       "Güterverkehr"
-       "Güterstrecke"
-       "NBS"
-       "nach Hbf"
-       "Außengl."
-       "Neutrassierung"
-       "Personenverkehr"
-       "Umgehungsstrecke"
-       "S-Bahn"
-       "Schnellfahrstrecke"
-       "Südgleis"
-       "Verbindungskurve" |]
+    [ ", 3. Gl."
+      ", 3./4. Gleis"
+      "3. Gleis"
+      "/9"
+      ", Ferngleise"
+      ", Vorortgleise"
+      ", P-Bahn"
+      "+EVS"
+      "sä.WB"
+      "; sä.DEH"
+      "; sä.DE"
+      "sä.DE"
+      "(parallel)"
+      "parallel"
+      "ABS"
+      "SFS"
+      "äußeres Gleispaar"
+      "aus Hbf"
+      "Bestandsstrecke"
+      "drittes Gleis"
+      "drittes Gl."
+      "ehem. Trasse"
+      "Fernbahn"
+      "Ferngleise"
+      "Fern- und Gütergleise"
+      "Gesamtstrecke"
+      "Gütergl."
+      "Güterverkehr"
+      "Güterstrecke"
+      "NBS"
+      "nach Hbf"
+      "Außengl."
+      "Neutrassierung"
+      "Personenverkehr"
+      "Umgehungsstrecke"
+      "S-Bahn"
+      "Schnellfahrstrecke"
+      "Südgleis"
+      "Verbindungskurve" ]
 
-let  prefixesOfEmptyRouteNames =
+let prefixesOfEmptyRouteNames =
     [| "; sä"
        ";sä"
        "(sä"
@@ -65,6 +69,13 @@ let  prefixesOfEmptyRouteNames =
        "alte Trasse"
        "Vorortgleise"
        "Ortsgleise" |]
+
+let ignoreStringsInStationname =
+    [ "Hbf"
+      "Pbf"
+      "Vorbahnhof"
+      "Awanst"
+      "Abzw" ]
 
 let replacementsInRouteStation =
     [| ("Bahnstrecke Berlin–Dresden", 6135, "Bln. Südkreuz", "Berlin Südkreuz")
@@ -167,8 +178,7 @@ let replacementsInRouteStation =
        ("Bahnstrecke Berlin–Wriezen", 6072, "B-Lichtenberg", "Berlin-Lichtenberg")
        ("Bahnstrecke Gemünden–Ebenhausen", 5233, "Ebenhausen Unterfranken", "Ebenhausen (Unterfr)")
        ("Bahnstrecke Leipzig–Eilenburg", 6371, "Le Eilb Bf", "Leipzig Eilenburger Bf")
-       ("Bahnstrecke Leipzig–Eilenburg", 6371, "Abzw Heiterblick", "Abzw Leipzig-Heiterblick")
-        |]
+       ("Bahnstrecke Leipzig–Eilenburg", 6371, "Abzw Heiterblick", "Abzw Leipzig-Heiterblick") |]
 
 /// errors in wikidata
 let maybeWrongRouteNr =
@@ -181,11 +191,10 @@ let maybeWrongRouteStation =
 /// errors in wikidata
 let maybeWrongDistances =
     [| (1100, "Schwartau-Waldhalle", [| 5.6 |], [| 4.6 |])
-       (6186, "Selchow West", [||], [| 29.9 |])  // fill empty distance
-       (6078, "Biesdorfer Kreuz West", [||], [| 6.1 |])  // fill empty distance
-       (6067, "Biesdorfer Kreuzmit derOstbahn", [||], [| 0.8 |])  // fill empty distance
-       (6126, "Berliner AußenringzumGrünauer Kreuz", [||], [| 40.7 |])  // fill empty distance
-    |]
+       (6186, "Selchow West", [||], [| 29.9 |]) // fill empty distance
+       (6078, "Biesdorfer Kreuz West", [||], [| 6.1 |]) // fill empty distance
+       (6067, "Biesdorfer Kreuzmit derOstbahn", [||], [| 0.8 |]) // fill empty distance
+       (6126, "Berliner AußenringzumGrünauer Kreuz", [||], [| 40.7 |]) |] // fill empty distance
 
 /// changes of ResultKind by case analysis
 let adhocResultKindChanges =
@@ -199,4 +208,4 @@ let adhocResultKindChanges =
        ("Oberbergische Bahn", 2810, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)
        ("Bahnstrecke München Ost–München Flughafen", 5560, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)
        ("Ruhr-Sieg-Strecke", 2880, WikidataNotFoundInDbData, NoDbDataFoundWithRailwayGuide)
-       ("Güteraußenring", 6126, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)  |]
+       ("Güteraußenring", 6126, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData) |]

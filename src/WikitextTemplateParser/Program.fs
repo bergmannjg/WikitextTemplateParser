@@ -1,19 +1,15 @@
 
 open FParsec
 open Wikidata
-open System.Text.RegularExpressions
 open Ast
 
-// prepare template string, todo: add to parser
-let prepare (s0: string) (title:string) =
-    let regex0 = Regex(@"<ref[^>]*>.+?</ref>")
-    let s1 = regex0.Replace(s0, "")
-    let regex1 = Regex(@"<ref[^/]*/>")
-    let s2 = regex1.Replace(s1, "")
-    let regex2 = Regex(@"<!--.*?-->")
-    let s3 = regex2.Replace(s2, "")
-    AdhocReplacements.replacements 
-    |> Array.fold (fun (s:string) (t,oldV,newV) -> if t = title then s.Replace(oldV,newV) else s) s3
+/// prepare template string, todo: add to parser
+let prepare (s: string) (title:string) =
+    s 
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRef
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRefSelfClosed
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexComment
+    |> StringUtilities.replaceFromList AdhocReplacements.replacements (fun t -> t = title)
 
 /// load Vorlage:Bahnstrecke, ex. template 'Bahnstrecke Köln–Troisdorf' in title 'Siegstrecke'
 let loadBahnstreckeTemplate ((name,_,_):Template) (parseTemplates: (string -> unit)) =
@@ -82,10 +78,10 @@ let main argv =
         parseTemplatesOfStops ()
     | [| "-showtitles" |] ->
         getWikipediaArticles 10000 
-        |> Array.iter (fun t -> printfn "%s" t)
+        |> Seq.iter (fun t -> printfn "%s" t)
     | [| "-showstations" |] ->
         getWikipediaStations 10000 
-        |> Array.iter (fun t -> printfn "%A" t)
+        |> Seq.iter (fun t -> printfn "%A" t)
     | _ -> fprintfn stdout "usage: [-reload] -parsetitle title|-parsestop stop"
     
     0

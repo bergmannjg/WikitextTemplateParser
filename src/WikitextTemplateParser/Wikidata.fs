@@ -51,13 +51,12 @@ let getWikipediaArticles (limit: int) =
     let results =
         HtmlDocument.Load("https://query.wikidata.org/sparql?query=" + q)
 
-    let urls =
-        results.Descendants [ "binding" ]
-        |> Seq.filter (fun x -> x.HasAttribute("name", "article"))
-        |> Seq.map (fun x -> HttpUtility.UrlDecode(HttpUtility.UrlDecode(x.InnerText())))
-        |> Seq.toArray
-
-    urls |> Array.map getTitle |> Array.choose id
+    results.Descendants [ "binding" ]
+    |> Seq.filter (fun x -> x.HasAttribute("name", "article"))
+    |> Seq.map
+        ((fun x -> HttpUtility.UrlDecode(HttpUtility.UrlDecode(x.InnerText())))
+         >> getTitle)
+    |> Seq.choose id
 
 let getWikipediaStations (limit: int) =
     let q =
@@ -67,16 +66,16 @@ let getWikipediaStations (limit: int) =
         HtmlDocument.Load("https://query.wikidata.org/sparql?query=" + q)
 
     results.Descendants [ "result" ]
-    |> Seq.map (fun r ->
-        r.Descendants [ "binding" ]
-        |> Seq.map (fun b -> (b.AttributeValue("name"), HttpUtility.UrlDecode(HttpUtility.UrlDecode(b.InnerText()))))
-        |> Seq.toArray)
-    |> Seq.toArray
-    |> Array.map (fun r ->
-        match r with
-        | [| ("BahnhofCode", c); ("BahnhofLabel", l) |] -> Some(l, c)
-        | _ -> None)
-    |> Array.choose id
+    |> Seq.map
+        ((fun r ->
+            r.Descendants [ "binding" ]
+            |> Seq.map (fun b -> (b.AttributeValue("name"), HttpUtility.UrlDecode(HttpUtility.UrlDecode(b.InnerText()))))
+            |> Seq.toList)
+         >> (fun r ->
+             match r with
+             | [ ("BahnhofCode", c); ("BahnhofLabel", l) ] -> Some(l, c)
+             | _ -> None))
+    |> Seq.choose id
 
 let private tryFindStartOfTemplates (s: string) (wikiType: WikiType) =
     match wikiType with
@@ -114,11 +113,11 @@ let private getDescendantsOfDoc (node: HtmlDocument) name =
     node.Descendants(fun node -> node.HasName name)
     |> Seq.toArray
 
-let private regex =
+let private regexRedirection =
     Regex(@"#(\S+)\s*\[\[([^\]]+)\]\]", RegexOptions.IgnoreCase)
 
 let private getRedirection text =
-    let m = regex.Match text
+    let m = regexRedirection.Match text
     if m.Success
        && m.Groups.Count = 3
        && (m.Groups.[1].Value.ToUpper() = "REDIRECT"

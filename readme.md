@@ -8,6 +8,8 @@ Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvor
 
 ## Preliminary results
 
+### Comparison
+
 Currently the comparison of wiki data with db data gives the follwing results:
 
 | Count | Value | Remarks | Example |
@@ -16,14 +18,15 @@ Currently the comparison of wiki data with db data gives the follwing results:
 |articles with empty route parameter|382||[Schluff Eisenbahn](https://de.wikipedia.org/wiki/Schluff_(Eisenbahn))|
 |distinct routes total|1465|articles may contain multiple routes or routes are in multiple articles |[1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden) [1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Minden)|
 |route is no passenger train|230|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
-|start/stop stations of route not found|0|stations from route parameters should match with stations of templates||
+|start/stop stations of route not found|1|stations from route parameters should match with stations from templates having distances, cycles are not yet implemented|[Berliner Ringbahn](http://localhost:59283/stationOfInfobox/Berliner%20Ringbahn)|
 |routes with wikidata complete|573|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
 |routes with db data not found in wikidata|147|some db stations of a route not found in wikidata stations (possibly incorrect db data)|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
 |routes shutdown|437|remark in railway guide (KBS) or stations out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
 |routes with no db data found, <br/>but article has railway guide (KBS)|173|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
 |routes with no db data found|45|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
 
-<br/>
+### Extracting the route infos
+
 Extracting the route infos (i.e. route number, start and stop station) in 'STRECKENNR' template gives the follwing results:
 
 | Count | Value | Example |
@@ -34,7 +37,8 @@ Extracting the route infos (i.e. route number, start and stop station) in 'STREC
 | station names in text|22|1101 Lütjenbrode–Heiligenhafen|
 | route info not matched|0||
 
-<br/>
+### Matching station names
+
 Matching the db station names with wiki station names gives the follwing results:
 
 | Count | Value | Example |
@@ -49,7 +53,8 @@ Matching the db station names with wiki station names gives the follwing results
 |Levenshtein distance <= 3|41|Sersheim, Streckenwechsel - Sersheim Streckenwechsel|
 |substring with at least 5 chars|161|Illingen, Streckenw. 4842/4800 - Illingen Streckenwechsel 4842/4800|
 
-<br/>
+### Usage of shortnames
+
 Analyzing the articles of the wiki stations in the route diagrams gives the follwing results:
 
 | Count | Value | Example |

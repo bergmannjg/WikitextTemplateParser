@@ -1,6 +1,10 @@
+/// load db data from csv files
 module DbData
 
+// fsharplint:disable RecordFieldNames
+
 open FSharp.Data
+open System.Collections.Generic
 
 type DbStationOfRoute =
     { km: float
@@ -59,7 +63,24 @@ let bfStelleArt =
        "Bft Abzw"
        "Awanst" |]
 
-let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
+let private memoize<'a> f =
+    let mutable cache: Dictionary<int, ResizeArray<'a>> option = None
+    (fun () ->
+        match cache with
+        | Some data -> data
+        | None ->
+            cache <- Some(f ())
+            cache.Value)
+
+let private add<'a> (key: int) (data: 'a) (dict: Dictionary<int, ResizeArray<'a>>) =
+    match dict.TryGetValue(key) with
+    | true, l -> l.Add(data)
+    | _ ->
+        let l = ResizeArray()
+        l.Add(data)
+        dict.Add(key, l)
+
+let private loadCsvData path (cp: int) loader =
     try
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)
 
@@ -70,55 +91,72 @@ let private loadCsvData (path: string) (cp: int) (loader: CsvRow -> 'a): 'a [] =
             new System.IO.StreamReader(stream, System.Text.Encoding.GetEncoding(cp))
 
         CsvFile.Load(streamReader).Rows
-        |> Seq.map loader
-        |> Seq.toArray
+        |> Seq.fold loader (Dictionary<int, ResizeArray<'a>>())
     with ex ->
         fprintfn stderr "loadCsvData: %s %A" path ex
-        Array.empty
+        Dictionary<int, ResizeArray<'a>>()
 
 let private loadStreckenCsvData () =
-    loadCsvData "./dbdata/original/strecken.csv" 852 (fun row ->
-        { STRNR = row.["STRNR"].AsInteger()
-          KMANF_E = row.["KMANF_E"].AsInteger()
-          KMEND_E = row.["KMEND_E"].AsInteger()
-          KMANF_V = row.["KMANF_V"]
-          KMEND_V = row.["KMEND_V"]
-          STRNAME = row.["STRNAME"]
-          STRKURZN = row.["STRKURZN"] })
+    loadCsvData "./dbdata/original/strecken.csv" 852 (fun dict row ->
+        let data =
+            { STRNR = row.["STRNR"].AsInteger()
+              KMANF_E = row.["KMANF_E"].AsInteger()
+              KMEND_E = row.["KMEND_E"].AsInteger()
+              KMANF_V = row.["KMANF_V"]
+              KMEND_V = row.["KMEND_V"]
+              STRNAME = row.["STRNAME"]
+              STRKURZN = row.["STRKURZN"] }
+
+        dict |> add data.STRNR data
+        dict)
+
+let private loadStreckenCsvDataCached = memoize loadStreckenCsvData
 
 let private loadBetriebsstellenCsvData () =
-    loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun row ->
-        { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
-          RICHTUNG = row.["RICHTUNG"].AsInteger()
-          KM_I = row.["KM_I"].AsInteger()
-          KM_L = row.["KM_L"]
-          BEZEICHNUNG = row.["BEZEICHNUNG"]
-          STELLE_ART = row.["STELLE_ART"]
-          KUERZEL = row.["KUERZEL"]
-          GEOGR_BREITE =
-              if System.String.IsNullOrEmpty(row.["GEOGR_BREITE"])
-              then 0.0
-              else row.["GEOGR_BREITE"].AsFloat()
-          GEOGR_LAENGE = row.["GEOGR_LAENGE"].AsFloat() })
+    loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun dict row ->
+        let data =
+            { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
+              RICHTUNG = row.["RICHTUNG"].AsInteger()
+              KM_I = row.["KM_I"].AsInteger()
+              KM_L = row.["KM_L"]
+              BEZEICHNUNG = row.["BEZEICHNUNG"]
+              STELLE_ART = row.["STELLE_ART"]
+              KUERZEL = row.["KUERZEL"]
+              GEOGR_BREITE =
+                  if System.String.IsNullOrEmpty(row.["GEOGR_BREITE"])
+                  then 0.0
+                  else row.["GEOGR_BREITE"].AsFloat()
+              GEOGR_LAENGE = row.["GEOGR_LAENGE"].AsFloat() }
+
+        dict |> add data.STRECKE_NR data
+        dict)
+
+let loadBetriebsstellenCsvDataCached = memoize loadBetriebsstellenCsvData
 
 let private loadStreckenutzungCsvData () =
-    loadCsvData "./dbdata/original/strecken_nutzung.csv" 1252 (fun row ->
-        { mifcode = row.[0]
-          strecke_nr = row.[1].AsInteger()
-          richtung = row.[2].AsInteger()
-          laenge = row.[3].AsInteger()
-          von_km_i = row.[4].AsInteger()
-          bis_km_i = row.[5].AsInteger()
-          von_km_l = row.[6]
-          bis_km_l = row.[7]
-          elektrifizierung = row.[8]
-          bahnnutzung = row.[9]
-          geschwindigkeit = row.[10]
-          strecke_kurzn = row.[11]
-          gleisanzahl = row.[12]
-          bahnart = row.[13]
-          kmspru_typ_anf = row.[14]
-          kmspru_typ_end = row.[15] })
+    loadCsvData "./dbdata/original/strecken_nutzung.csv" 1252 (fun dict row ->
+        let data =
+            { mifcode = row.[0]
+              strecke_nr = row.[1].AsInteger()
+              richtung = row.[2].AsInteger()
+              laenge = row.[3].AsInteger()
+              von_km_i = row.[4].AsInteger()
+              bis_km_i = row.[5].AsInteger()
+              von_km_l = row.[6]
+              bis_km_l = row.[7]
+              elektrifizierung = row.[8]
+              bahnnutzung = row.[9]
+              geschwindigkeit = row.[10]
+              strecke_kurzn = row.[11]
+              gleisanzahl = row.[12]
+              bahnart = row.[13]
+              kmspru_typ_anf = row.[14]
+              kmspru_typ_end = row.[15] }
+
+        dict |> add data.strecke_nr data
+        dict)
+
+let private loadStreckenutzungCsvDataCached = memoize loadStreckenutzungCsvData
 
 let removeRest (name: string) (pattern: string) =
     let index = name.IndexOf(pattern)
@@ -132,89 +170,83 @@ let splitStreckekurzname (streckekurzname: string) =
 /// ignore meters < 100
 let kmIEqual (km_I0: int) (km_I1: int) = abs (km_I0 - km_I1) < 100
 
-let addRouteEndpoints (route: Strecke) (dbdata: BetriebsstelleRailwayRoutePosition []) =
+let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwayRoutePosition>) =
     let indexAnf =
         dbdata
-        |> Array.tryFind (fun d -> kmIEqual d.KM_I route.KMANF_E)
+        |> Seq.tryFind (fun d -> kmIEqual d.KM_I route.KMANF_E)
 
     let indexEnd =
         dbdata
-        |> Array.tryFind (fun d -> kmIEqual d.KM_I route.KMEND_E)
+        |> Seq.tryFind (fun d -> kmIEqual d.KM_I route.KMEND_E)
 
     let split = splitStreckekurzname route.STRNAME
 
     if split.Length = 2
        && (indexAnf.IsNone || indexEnd.IsNone) then
 
-        Array.concat [ if indexAnf.IsNone then
-                           yield
-                               [| { STRECKE_NR = route.STRNR
-                                    RICHTUNG = 1
-                                    KM_I = route.KMANF_E
-                                    KM_L = route.KMANF_V
-                                    BEZEICHNUNG = split.[0]
-                                    STELLE_ART = "ANF"
-                                    KUERZEL = ""
-                                    GEOGR_BREITE = 0.0
-                                    GEOGR_LAENGE = 0.0 } |]
+        let x1 =
+            if indexAnf.IsNone then
+                [ { STRECKE_NR = route.STRNR
+                    RICHTUNG = 1
+                    KM_I = route.KMANF_E
+                    KM_L = route.KMANF_V
+                    BEZEICHNUNG = split.[0]
+                    STELLE_ART = "ANF"
+                    KUERZEL = ""
+                    GEOGR_BREITE = 0.0
+                    GEOGR_LAENGE = 0.0 } ] :> seq<BetriebsstelleRailwayRoutePosition>
+            else
+                Seq.empty
 
-                       yield dbdata
+        let x2 =
+            if indexEnd.IsNone then
+                [ { STRECKE_NR = route.STRNR
+                    RICHTUNG = 1
+                    KM_I = route.KMEND_E
+                    KM_L = route.KMEND_V
+                    BEZEICHNUNG = split.[1]
+                    STELLE_ART = "END"
+                    KUERZEL = ""
+                    GEOGR_BREITE = 0.0
+                    GEOGR_LAENGE = 0.0 } ] :> seq<BetriebsstelleRailwayRoutePosition>
+            else
+                Seq.empty
 
-                       if indexEnd.IsNone then
-                           yield
-                               [| { STRECKE_NR = route.STRNR
-                                    RICHTUNG = 1
-                                    KM_I = route.KMEND_E
-                                    KM_L = route.KMEND_V
-                                    BEZEICHNUNG = split.[1]
-                                    STELLE_ART = "END"
-                                    KUERZEL = ""
-                                    GEOGR_BREITE = 0.0
-                                    GEOGR_LAENGE = 0.0 } |] ]
+        Seq.concat [ x1; dbdata; x2 ]
     else
         dbdata
 
 let private loadDBRoutePosition routenr =
-    let dbdata = loadBetriebsstellenCsvData ()
+    match (loadBetriebsstellenCsvDataCached ()).TryGetValue routenr with
+    | true, dbdata ->
+        let dbdataOfRoute =
+            dbdata
+            |> Seq.filter (fun p -> bfStelleArt |> Array.contains p.STELLE_ART)
 
-    let dbdataOfRoute =
-        dbdata
-        |> Array.filter (fun p ->
-            p.STRECKE_NR = routenr
-            && bfStelleArt |> Array.contains p.STELLE_ART)
-
-    if dbdataOfRoute.Length > 0 then
-        let maybeRoute =
-            loadStreckenCsvData ()
-            |> Array.tryFind (fun s -> s.STRNR = routenr)
-
-        match maybeRoute with
-        | Some route -> addRouteEndpoints route dbdataOfRoute // try fill incomplete db data
-        | None -> dbdataOfRoute
-    else
-        dbdataOfRoute
+        if not (Seq.isEmpty dbdataOfRoute) then
+            match (loadStreckenCsvDataCached ()).TryGetValue routenr with
+            | true, routes when routes.Count = 1 -> addRouteEndpoints routes.[0] dbdataOfRoute // try fill incomplete db data
+            | _ -> dbdataOfRoute
+        else
+            dbdataOfRoute
+    | _ -> Seq.empty
 
 let loadDBStations routenr =
     loadDBRoutePosition routenr
-    |> Array.map (fun p ->
+    |> Seq.map (fun p ->
         { km = getKMI2Float p.KM_I
           name = p.BEZEICHNUNG
           STELLE_ART = p.STELLE_ART
           KUERZEL = p.KUERZEL })
+    |> Seq.toArray
 
-let checkPersonenzugStreckenutzung (strecke: int) =
-    let dbdata = loadStreckenutzungCsvData ()
-
-    let bahnnutzung =
+let checkPersonenzugStreckenutzung routenr =
+    match (loadStreckenutzungCsvDataCached ()).TryGetValue routenr with
+    | true, dbdata ->
         dbdata
-        |> Array.filter (fun p -> p.strecke_nr = strecke)
-        |> Array.map (fun s -> s.bahnnutzung)
-
-    let hasBahnnutzung =
-        bahnnutzung
-        |> Array.exists (fun bn -> bn.Contains "Pz")
-
-    hasBahnnutzung || bahnnutzung.Length = 0
+        |> Seq.map (fun s -> s.bahnnutzung)
+        |> Seq.exists (fun bn -> bn.Contains "Pz")
+    | _ -> true
 
 let dump (title: string) (strecke: int) (stations: DbStationOfRoute []) =
     DataAccess.DbStationOfRoute.insert title strecke (Serializer.Serialize<DbStationOfRoute []>(stations))

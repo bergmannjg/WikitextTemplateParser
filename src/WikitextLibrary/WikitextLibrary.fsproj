@@ -7,6 +7,7 @@
     <Compile Include="Ast.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="DataAccess.fs" />
+    <Compile Include="StringUtilities.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
