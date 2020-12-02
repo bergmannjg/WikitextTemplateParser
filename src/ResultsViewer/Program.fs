@@ -43,7 +43,7 @@ let prepareWikitext (wikitext :string) =
     wikitext.Replace("{{BS", "\r\n{{BS").Replace(" |", "\r\n| ").Replace(" * ", "\r\n * ")
 
 let loadWikitext (title:string) : HttpHandler =
-    match DataAccess.Wikitext.query title |> Seq.tryHead with
+    match DataAccess.WikitextOfRoute.query title |> Seq.tryHead with
     | Some text -> sendText (prepareWikitext text)  contentTypeText
     | _ -> sendText "" contentTypeText
 
@@ -70,11 +70,11 @@ let webApp =
         routef "/data/Wikitext/%s" loadWikitext
         routef "/data/WikitextOfStop/%s" loadWikitextOfStop
         routef "/data/WikitextOfStop/%s/%s" (concat >> loadWikitextOfStop)
-        routef "/data/Templates/%s" (loadWithTitle DataAccess.Templates.query)
-        routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkStationOfInfobox.query)
-        routef "/data/DbStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.DbStationOfRoute.query)
-        routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkStationOfRoute.query)
-        routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute DataAccess.DbWkStationOfRoute.query)
+        routef "/data/Templates/%s" (loadWithTitle DataAccess.TemplatesOfRoute.queryAsStrings)
+        routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkStationOfInfobox.queryAsStrings)
+        routef "/data/DbStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.DbStationOfRoute.queryAsStrings)
+        routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkStationOfRoute.queryAsStrings)
+        routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute DataAccess.DbWkStationOfRoute.querysAsStrings)
         routef "/js/%s" ((+) "./js/" >> jsonFile)
         routef "/stationOfDbWk/%s/%i" (Views.stationOfDbWk >> RenderView.AsString.htmlDocument >> htmlString)
         routef "/wkStationOfRoute/%s/%i" (Views.wkStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)

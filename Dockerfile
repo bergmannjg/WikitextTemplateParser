@@ -19,8 +19,6 @@ RUN source ./scripts/restore.sh
 
 RUN source ./scripts/rebuild.sh $LINES
 
-RUN ./scripts/compare-wkis.sh
-
 RUN dotnet build ./src/ResultsViewer/ResultsViewer.fsproj
 
 WORKDIR /usr/src/apps/wikitext-template-parser/src/ResultsViewer

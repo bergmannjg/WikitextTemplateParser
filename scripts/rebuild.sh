@@ -6,29 +6,21 @@ if [ ! -d "./scripts" ]; then
     exit 1
 fi
  
-dotnet build -c Release src/WikitextTemplateParser/WikitextTemplateParser.fsproj
+dotnet build -c Release src/WikitextRouteDiagramsApp/WikitextRouteDiagramsApp.fsproj
 if [ $? -ne 0 ]
 then
   echo "error in building project"
   exit 0
 fi
 
-dotnet build -c Release src/WikitextDbComparer/WikitextDbComparer.fsproj
-if [ $? -ne 0 ]
-then
-  echo "error in building project"
-  exit 0
-fi
-
-PARSER=src/WikitextTemplateParser/bin/Release/net5.0/WikitextTemplateParser.dll
-COMPARER=src/WikitextDbComparer/bin/Release/net5.0/WikitextDbComparer.dll
+PATH2APP=src/WikitextRouteDiagramsApp/bin/Release/net5.0/WikitextRouteDiagramsApp.dll
 
 if [ ! -f "./titles.txt" ]; then
-  dotnet ${PARSER} -showtitles > ./titles.txt
+  dotnet ${PATH2APP} -showtitles > ./titles.txt
 fi
 
 if [ ! -f "./stations.txt" ]; then
-  dotnet ${COMPARER} -getStationLinks > ./stations.txt
+  dotnet ${PATH2APP} -getStationLinks > ./stations.txt
 fi
 
 if [ $# -eq 1 ]; then
@@ -39,27 +31,27 @@ if [ $# -eq 1 ]; then
   cat  ./stations.bak.txt | head -n $LINES > ./stations.txt
 fi
 
-dotnet ${COMPARER} -dropCollection Wikitext
-dotnet ${PARSER} -loadroutes ./titles.txt
+dotnet ${PATH2APP} -dropCollection Wikitext
+dotnet ${PATH2APP} -loadroutes ./titles.txt
 
-dotnet ${COMPARER} -dropCollection Templates
-dotnet ${PARSER} -parseroutes
+dotnet ${PATH2APP} -dropCollection Templates
+dotnet ${PATH2APP} -parseroutes
 
-dotnet ${COMPARER} -dropCollection WikitextOfStop
-dotnet ${PARSER} -loadstops ./stations.txt
+dotnet ${PATH2APP} -dropCollection WikitextOfStop
+dotnet ${PATH2APP} -loadstops ./stations.txt
 
-dotnet ${COMPARER} -dropCollection TemplatesOfStop
-dotnet ${PARSER} -parsestops
+dotnet ${PATH2APP} -dropCollection TemplatesOfStop
+dotnet ${PATH2APP} -parsestops
 
-dotnet ${COMPARER} -dropCollection DbStationOfRoute
-dotnet ${COMPARER} -dropCollection WkStationOfInfobox
-dotnet ${COMPARER} -dropCollection DbWkStationOfRoute
-dotnet ${COMPARER} -dropCollection WkStationOfRoute
-dotnet ${COMPARER} -dropCollection ResultOfRoute
-dotnet ${COMPARER} -comparetitles
+dotnet ${PATH2APP} -dropCollection DbStationOfRoute
+dotnet ${PATH2APP} -dropCollection WkStationOfInfobox
+dotnet ${PATH2APP} -dropCollection DbWkStationOfRoute
+dotnet ${PATH2APP} -dropCollection WkStationOfRoute
+dotnet ${PATH2APP} -dropCollection ResultOfRoute
+dotnet ${PATH2APP} -comparetitles
 
-dotnet ${COMPARER} -dropCollection RouteInfo
-dotnet ${COMPARER} -classify
+dotnet ${PATH2APP} -dropCollection RouteInfo
+dotnet ${PATH2APP} -classify
 
 if [ $# -eq 1 ]; then
   mv -f ./titles.bak.txt ./titles.txt

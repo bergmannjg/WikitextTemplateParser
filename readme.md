@@ -2,8 +2,8 @@
 
 Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) [templates](https://www.mediawiki.org/wiki/Help:Templates) and compare with [data](https://data.deutschebahn.com/dataset/geo-betriebsstelle) from Open-Data-Portal of Deutsche Bahn.
 
-* [parse](./src/WikitextTemplateParser/readme.md),
-* [compare](./src/WikitextDbComparer/readme.md),
+* [parse](./src/WikitextRouteDiagrams/readme.md),
+* [compare](./src/WikitextRouteDiagrams/readme.md#wikitext-db-comparer),
 * [view results](./src/ResultsViewer/readme.md).
 
 ## Preliminary results

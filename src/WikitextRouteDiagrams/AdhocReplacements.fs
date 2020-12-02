@@ -4,8 +4,16 @@ module AdhocReplacements
 open Types
 open System.Text.RegularExpressions
 
+let regexRef = Regex(@"<ref[^>]*>.+?</ref>")
 let regexRefSelfClosed = Regex(@"<ref[^/]*/>")
+let regexComment = Regex(@"<!--.*?-->")
 let regexSpanOPen = Regex(@"<span[^>]+>")
+
+/// maybe errors in wikitext
+let replacements = [|
+    ("Berliner Nordbahn", "{{BS2||", "{{BS2|")
+    ("Bahnstrecke Lübbenau–Kamenz", "{{BS|BHF|T=STR|" ,"{{BS2|BHF|T=STR|")
+|]
 
 let ignoreStringsInRoutename =
     [ ", 3. Gl."

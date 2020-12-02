@@ -3,7 +3,7 @@ module TestParse
 
 open NUnit.Framework
 open FParsec
-open Ast
+open Templates
 open System.Text.RegularExpressions
 
 let daten0 = """

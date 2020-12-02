@@ -1,22 +1,10 @@
 /// match wiki station with db station
 module StationMatch
 
+open Types
 open StationsOfRoute
 open DbData
 open System.Text.RegularExpressions
-
-/// kind of match of wk station name and db station name
-type MatchKind =
-    | Failed
-    | EqualShortNames
-    | EqualShortNamesNotDistance
-    | EqualNames
-    | StartsWith
-    | EndsWith
-    | EqualWithoutIgnored
-    | EqualWithoutParentheses
-    | Levenshtein
-    | SameSubstring
 
 let private regexTextInParentheses = Regex(@"\([^\)]+\)")
 

@@ -2,9 +2,10 @@
 module TestCompare
 
 open NUnit.Framework
-open Ast
+open Templates
 open RouteInfo
 open StationsOfRoute
+open Types
 
 [<SetUp>]
 let Setup () = Serializer.addConverters ([||])

@@ -1,7 +1,7 @@
 /// Ast for route diagram wikitext templates,
 /// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke
 /// see https://www.mediawiki.org/wiki/Help:Templates
-module Ast
+module Templates
 
 type Link = string * string
 

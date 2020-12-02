@@ -5,12 +5,7 @@ module DbData
 
 open FSharp.Data
 open System.Collections.Generic
-
-type DbStationOfRoute =
-    { km: float
-      name: string
-      STELLE_ART: string
-      KUERZEL: string }
+open Types
 
 type Strecke =
     { STRNR: int
@@ -249,5 +244,5 @@ let checkPersonenzugStreckenutzung routenr =
     | _ -> true
 
 let dump (title: string) (strecke: int) (stations: DbStationOfRoute []) =
-    DataAccess.DbStationOfRoute.insert title strecke (Serializer.Serialize<DbStationOfRoute []>(stations))
+    DataAccess.DbStationOfRoute.insert title strecke stations
     |> ignore

@@ -1,14 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WikitextLibrary/WikitextLibrary.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="DbData.fs" />
+    <Compile Include="Templates.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Database.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="Serializer.fs" />
+    <Compile Include="DataAccess.fs" />
+    <Compile Include="StringUtilities.fs" />
+    <Compile Include="DbData.fs" />
+    <Compile Include="Wikidata.fs" />
     <Compile Include="AdhocReplacements.fs" />
     <Compile Include="RouteInfo.fs" />
     <Compile Include="StationsOfInfobox.fs" />
@@ -16,12 +19,11 @@
     <Compile Include="StationMatch.fs" />
     <Compile Include="ResultOfMatch.fs" />
     <Compile Include="Comparer.fs" />
-    <Compile Include="Wikidata.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
-    <PackageReference Include="FSharp.SystemTextJson" Version="0.14.8" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="0.15.14" />
+    <PackageReference Include="LiteDB" Version="5.0.9" />
+    <PackageReference Include="FParsec" Version="1.1.1" />
   </ItemGroup>
 </Project>

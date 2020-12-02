@@ -1,16 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\WikitextRouteDiagrams/WikitextRouteDiagrams.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Views.fs" />
     <Compile Include="Program.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Giraffe" Version="5.0.0-rc-2" />
-    <PackageReference Include="Giraffe.ViewEngine" Version="1.3.0" />
   </ItemGroup>
 </Project>

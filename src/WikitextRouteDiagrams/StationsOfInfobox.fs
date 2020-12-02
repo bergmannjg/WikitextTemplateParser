@@ -1,19 +1,10 @@
 /// collect StationOfInfobox data from templates
 module StationsOfInfobox
 
-// fsharplint:disable RecordFieldNames 
-
-open Ast
+open Types
+open Templates
 open System.Text.RegularExpressions
 open FSharp.Collections
-
-type StationOfInfobox =
-    { symbols: string []
-      distances: float []
-      name: string
-      link: string
-      shortname: string } // ds100
-
 
 /// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
 /// "BS2l" "BS2r" are wrong symbols
@@ -53,8 +44,7 @@ let findShortName (title: string) =
     let templates =
         match DataAccess.TemplatesOfStop.query title
               |> List.tryHead with
-        | Some row ->
-            Serializer.Deserialize<list<Template>>(row)
+        | Some row -> row
         | None -> List.empty
 
     match findTemplateParameterString templates "Infobox Bahnhof" "Abkürzung" with
@@ -133,7 +123,10 @@ let private matchesParameterName (parameters: seq<Parameter>) (names: string [])
 let private regexSpaces = Regex(@"\s+")
 
 let private normalizeKms (kms: string) =
-    StringUtilities.replaceFromRegexToString regexSpaces " " (kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", ""))
+    StringUtilities.replaceFromRegexToString
+        regexSpaces
+        " "
+        (kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", ""))
 
 let private regexFloat = Regex(@"^([0-9\.]+)")
 
@@ -187,7 +180,7 @@ let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
         Some(createStationOfInfobox symbols (matchStationDistances p1 name) name "")
     | _ -> None
 
-let chooseNonEmptyParameter (index: int) (l: Parameter list) =
+let private chooseNonEmptyParameter (index: int) (l: Parameter list) =
     match l.[index] with // try first string
     | Parameter.Empty when index + 1 < l.Length -> l.[index + 1]
     | Parameter.String (n, _) when not (System.String.IsNullOrEmpty n) // bypass hints
@@ -195,49 +188,38 @@ let chooseNonEmptyParameter (index: int) (l: Parameter list) =
                                    + 1 < l.Length -> l.[index + 1]
     | _ -> l.[index]
 
+let private matchCondition name (names: string []) minLength index (l: list<Parameter>) =
+    names
+    |> Array.exists ((=) name)
+    && l.Length >= minLength
+    && matchesSymbolType (List.take index l)
+
+let private matchConditionWithParameters name (names: string []) minLength index parameterNames (l: list<Parameter>) =
+    names
+    |> Array.exists ((=) name)
+    && l.Length >= minLength
+    && matchesParameterName (List.take index l) parameterNames
+    && matchesSymbolType (List.take index l)
+
+let private matchStationAt index l =
+    matchStation (findSymbols (List.take index l)) l.[index] (chooseNonEmptyParameter (index + 1) l)
+
 let findStationOfInfobox (t: Template) =
     try
         match t with
-        | (n, [], l) when ("BS" = n || "BSe" = n)
-                          && l.Length
-                          >= 4
-                          && (matchesParameterName (List.take 2 l) [| "T" |])
-                          && (matchesSymbolType (List.take 2 l)) ->
-            matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
-        | (n, [], l) when ("BS" = n || "BSe" = n)
-                          && l.Length
-                          >= 3
-                          && (matchesSymbolType (List.take 1 l)) ->
-            matchStation (findSymbols (List.take 1 l)) l.[1] (chooseNonEmptyParameter 2 l)
-        | (n, [], l) when ("BS2" = n || "BS2e" = n)
-                          && l.Length
-                          >= 4
-                          && (matchesSymbolType (List.take 2 l)) ->
-            matchStation (findSymbols (List.take 2 l)) l.[2] (chooseNonEmptyParameter 3 l)
-        | (n, [], l) when ("BS3" = n || "BS3e" = n)
-                          && l.Length
-                          >= 8
-                          && (matchesParameterName (List.take 6 l) [| "T1"; "T2"; "T3" |])
-                          && (matchesSymbolType (List.take 6 l)) ->
-            matchStation (findSymbols (List.take 6 l)) l.[6] (chooseNonEmptyParameter 7 l)
-        | (n, [], l) when ("BS3" = n || "BS3e" = n)
-                          && l.Length
-                          >= 5
-                          && (matchesSymbolType (List.take 3 l)) ->
-            matchStation (findSymbols (List.take 3 l)) l.[3] (chooseNonEmptyParameter 4 l)
-        | (n, [], l) when "BS4" = n
-                          && l.Length >= 6
-                          && (matchesSymbolType (List.take 4 l)) ->
-            matchStation (findSymbols (List.take 4 l)) l.[4] l.[5]
-        | (n, [], l) when "BS5" = n
-                          && l.Length >= 7
-                          && (matchesSymbolType (List.take 5 l)) ->
-            matchStation (findSymbols (List.take 5 l)) l.[5] l.[6]
+        | (n, [], l) when matchConditionWithParameters n [| "BS"; "BSe" |] 4 2 [| "T" |] l -> matchStationAt 2 l
+        | (n, [], l) when matchCondition n [| "BS"; "BSe" |] 3 1 l -> matchStationAt 1 l
+        | (n, [], l) when matchCondition n [| "BS2"; "BS2e" |] 4 2 l -> matchStationAt 2 l
+        | (n, [], l) when matchConditionWithParameters n [| "BS3"; "BS3e" |] 8 6 [| "T1"; "T2"; "T3" |] l ->
+            matchStationAt 6 l
+        | (n, [], l) when matchCondition n [| "BS3"; "BS3e" |] 5 3 l -> matchStationAt 3 l
+        | (n, [], l) when matchCondition n [| "BS4"; "BS4e" |] 6 4 l -> matchStationAt 4 l
+        | (n, [], l) when matchCondition n [| "BS5"; "BS5e" |] 7 5 l -> matchStationAt 5 l
         | _ -> None
     with ex ->
         fprintfn stderr "*** error %A\n  template %A" ex t
         None
 
 let dump (title: string) (precodedStations: StationOfInfobox []) =
-    DataAccess.WkStationOfInfobox.insert title (Serializer.Serialize<StationOfInfobox []>(precodedStations))
+    DataAccess.WkStationOfInfobox.insert title precodedStations
     |> ignore

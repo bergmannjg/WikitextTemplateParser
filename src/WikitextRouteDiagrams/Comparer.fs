@@ -1,13 +1,14 @@
 /// compare wiki data with db data
 module Comparer
 
+open Types
 open RouteInfo
 open StationsOfInfobox
 open StationsOfRoute
-open DbData
+open DbData 
 open StationMatch
 open ResultsOfMatch
-open Ast
+open Templates
 
 let compareMatch ((db0, wk0, _): DbStationOfRoute * StationOfRoute * MatchKind)
                  ((db1, wk1, _): DbStationOfRoute * StationOfRoute * MatchKind)

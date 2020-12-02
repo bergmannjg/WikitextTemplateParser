@@ -3,26 +3,10 @@ module RouteInfo
 
 // fsharplint:disable RecordFieldNames
 
-open Ast
+open Types
+open Templates
 open System.Text.RegularExpressions
 open FSharp.Collections
-
-type RoutenameKind =
-    | Empty
-    | EmptyWithIgnored
-    | SmallFormat
-    | Parenthesis
-    | Text
-    | Unmatched
-
-type RouteInfo =
-    { nummer: int
-      title: string
-      von: string
-      bis: string
-      railwayGuide: string option
-      routenameKind: RoutenameKind
-      searchstring: string }
 
 let private createRouteInfo (nummer: int)
                             (title: string)
@@ -43,7 +27,7 @@ let private createRouteInfo (nummer: int)
 let printRouteInfo showDetails (routeInfo: RouteInfo) =
     if (showDetails) then printfn "%A" routeInfo
 
-    DataAccess.RouteInfo.insert routeInfo.title routeInfo.nummer (Serializer.Serialize<RouteInfo>(routeInfo))
+    DataAccess.RouteInfo.insert routeInfo.title routeInfo.nummer routeInfo
     |> ignore
 
 let private lengthOfKind kind results =
@@ -55,7 +39,7 @@ let showRouteInfoResults () =
         Serializer.Deserialize<RouteInfo []>(DataAccess.RouteInfo.queryAll ())
 
     printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.nummer)).Length
-    printfn "route name empty: %d" (lengthOfKind Empty results)
+    printfn "route name empty: %d" (lengthOfKind RoutenameKind.Empty results)
     printfn "route name emptyWithIgnored: %d" (lengthOfKind EmptyWithIgnored results)
     printfn "route names in small format: %d" (lengthOfKind SmallFormat results)
     printfn "route names in small parenthesis: %d" (lengthOfKind Parenthesis results)
@@ -128,7 +112,7 @@ let private makeRouteÎnfo (nr: int)
     | SplitRouteNames (von, bis) -> createRouteInfo nr title von bis hasRailwayGuide routenameKind searchstring
     | _ ->
         if isEmpytRouteName (namen) then
-            createRouteInfo nr title von bis hasRailwayGuide Empty searchstring
+            createRouteInfo nr title von bis hasRailwayGuide RoutenameKind.Empty searchstring
         else if isEmpytIgnoredRouteName (namen) then
             createRouteInfo nr title von bis hasRailwayGuide EmptyWithIgnored searchstring
         else

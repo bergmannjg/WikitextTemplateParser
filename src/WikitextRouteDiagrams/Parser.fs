@@ -1,7 +1,7 @@
 module Parser
 
 open FParsec
-open Ast
+open Templates
 
 let trim (s: string) = s.Trim()
 

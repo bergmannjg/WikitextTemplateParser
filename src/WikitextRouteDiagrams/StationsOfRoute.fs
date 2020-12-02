@@ -3,14 +3,10 @@ module StationsOfRoute
 
 // fsharplint:disable RecordFieldNames 
 
+open Types
 open StationsOfInfobox
 open RouteInfo
 open FSharp.Collections
-
-type StationOfRoute =
-    { kms: float []
-      name: string
-      shortname: string }
 
 let private checkReplacedWithChar (s1: string) (s2: string) (c: char) = s1.Replace(c, ' ') = s2.Replace(c, ' ')
 
@@ -219,5 +215,5 @@ let findStations strecke templates =
     |> filterStations strecke
 
 let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =
-    DataAccess.WkStationOfRoute.insert title strecke.nummer (Serializer.Serialize<StationOfRoute []>(stations))
+    DataAccess.WkStationOfRoute.insert title strecke.nummer stations
     |> ignore

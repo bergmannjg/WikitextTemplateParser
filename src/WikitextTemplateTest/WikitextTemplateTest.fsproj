@@ -3,8 +3,7 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WikitextTemplateParser/WikitextTemplateParser.fsproj" />
-    <ProjectReference Include="..\WikitextDbComparer/WikitextDbComparer.fsproj" />
+    <ProjectReference Include="..\WikitextRouteDiagrams/WikitextRouteDiagrams.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UnitTestCompare.fs" />

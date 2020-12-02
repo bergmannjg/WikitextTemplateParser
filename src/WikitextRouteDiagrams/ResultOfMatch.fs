@@ -1,7 +1,7 @@
 /// type of matching result
 module ResultsOfMatch
 
-// fsharplint:disable RecordFieldNames 
+// fsharplint:disable RecordFieldNames
 
 open DbData
 open Types
@@ -9,33 +9,6 @@ open StationsOfRoute
 open StationMatch
 open System.Text.RegularExpressions
 
-/// result of route match
-type ResultOfRoute =
-    { route: int
-      title: string
-      fromToNameOrig: string []
-      fromToNameMatched: string []
-      fromToKm: float []
-      resultKind: ResultKind
-      countWikiStops: int
-      countDbStops: int
-      countDbStopsFound: int
-      countDbStopsNotFound: int
-      railwayGuide: string
-      isCompleteDbRoute: bool }
-
-/// result of station match
-type ResultOfStation =
-    | Success of DbStationOfRoute * StationOfRoute * MatchKind
-    | Failure of DbStationOfRoute
-
-/// view of ResultOfStation.Success
-type StationOfDbWk =
-    { dbname: string
-      dbkm: float
-      wkname: string
-      wkkms: float []
-      matchkind: MatchKind }
 
 let createResult title route resultKind =
     { route = route
@@ -140,7 +113,7 @@ let filterResultsOfRoute (results: ResultOfStation []) =
             | _ -> true)
     | _ -> Array.empty
 
-let showResults () =
+let showComparisonResults () =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
 
@@ -215,9 +188,7 @@ let showMatchKindStatistics () =
             if r.resultKind = ResultKind.WikidataFoundInDbData
                || r.resultKind = ResultKind.WikidataNotFoundInDbData then
                 for s in DataAccess.DbWkStationOfRoute.query r.title r.route do
-                    yield!
-                        Serializer.Deserialize<StationOfDbWk []>(s)
-                        |> Array.map (fun s -> (r.route, s)) ]
+                    yield! s |> List.map (fun s -> (r.route, s)) ]
 
     let groups =
         stationsOfRoute
@@ -263,7 +234,7 @@ let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
     DataAccess.ResultOfRoute.insert
         resultOfRoute.title
         resultOfRoute.route
-        (Serializer.Serialize<ResultOfRoute>(resultOfRoute))
+        resultOfRoute
     |> ignore
 
 
@@ -286,5 +257,5 @@ let dump (title: string) (route: int) (results: seq<ResultOfStation>) =
                   matchkind = mk })
         |> Seq.toList
 
-    DataAccess.DbWkStationOfRoute.insert title route (Serializer.Serialize<list<StationOfDbWk>>(both))
+    DataAccess.DbWkStationOfRoute.insert title route both
     |> ignore
