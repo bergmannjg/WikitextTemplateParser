@@ -91,7 +91,7 @@ let configureServices (services : IServiceCollection) =
     services.AddGiraffe() |> ignore
 
 let configureLogging (builder : ILoggingBuilder) =
-    builder.ClearProviders().AddConsole() |> ignore
+    builder.ClearProviders().AddConsole().SetMinimumLevel(LogLevel.Information) |> ignore
 
 [<EntryPoint>]
 let main _ =
@@ -102,6 +102,7 @@ let main _ =
                     .Configure(configureApp)
                     .ConfigureServices(configureServices)
                     .ConfigureLogging(configureLogging)
+                    .UseUrls "http://localhost:5000" 
                     |> ignore)
         .Build()
         .Run()

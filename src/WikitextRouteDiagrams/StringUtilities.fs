@@ -1,3 +1,4 @@
+[<RequireQualifiedAccess>]
 module StringUtilities
 
 open System.Text.RegularExpressions
@@ -31,12 +32,15 @@ let removeSubstring (fromStr: string) (toStr: string) (s: string) =
     else
         s
 
-let sameSubstring (s0: string) (s1: string) checkchars =
+let startsWithSameSubstring (s0: string) (s1: string) checkchars =
     s0.Length
     >= checkchars
     && s1.Length >= checkchars
     && s0.Substring(0, checkchars) = s1.Substring(0, checkchars)
 
+let containsSubstring (s0: string) (s1: string) (substring: string) =
+    s0.ToLower().Contains substring
+    && s1.ToLower().Contains substring
 
 let regexMatchedValues (regex: Regex) (input: string) =
     let m = regex.Match(input)
@@ -49,7 +53,7 @@ let regexMatchedValues (regex: Regex) (input: string) =
         List.empty
 
 /// see http://www.fssnip.net/bj/title/Levenshtein-distance
-let levenshtein (word1: string) (word2: string) =
+let levensht (word1: string) (word2: string) =
     let preprocess =
         fun (str: string) -> str.ToLower().ToCharArray()
 

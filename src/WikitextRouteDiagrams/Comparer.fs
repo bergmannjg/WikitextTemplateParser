@@ -5,16 +5,18 @@ open Types
 open RouteInfo
 open StationsOfInfobox
 open StationsOfRoute
-open DbData 
+open DbData
 open StationMatch
 open ResultsOfMatch
 open Templates
 
-let compareMatch ((db0, wk0, _): DbStationOfRoute * StationOfRoute * MatchKind)
-                 ((db1, wk1, _): DbStationOfRoute * StationOfRoute * MatchKind)
+let compareMatch ((db0, wk0, mk0): DbStationOfRoute * StationOfRoute * MatchKind)
+                 ((db1, wk1, mk1): DbStationOfRoute * StationOfRoute * MatchKind)
                  =
     if wk0.kms.Length = 0 || wk1.kms.Length = 0 then
-        0
+        if mk0 = mk1 then 0
+        else if mk0 < mk1 then -1
+        else 1
     else
         let diff0 =
             wk0.kms
@@ -45,12 +47,21 @@ let findStation (wikiStations: StationOfRoute []) (dbStation: DbStationOfRoute) 
 
     if res.Length = 0 then Failure(dbStation) else Success(getBestMatch res)
 
-let checkDbDataInWikiData (strecke: int) (wikiStations: StationOfRoute []) (dbStations: DbStationOfRoute []) =
+let maybeReplaceDbStation (strecke: RouteInfo) (station: DbStationOfRoute) =
+    match AdhocReplacements.replacementsInDbStation
+          |> Array.tryFind (fun (t, r, s, _) ->
+              t = strecke.title
+              && r = strecke.nummer
+              && s = station.name) with
+    | Some (_, _, _, s) -> { station with name = s }
+    | None -> station
+
+let checkDbDataInWikiData (strecke: RouteInfo) (wikiStations: StationOfRoute []) (dbStations: DbStationOfRoute []) =
     let results =
         dbStations
-        |> Array.map (fun p -> findStation wikiStations p)
+        |> Array.map (fun p -> findStation wikiStations (maybeReplaceDbStation strecke p))
 
-    results |> filterResultsOfRoute
+    results |> filterResultsOfRoute strecke
 
 let countResultFailures results =
     results
@@ -167,6 +178,7 @@ let private countActiveStations (stationsOfInfobox: seq<StationOfInfobox>) =
     |> Seq.length
 
 let private compareStations (title: string)
+                            (routesInTitle: int)
                             (routeInfoOrig: RouteInfo)
                             (routeInfoMatched: RouteInfo)
                             (wikiStations: StationOfRoute [])
@@ -175,7 +187,7 @@ let private compareStations (title: string)
                             =
     let resultsOfMatch =
         if wikiStations.Length > 0 && dbStations.Length > 0
-        then checkDbDataInWikiData routeInfoMatched.nummer wikiStations dbStations
+        then checkDbDataInWikiData routeInfoMatched wikiStations dbStations
         else Array.empty
 
     ResultsOfMatch.dump title routeInfoMatched.nummer resultsOfMatch
@@ -204,6 +216,7 @@ let private compareStations (title: string)
     let resultOfRoute =
         { route = routeInfoMatched.nummer
           title = title
+          routesInTitle = routesInTitle
           fromToNameOrig =
               [| routeInfoOrig.von
                  routeInfoOrig.bis |]
@@ -245,28 +258,33 @@ let private printResult (title: string)
 let private findRouteInfoInTemplatesWithParameter (templates: seq<Template>) title showDetails =
     match findRouteInfoInTemplates templates title with
     | Some routeInfos ->
-        if routeInfos.Length = 0  then 
-            printResultOfRoute showDetails (createResult title 0 Types.ResultKind.RouteParameterNotParsed) 
+        if routeInfos.Length = 0
+        then printResultOfRoute showDetails (createResult title 0 0 Types.ResultKind.RouteParameterNotParsed)
         routeInfos
-    | None -> 
-        printResultOfRoute showDetails (createResult title 0 Types.ResultKind.RouteParameterEmpty) 
+    | None ->
+        printResultOfRoute showDetails (createResult title 0 0 Types.ResultKind.RouteParameterEmpty)
         List.empty
 
-let private difference (ri0:list<RouteInfo>) (ri1:list<RouteInfo>) =
+let private difference (ri0: list<RouteInfo>) (ri1: list<RouteInfo>) =
     Set.difference (Set ri0) (Set ri1) |> Set.toList
 
-let private findPassengerRouteInfoInTemplates (templates: seq<Template>) title showDetails =
-    let routeInfosFromParameter =
-        findRouteInfoInTemplatesWithParameter templates title showDetails
+let private isPassengerRoute (routeInfo: RouteInfo) =
+    not
+        (routeInfo.railwayGuide.IsSome
+         && routeInfo.railwayGuide.Value.Contains "nur Güterverkehr")
+    && checkPersonenzugStreckenutzung routeInfo.nummer
 
+let private findPassengerRouteInfoInTemplates (routeInfosFromParameter: List<RouteInfo>) title showDetails =
     let passengerRoutes =
         routeInfosFromParameter
-        |> List.filter (fun s -> checkPersonenzugStreckenutzung s.nummer)
+        |> List.filter isPassengerRoute
 
     if routeInfosFromParameter.Length > passengerRoutes.Length then
         difference routeInfosFromParameter passengerRoutes
         |> Seq.iter (fun route ->
-            printResultOfRoute showDetails (createResult title route.nummer Types.ResultKind.RouteIsNoPassengerTrain)
+            printResultOfRoute
+                showDetails
+                (createResult title route.nummer routeInfosFromParameter.Length Types.ResultKind.RouteIsNoPassengerTrain)
             let dbStations = loadDBStations route.nummer
             DbData.dump title route.nummer dbStations
             ResultsOfMatch.dump title route.nummer (ResultsOfMatch.toResultOfStation dbStations))
@@ -280,8 +298,11 @@ let compare showDetails title templates =
 
     StationsOfInfobox.dump title stationsOfInfobox
 
+    let routeInfosFromParameter =
+        findRouteInfoInTemplatesWithParameter templates title showDetails
+
     let routeInfos =
-        findPassengerRouteInfoInTemplates templates title showDetails
+        findPassengerRouteInfoInTemplates routeInfosFromParameter title showDetails
 
     routeInfos
     |> Seq.iter (fun route ->
@@ -297,5 +318,12 @@ let compare showDetails title templates =
             else Array.empty
 
         StationsOfRoute.dump title routeMatched wikiStations
-        compareStations title route routeMatched wikiStations dbStations stationsOfInfobox
+        compareStations
+            title
+            routeInfosFromParameter.Length
+            route
+            routeMatched
+            wikiStations
+            dbStations
+            stationsOfInfobox
         |> printResult title routeMatched wikiStations stationsOfInfobox showDetails)

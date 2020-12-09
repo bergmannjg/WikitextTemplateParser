@@ -154,6 +154,8 @@ let private rmHtmlTags (value: string) =
     |> StringUtilities.removeSubstring "<ref" "/ref>"
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexSpanOPen
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRefSelfClosed
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexYear
+    |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexYearDiff
 
 let findRouteInfoInTemplates templates title =
     let (von, bis) = findBsHeaderInTemplates templates

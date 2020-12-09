@@ -179,8 +179,16 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
     if split.Length = 2
        && (indexAnf.IsNone || indexEnd.IsNone) then
 
+        let station0 =
+            split.[0]
+            |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRailroadSwitch
+
+        let found0 =
+            dbdata
+            |> Seq.exists (fun d -> d.BEZEICHNUNG = station0)
+
         let x1 =
-            if indexAnf.IsNone then
+            if indexAnf.IsNone && not found0 then
                 [ { STRECKE_NR = route.STRNR
                     RICHTUNG = 1
                     KM_I = route.KMANF_E
@@ -193,8 +201,16 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
             else
                 Seq.empty
 
+        let station1 =
+            split.[1]
+            |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRailroadSwitch
+
+        let found1 =
+            dbdata
+            |> Seq.exists (fun d -> d.BEZEICHNUNG = station1)
+
         let x2 =
-            if indexEnd.IsNone then
+            if indexEnd.IsNone && not found1 then
                 [ { STRECKE_NR = route.STRNR
                     RICHTUNG = 1
                     KM_I = route.KMEND_E

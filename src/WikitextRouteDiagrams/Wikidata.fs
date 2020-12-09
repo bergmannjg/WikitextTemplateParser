@@ -281,3 +281,22 @@ let loadTemplatesForWikiTitle (title: string) =
     loadTemplates title
     |> evalTemplates
     |> List.toArray
+
+let private markersOfStop = [| "BHF"; "DST"; "HST" |]
+
+let private excludes (link:string) =
+    link.StartsWith "Bahnstrecke" || link.StartsWith "Datei" || link.Contains "#" || link.Contains ":" || link.Contains "&"
+
+let private getStationLinksOfTemplates (title:string) = 
+    loadTemplates title
+    |> findLinks markersOfStop
+    |> List.filter (fun (link,_) -> not (excludes link))
+    |> List.map (fun (link,_) -> link)
+    
+let getStationLinks () = 
+    DataAccess.TemplatesOfRoute.queryKeys()
+    |> List.collect getStationLinksOfTemplates
+    |> List.distinct
+    |> List.sort
+    |> List.iter (fun s -> printfn "%s" s)
+

@@ -29,6 +29,7 @@ type ResultKind =
     | WikidataWithoutDistancesInDbData
     | NoDbDataFoundWithRailwayGuide
     | NoDbDataFoundWithoutRailwayGuide
+    | DbDataMissing
     | RouteParameterNotParsed
     | RouteParameterEmpty
     | RouteIsNoPassengerTrain
@@ -39,6 +40,7 @@ type ResultKind =
 type ResultOfRoute =
     { route: int
       title: string
+      routesInTitle: int
       fromToNameOrig: string []
       fromToNameMatched: string []
       fromToKm: float []
@@ -52,16 +54,19 @@ type ResultOfRoute =
 
 /// kind of match of wk station name and db station name
 type MatchKind =
-    | Failed
     | EqualShortNames
     | EqualShortNamesNotDistance
     | EqualNames
-    | StartsWith
-    | EndsWith
+    | EqualtNamesNotDistance
     | EqualWithoutIgnored
     | EqualWithoutParentheses
+    | EqualOrderChanged
+    | StartsWith
+    | EndsWith
     | Levenshtein
     | SameSubstring
+    | SameSubstringNotDistance
+    | Failed
 
 /// result of station match
 type ResultOfStation =

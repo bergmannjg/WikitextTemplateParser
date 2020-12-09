@@ -17,6 +17,10 @@ let private collectionInsert (collection: string) (map: Map<string, string>) (va
     use db = new Database(dbname)
     db.InsertUnique collection (Guid.NewGuid()) map value
 
+let private typedCollectionInsert<'a> (collection: string) (map: Map<string, string>) (value: 'a) =
+    use db = new Database(dbname)
+    db.InsertUnique collection (Guid.NewGuid()) map  (Serializer.Serialize<'a>(value))
+
 let private collectionDelete (collection: string) (map: Map<string, string>) =
     use db = new Database(dbname)
     db.Query collection map
@@ -28,6 +32,12 @@ let private collectionQuery (collection: string) (map: Map<string, string>) =
     use db = new Database(dbname)
     db.Query collection map
     |> Seq.map (fun r -> r.value)
+    |> Seq.toList
+
+let private typedCollectionQuery<'a> (collection: string) (map: Map<string, string>) =
+    use db = new Database(dbname)
+    db.Query collection map
+    |> Seq.map (fun r -> Serializer.Deserialize<'a>(r.value))
     |> Seq.toList
 
 let private collectionQueryKeys (collection: string) (map: Map<string, string>) =
@@ -55,7 +65,8 @@ module WikitextOfRoute =
     let insert title value =
         collectionInsert collection (toMap title) value
 
-    let query title = collectionQuery collection (toMap title)
+    let query title =
+        collectionQuery collection (toMap title)
 
     let queryKeys () =
         collectionQueryKeys collection Map.empty
@@ -84,14 +95,12 @@ module TemplatesOfRoute =
     let collection = "Templates"
 
     let insert title value =
-        collectionInsert collection (toMap title) (Serializer.Serialize<Templates>(value))
+        typedCollectionInsert<Templates> collection (toMap title) value
 
     let query title =
-        collectionQuery collection (toMap title)
-        |> List.map Serializer.Deserialize<Templates>
+        typedCollectionQuery<Templates> collection (toMap title)
 
-    let queryAsStrings title =
-        collectionQuery collection (toMap title)
+    let queryAsStrings title = collectionQuery collection (toMap title)
 
     let queryKeys () =
         collectionQueryKeys collection Map.empty
@@ -102,11 +111,10 @@ module TemplatesOfStop =
     let collection = "TemplatesOfStop"
 
     let insert title value =
-        collectionInsert collection (toMap title) (Serializer.Serialize<Templates>(value))
+        typedCollectionInsert<Templates> collection (toMap title) value
 
     let query title =
-        collectionQuery collection (toMap title)
-        |> List.map Serializer.Deserialize<Templates>
+        typedCollectionQuery<Templates> collection (toMap title)
 
 module DbStationOfRoute =
     let private toMap (title: string) (route: int) =
@@ -115,11 +123,10 @@ module DbStationOfRoute =
     let collection = "DbStationOfRoute"
 
     let insert title route value =
-        collectionInsert collection (toMap title route) (Serializer.Serialize<DbStationOfRoute []>(value))
+        typedCollectionInsert<DbStationOfRoute []> collection (toMap title route) value
 
     let query title route =
-        collectionQuery collection (toMap title route)
-        |> List.map Serializer.Deserialize<DbStationOfRoute []>
+        typedCollectionQuery<DbStationOfRoute []> collection (toMap title route)
 
     let queryAsStrings title route =
         collectionQuery collection (toMap title route)
@@ -129,14 +136,16 @@ module WkStationOfInfobox =
     let collection = "WkStationOfInfobox"
 
     let insert title value =
-        collectionInsert collection (toMap title) (Serializer.Serialize<StationOfInfobox []>(value))
+        typedCollectionInsert<StationOfInfobox []> collection (toMap title) value
 
     let query title =
-        collectionQuery collection (toMap title)
-        |> List.map Serializer.Deserialize<StationOfInfobox []>
+        typedCollectionQuery<StationOfInfobox []> collection (toMap title)
 
-    let queryAsStrings title =
-        collectionQuery collection (toMap title)
+    let queryKeys () =
+        collectionQueryKeys collection Map.empty
+        |> List.map (fun k -> k.["title"])
+
+    let queryAsStrings title = collectionQuery collection (toMap title)
 
 module DbWkStationOfRoute =
     let private toMap (title: string) (route: int) =
@@ -145,11 +154,10 @@ module DbWkStationOfRoute =
     let collection = "DbWkStationOfRoute"
 
     let insert title route value =
-        collectionInsert collection (toMap title route) (Serializer.Serialize<list<StationOfDbWk>>(value))
+        typedCollectionInsert<list<StationOfDbWk>> collection (toMap title route) value
 
     let query title route =
-        collectionQuery collection (toMap title route)
-        |> List.map Serializer.Deserialize<list<StationOfDbWk>>
+        typedCollectionQuery<list<StationOfDbWk>> collection (toMap title route)
 
     let querysAsStrings title route =
         collectionQuery collection (toMap title route)
@@ -161,11 +169,10 @@ module WkStationOfRoute =
     let collection = "WkStationOfRoute"
 
     let insert title route value =
-        collectionInsert collection (toMap title route) (Serializer.Serialize<StationOfRoute []>(value))
+        typedCollectionInsert<StationOfRoute []> collection (toMap title route) value
 
     let query title route =
-        collectionQuery "WkStationOfRoute" (toMap title route)
-        |> List.map Serializer.Deserialize<list<StationOfRoute>>
+        typedCollectionQuery<StationOfRoute []> "WkStationOfRoute" (toMap title route)
 
     let queryAsStrings title route =
         collectionQuery "WkStationOfRoute" (toMap title route)
@@ -177,14 +184,13 @@ module RouteInfo =
     let collection = "RouteInfo"
 
     let insert title route value =
-        collectionInsert collection (toMap title route) (Serializer.Serialize<RouteInfo>(value))
+        typedCollectionInsert<RouteInfo> collection (toMap title route) value
 
     let delete title =
         collectionDelete collection (Map.empty.Add("title", title))
 
     let query title route =
-        collectionQuery collection (toMap title route)
-        |> List.map Serializer.Deserialize<RouteInfo>
+        typedCollectionQuery<RouteInfo> collection (toMap title route)
 
     let queryAll () =
         toJsonArray (collectionQuery collection Map.empty)
@@ -196,14 +202,13 @@ module ResultOfRoute =
     let collection = "ResultOfRoute"
 
     let insert title route value =
-        collectionInsert collection (toMap title route) (Serializer.Serialize<ResultOfRoute>(value))
+        typedCollectionInsert<ResultOfRoute> collection (toMap title route) value
 
     let delete title =
         collectionDelete collection (Map.empty.Add("title", title))
 
     let query title route =
-        collectionQuery collection (toMap title route)
-        |> List.map Serializer.Deserialize<ResultOfRoute>
+        typedCollectionQuery<ResultOfRoute> collection (toMap title route)
 
     let queryAll () =
         toJsonArray (collectionQuery collection Map.empty)

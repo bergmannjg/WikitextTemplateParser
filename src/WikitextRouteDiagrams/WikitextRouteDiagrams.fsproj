@@ -10,9 +10,10 @@
     <Compile Include="Serializer.fs" />
     <Compile Include="DataAccess.fs" />
     <Compile Include="StringUtilities.fs" />
+    <Compile Include="AdhocReplacements.fs" />
     <Compile Include="DbData.fs" />
     <Compile Include="Wikidata.fs" />
-    <Compile Include="AdhocReplacements.fs" />
+    <Compile Include="ParserProcessing.fs" />
     <Compile Include="RouteInfo.fs" />
     <Compile Include="StationsOfInfobox.fs" />
     <Compile Include="StationsOfRoute.fs" />

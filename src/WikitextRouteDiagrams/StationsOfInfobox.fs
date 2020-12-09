@@ -95,7 +95,9 @@ let private findStationName (p: Parameter) =
     | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
         Some
             (normalizeTextOfLink link1
+             + " "
              + s
+             + " "
              + normalizeTextOfLink link2,
              linktextOfLink link1)
     | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
@@ -219,6 +221,26 @@ let findStationOfInfobox (t: Template) =
     with ex ->
         fprintfn stderr "*** error %A\n  template %A" ex t
         None
+
+let queryName (name: string) =
+    // DataAccess.WkStationOfInfobox.queryKeys ()
+
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
+
+    [ for r in results do
+        if r.resultKind = ResultKind.WikidataFoundInDbData
+           || r.resultKind = ResultKind.WikidataNotFoundInDbData then
+            yield r.title ]
+    |> List.distinct
+    |> List.iter (fun t ->
+        match DataAccess.WkStationOfInfobox.query t
+              |> List.tryHead with
+        | Some stations ->
+            stations
+            |> Array.filter (fun s -> s.name.Contains name)
+            |> Array.iter (fun s -> printfn "'%s', '%s'" t s.name)
+        | None -> ())
 
 let dump (title: string) (precodedStations: StationOfInfobox []) =
     DataAccess.WkStationOfInfobox.insert title precodedStations

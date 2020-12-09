@@ -1,7 +1,7 @@
 /// collect StationsOfRoute data from StationOfInfobox data with corresponding RouteInfo
 module StationsOfRoute
 
-// fsharplint:disable RecordFieldNames 
+// fsharplint:disable RecordFieldNames
 
 open Types
 open StationsOfInfobox
@@ -150,18 +150,12 @@ let private maybeReplaceRouteNr (strecke: RouteInfo) =
     | None -> strecke
 
 let private maybeReplaceRouteStation (strecke: RouteInfo) =
-    let candidate =
-        AdhocReplacements.maybeWrongRouteStation
-        |> Array.tryFind (fun (title, route, wrongStation, _) ->
-            title = strecke.title
-            && route = strecke.nummer
-            && (wrongStation = strecke.von
-                || wrongStation = strecke.bis))
-
-    match candidate with
-    | Some (_, _, wrongStation, station) ->
-        if wrongStation = strecke.von then { strecke with von = station } else { strecke with bis = station }
-    | None -> strecke
+    match AdhocReplacements.maybeReplaceRouteStation
+          |> Array.tryFind (fun (title, route, _, _) -> title = strecke.title && route = strecke.nummer) with
+    | Some (_, _, Some von, Some bis) -> { strecke with von = von; bis = bis }
+    | Some (_, _, Some von, None) -> { strecke with von = von }
+    | Some (_, _, None, Some bis) -> { strecke with bis = bis }
+    | _ -> strecke
 
 /// match RouteInfo station names with station names of templates
 let findRouteInfoStations (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =

@@ -1,4 +1,5 @@
 /// replacements in wiki data to pass the matchings
+[<RequireQualifiedAccess>]
 module AdhocReplacements
 
 open Types
@@ -8,12 +9,15 @@ let regexRef = Regex(@"<ref[^>]*>.+?</ref>")
 let regexRefSelfClosed = Regex(@"<ref[^/]*/>")
 let regexComment = Regex(@"<!--.*?-->")
 let regexSpanOPen = Regex(@"<span[^>]+>")
+let regexRailroadSwitch = Regex(@",\s* W.*$")
+let regexChangeOfRoute = Regex(@",\s* Streckenwechsel.*$")
+let regexYear = Regex(@"ab 19\d{2}")
+let regexYearDiff = Regex(@"19\d{2}–19\d{2}")
 
 /// maybe errors in wikitext
-let replacements = [|
-    ("Berliner Nordbahn", "{{BS2||", "{{BS2|")
-    ("Bahnstrecke Lübbenau–Kamenz", "{{BS|BHF|T=STR|" ,"{{BS2|BHF|T=STR|")
-|]
+let replacements =
+    [| ("Berliner Nordbahn", "{{BS2||", "{{BS2|")
+       ("Bahnstrecke Lübbenau–Kamenz", "{{BS|BHF|T=STR|", "{{BS2|BHF|T=STR|") |]
 
 let ignoreStringsInRoutename =
     [ ", 3. Gl."
@@ -83,8 +87,14 @@ let ignoreStringsInStationname =
       "Pbf"
       "Vorbahnhof"
       "Awanst"
+      "Abzweig"
       "Abzw" ]
 
+/// replacements in db data, maybe error in db data
+let replacementsInDbStation =
+    [| ("Oberbergische Bahn", 2813, "Brügge (Westf), W 4", "Lüdenscheid-Brügge") |]
+
+/// replace matched strings in a specific route
 let replacementsInRouteStation =
     [| ("Bahnstrecke Berlin–Dresden", 6135, "Bln. Südkreuz", "Berlin Südkreuz")
        ("Bahnstrecke Berlin–Dresden", 6248, "Dr.-Friedrichst.", "Dresden-Friedrichstadt")
@@ -186,23 +196,26 @@ let replacementsInRouteStation =
        ("Bahnstrecke Berlin–Wriezen", 6072, "B-Lichtenberg", "Berlin-Lichtenberg")
        ("Bahnstrecke Gemünden–Ebenhausen", 5233, "Ebenhausen Unterfranken", "Ebenhausen (Unterfr)")
        ("Bahnstrecke Leipzig–Eilenburg", 6371, "Le Eilb Bf", "Leipzig Eilenburger Bf")
+       ("Ostfriesische Küstenbahn", 1570, "Emden", "Norden")
        ("Bahnstrecke Leipzig–Eilenburg", 6371, "Abzw Heiterblick", "Abzw Leipzig-Heiterblick") |]
 
 /// errors in wikidata
 let maybeWrongRouteNr =
     [| ("Bahnstrecke Lübeck–Lüneburg", 1122, 1120) |]
 
-/// errors in wikidata
-let maybeWrongRouteStation =
-    [| ("Ostfriesische Küstenbahn", 1570, "Emden", "Norden") |]
+/// replace strings in a specific route (ignore matching)
+let maybeReplaceRouteStation: (string * int * string option * string option) [] =
+    [| ("Bahnstrecke Hagenow Land–Schwerin", 6442, Some "Hagenow", Some "Holthusen")
+       ("Bahnstrecke Hagenow Land–Schwerin", 6441, Some "Holthusen", Some "Schwerin") |]
 
 /// errors in wikidata
 let maybeWrongDistances =
     [| (1100, "Schwartau-Waldhalle", [| 5.6 |], [| 4.6 |])
        (6186, "Selchow West", [||], [| 29.9 |]) // fill empty distance
        (6078, "Biesdorfer Kreuz West", [||], [| 6.1 |]) // fill empty distance
-       (6067, "Biesdorfer Kreuzmit derOstbahn", [||], [| 0.8 |]) // fill empty distance
-       (6126, "Berliner AußenringzumGrünauer Kreuz", [||], [| 40.7 |]) |] // fill empty distance
+       (6067, "Biesdorfer Kreuz mit der Ostbahn", [||], [| 0.8 |]) // fill empty distance
+       (3012, "Koblenz Hbf", [||], [| 14.3 |]) // fill empty distance
+       (6126, "Berliner Außenring zum Grünauer Kreuz", [||], [| 40.7 |]) |] // fill empty distance
 
 /// changes of ResultKind by case analysis
 let adhocResultKindChanges =
@@ -212,8 +225,6 @@ let adhocResultKindChanges =
        ("Bahnstrecke Helmstedt–Börßum", 1940, WikidataNotFoundInDbData, RouteIsShutdown)
        ("Kraichgaubahn", 4950, StartStopStationsNotFound, NoDbDataFoundWithRailwayGuide)
        ("Donnersbergbahn", 3523, WikidataNotFoundInDbData, NoDbDataFoundWithRailwayGuide)
-       ("Oberbergische Bahn", 2655, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)
-       ("Oberbergische Bahn", 2810, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)
+       ("Bahnstrecke Gotteszell–Blaibach", 9581, NoDbDataFoundWithRailwayGuide, DbDataMissing)
        ("Bahnstrecke München Ost–München Flughafen", 5560, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData)
-       ("Ruhr-Sieg-Strecke", 2880, WikidataNotFoundInDbData, NoDbDataFoundWithRailwayGuide)
-       ("Güteraußenring", 6126, WikidataNotFoundInDbData, WikidataWithoutDistancesInDbData) |]
+       ("Bahnstrecke Bremervörde–Walsrode", 1711, WikidataNotFoundInDbData, RouteIsShutdown) |]

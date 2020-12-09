@@ -86,11 +86,11 @@ The route number and start/stop stations of a route are given in the 'STRECKENNR
 
 ```
 1730 (Hannover–Lehrte)
-6107 (Lehrte–Oebisfelde)
-6185 (Oebisfelde–Berlin-Spandau)
+6135 <small>(Bln. Südkreuz–Elsterwerda)</small>
+1101 Lütjenbrode–Heiligenhafen
 ```
 
-The content of the template parameter is transformed in RouteInfo type (**matching step 1**, see function RouteInfo.findRouteInfoInTemplates). 
+ Stations from route parameters should match with stations from templates having distances. The content of the template parameter is transformed in RouteInfo type (**matching step 1**, see function RouteInfo.findRouteInfoInTemplates).
 
 ## From Templates to StationsOfInfobox
 

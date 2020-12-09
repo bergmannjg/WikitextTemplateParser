@@ -1,18 +1,14 @@
 /// type of matching result
 module ResultsOfMatch
 
-// fsharplint:disable RecordFieldNames
-
-open DbData
 open Types
-open StationsOfRoute
-open StationMatch
 open System.Text.RegularExpressions
+open Microsoft.FSharp.Reflection
 
-
-let createResult title route resultKind =
+let createResult title route routesInTitle resultKind =
     { route = route
       title = title
+      routesInTitle = routesInTitle
       fromToNameOrig = [||]
       fromToNameMatched = [||]
       fromToKm = [||]
@@ -24,12 +20,12 @@ let createResult title route resultKind =
       railwayGuide = ""
       isCompleteDbRoute = false }
 
-let guessRailwayGuideIsValid (value: string option) =
+let private guessRailwayGuideIsValid (value: string option) =
     match value with
     | Some v -> Regex("\d{3}").Match(v).Success
     | None -> false
 
-let guessRouteIsShutdown (railwayGuide: string option) =
+let private guessRouteIsShutdown (railwayGuide: string option) =
     match railwayGuide with
     | Some v ->
         v.StartsWith "ehem"
@@ -89,7 +85,7 @@ let getSuccessMinMaxDbKm (results: seq<ResultOfStation>) =
         results
         |> Seq.map (fun result ->
             match result with
-            | Success (db, _, _) -> Some(db.km)
+            | Success (db, _, mk) when mk <> MatchKind.SameSubstringNotDistance -> Some(db.km)
             | _ -> None)
         |> Seq.choose id
 
@@ -100,8 +96,47 @@ let getSuccessMinMaxDbKm (results: seq<ResultOfStation>) =
         let dbMax = dbkm |> Seq.max
         [| dbMin; dbMax |]
 
+let private compareCandidate ((_, _, x): DbStationOfRoute * StationOfRoute * MatchKind)
+                             ((_, _, y): DbStationOfRoute * StationOfRoute * MatchKind)
+                             =
+    if x = y then 0
+    else if x < y then -1
+    else 1
+
+let private getCandidate (l: ((DbStationOfRoute * StationOfRoute * MatchKind) [])) =
+    let sorted = l |> Array.sortWith compareCandidate
+    sorted.[0]
+
+/// each WkStation should match with at most one DbStation
+/// if there are more than one, choose the matching with the best MatchKind
+let private removeDoubleWkStations (results: ResultOfStation []) =
+    let candidates =
+        results
+        |> Array.map (fun r ->
+            match r with
+            | Success (db, wk, mk) -> Some(db, wk, mk)
+            | Failure (_) -> None)
+        |> Array.choose id
+        |> Array.groupBy (fun (db, wk, mk) -> wk.name)
+        |> Array.filter (fun (k, v) -> k.Length > 0 && v.Length > 1)
+        |> Array.map (fun (k, v) -> getCandidate v)
+
+    if candidates.Length = 0 then
+        results
+    else
+        results
+        |> Array.map (fun r ->
+            match r with
+            | Success (db, wk, _) ->
+                match candidates
+                      |> Array.tryFind (fun (c_db, c_wk, c_mk) -> wk.name = c_wk.name) with
+                | Some (c_db, c_wk, c_mk) -> if db.name = c_db.name then r else Failure db
+                | None -> r
+            | Failure (_) -> r)
+
 /// filter results outside of current route
-let filterResultsOfRoute (results: ResultOfStation []) =
+let filterResultsOfRoute (strecke: RouteInfo) (results0: ResultOfStation []) =
+    let results = removeDoubleWkStations results0
     let fromToKm = getSuccessMinMaxDbKm results // assumes start/stop of route is in success array
     match fromToKm with
     | [| fromKm; toKm |] when fromKm = toKm -> results
@@ -119,98 +154,59 @@ let showComparisonResults () =
 
     printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.route)).Length
     printfn "articles count : %d" (results |> Array.countBy (fun r -> r.title)).Length
-    printfn
-        "route parameter empty: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterEmpty)).Length
-    printfn
-        "route parameter not parsed: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteParameterNotParsed)).Length
-    printfn
-        "route is no passenger train: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsNoPassengerTrain)).Length
-    printfn
-        "start/stop stations of route not found: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.StartStopStationsNotFound)).Length
-    printfn
-        "found wikidata : %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataFoundInDbData)).Length
-    printfn
-        "not found wikidata in templates: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.WikidataNotFoundInTemplates)).Length
-    printfn
-        "not found wikidata in db data: %d"
-        (results
-         |> Array.filter (fun r ->
-             r.resultKind = ResultKind.WikidataNotFoundInDbData
-             && not  // check result of route with WikidataFoundInDbData and complete
-                 (results
-                  |> Array.exists (fun s ->
-                      s.route = r.route
-                      && s.resultKind = WikidataFoundInDbData
-                      && s.isCompleteDbRoute)))).Length
-    printfn
-        "no db data found, but has railway guide : %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithRailwayGuide)).Length
-    printfn
-        "route is shutdown : %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.RouteIsShutdown)).Length
-    printfn
-        "no db data found: %d"
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.NoDbDataFoundWithoutRailwayGuide)).Length
 
-    let countUndef =
-        (results
-         |> Array.filter (fun r -> r.resultKind = ResultKind.Undef)).Length
+    for case in FSharpType.GetUnionCases typeof<ResultKind> do
+        let rk =
+            FSharpValue.MakeUnion(case, [||]) :?> ResultKind
 
-    if countUndef > 0
-    then fprintf stderr "undef result kind unexpected, count %d" countUndef
+        printfn
+            "ResultKind: %s %d"
+            case.Name
+            (results
+             |> Array.filter (fun r -> r.resultKind = rk)).Length
 
-let showMatchKindStatistic (mk: MatchKind) (l: List<MatchKind * int>) =
+let private showMatchKindStatistic (mk: MatchKind) (l: List<MatchKind * int>) =
     match l |> List.tryFind (fun (mk0, _) -> mk = mk0) with
     | Some (mk, len) -> printfn "%A %d" mk len
     | None -> ()
+
+let showNotFoundStatistics () =
+    Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
+    |> Array.filter (fun r ->
+        r.resultKind = ResultKind.WikidataNotFoundInDbData)
+    |> Array.groupBy (fun r -> r.countDbStopsNotFound)
+    |> Array.iter (fun (k, v) -> printfn "notfound %d, count %d" k v.Length)
 
 let showMatchKindStatistics () =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
 
-    let stationsOfRoute =
+    let routesAndStations =
         [ for r in results do
             if r.resultKind = ResultKind.WikidataFoundInDbData
                || r.resultKind = ResultKind.WikidataNotFoundInDbData then
                 for s in DataAccess.DbWkStationOfRoute.query r.title r.route do
                     yield! s |> List.map (fun s -> (r.route, s)) ]
 
-    let groups =
-        stationsOfRoute
+    let numExamplesPerRoute = 3
+
+    let examples =
+        routesAndStations
         |> List.groupBy (fun (r, s) -> s.matchkind)
         |> List.map (fun (k, l) ->
             printfn
                 "kind %A %A"
                 k
-                ((List.take 3 l)
+                ((List.take numExamplesPerRoute l)
                  |> List.map (fun (r, s) -> (r, s.dbname, s.wkname)))
             (k, l.Length))
 
     printfn "MatchKindStatistics"
-    showMatchKindStatistic MatchKind.EqualNames groups
-    showMatchKindStatistic MatchKind.EqualShortNames groups
-    showMatchKindStatistic MatchKind.EqualShortNamesNotDistance groups
-    showMatchKindStatistic MatchKind.EqualWithoutIgnored groups
-    showMatchKindStatistic MatchKind.EqualWithoutParentheses groups
-    showMatchKindStatistic MatchKind.StartsWith groups
-    showMatchKindStatistic MatchKind.EndsWith groups
-    showMatchKindStatistic MatchKind.Levenshtein groups
-    showMatchKindStatistic MatchKind.SameSubstring groups
+    for case in FSharpType.GetUnionCases typeof<MatchKind> do
+        let mk =
+            FSharpValue.MakeUnion(case, [||]) :?> MatchKind
+
+        showMatchKindStatistic mk examples
 
 let toResultOfStation (stations: seq<DbStationOfRoute>) =
     stations |> Seq.map (fun db -> Failure(db))
@@ -231,10 +227,7 @@ let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
                 resultOfRoute.fromToNameOrig.[1]
         printfn "%A" resultOfRoute
 
-    DataAccess.ResultOfRoute.insert
-        resultOfRoute.title
-        resultOfRoute.route
-        resultOfRoute
+    DataAccess.ResultOfRoute.insert resultOfRoute.title resultOfRoute.route resultOfRoute
     |> ignore
 
 

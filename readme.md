@@ -19,11 +19,24 @@ Currently the comparison of wiki data with db data gives the follwing results:
 |distinct routes total|1465|articles may contain multiple routes or routes are in multiple articles |[1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden) [1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Minden)|
 |route is no passenger train|230|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
 |start/stop stations of route not found|1|stations from route parameters should match with stations from templates having distances, cycles are not yet implemented|[Berliner Ringbahn](http://localhost:59283/stationOfInfobox/Berliner%20Ringbahn)|
-|routes with wikidata complete|573|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with db data not found in wikidata|147|some db stations of a route not found in wikidata stations (possibly incorrect db data)|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
-|routes shutdown|437|remark in railway guide (KBS) or stations out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
-|routes with no db data found, <br/>but article has railway guide (KBS)|173|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
-|routes with no db data found|45|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
+|routes with all db data found in wikidata|559|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes with some db data not found in wikidata|153|some db stations of a route not found in wikidata stations|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
+|routes shutdown|474|remark in railway guide (KBS) or stations out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
+|routes with no db data found, <br/>but article has railway guide (KBS)|163|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
+|routes with no db data found|21|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
+
+### Statistics about stations not found
+
+How many stations not found in route:
+
+| Count stations not found | Count routes total | 
+|---:|-----:|
+| 1 |100|
+| 2 |37|
+| 3 |10|
+| 4 |3|
+| 5 |1|
+| 6 |2|
 
 ### Extracting the route infos
 

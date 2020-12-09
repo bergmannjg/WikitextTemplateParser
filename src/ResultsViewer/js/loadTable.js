@@ -5,7 +5,7 @@ function loadResultsTable(tableId, statusElementId, url) {
         return "/stationOfDbWk/" + cell.getData().title + '/' + cell.getValue();
     }
 
-    new Tabulator(tableId, {
+    let table = new Tabulator(tableId, {
         ajaxURL: url,
         layout: "fitColumns",
         pagination: "local",
@@ -56,10 +56,22 @@ function loadResultsTable(tableId, statusElementId, url) {
             { title: "WikiStops", field: "countWikiStops", width: 100 },
             { title: "DbFound", field: "countDbStopsFound", width: 100 },
             { title: "DbNotFound", field: "countDbStopsNotFound", width: 100 },
-            { title: "railwayGuide", field: "railwayGuide", width: 80 },
+            // { title: "railwayGuide", field: "railwayGuide", width: 80 },
+            { title: "RoutesInTitle", field: "routesInTitle", width: 80 },
             { title: "Complete", field: "isCompleteDbRoute", width: 80 },
         ],
     });
+
+    function customFilter(data){
+        return data.resultKind.Case == 'WikidataNotFoundInDbData' 
+            && !(
+                data.countDbStopsNotFound <= 4 && (data.countDbStopsFound - data.countDbStopsNotFound >= 1)
+                || data.countDbStopsNotFound == 5 && (data.countDbStopsFound - data.countDbStopsNotFound >= 5)
+                || data.countDbStopsNotFound == 6 && (data.countDbStopsFound - data.countDbStopsNotFound >= 6)
+                );
+    }
+    // table.setFilter(customFilter);
+    return table;
 }
 
 function loadRouteInfosTable(tableId, statusElementId, url) {
