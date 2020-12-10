@@ -10,24 +10,16 @@ Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvor
 
 ### Comparison
 
-Currently the comparison of wiki data with db data gives the follwing results:
+Currently the comparison of wiki data with available db data gives the follwing results:
 
 | Count | Value | Remarks | Example |
 |---|-----:|---|---|
-|articles total|1563|all articles from the SPARGL query with route templates are parsed||
-|articles with empty route parameter|382||[Schluff Eisenbahn](https://de.wikipedia.org/wiki/Schluff_(Eisenbahn))|
-|distinct routes total|1465|articles may contain multiple routes or routes are in multiple articles |[1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden) [1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Minden)|
-|route is no passenger train|230|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
-|start/stop stations of route not found|1|stations from route parameters should match with stations from templates having distances, cycles are not yet implemented|[Berliner Ringbahn](http://localhost:59283/stationOfInfobox/Berliner%20Ringbahn)|
 |routes with all db data found in wikidata|559|all db stations of a route found in wikidata stations|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
 |routes with some db data not found in wikidata|153|some db stations of a route not found in wikidata stations|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
-|routes shutdown|474|remark in railway guide (KBS) or stations out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
-|routes with no db data found, <br/>but article has railway guide (KBS)|163|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
-|routes with no db data found|21|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
 
 ### Statistics about stations not found
 
-How many stations not found in route:
+How many stations are not found per route:
 
 | Count stations not found | Count routes total | 
 |---:|-----:|
@@ -37,6 +29,21 @@ How many stations not found in route:
 | 4 |3|
 | 5 |1|
 | 6 |2|
+
+### Statistics about articles
+
+There are several reasons why it is not posssible to compare the data:
+
+| Count | Value | Remarks | Example |
+|---|-----:|---|---|
+|articles total|1563|all articles from the SPARGL query with route templates are parsed||
+|articles with empty route parameter|382||[Schluff Eisenbahn](https://de.wikipedia.org/wiki/Schluff_(Eisenbahn))|
+|route is no passenger train|230|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
+|start/stop stations of route not found|1|stations from route parameters should match with stations from templates having distances, cycles are not yet implemented|[Berliner Ringbahn](http://localhost:59283/stationOfInfobox/Berliner%20Ringbahn)|
+|routes compared with db data|702|routes with available db data are comapred|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes shutdown|474|remark in railway guide (KBS) or stations out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
+|routes with no db data found, <br/>but article has railway guide (KBS)|163|missing db data|[Route 9560 missing](https://de.wikipedia.org/wiki/Bahnstrecke_Schaftlach%E2%80%93Tegernsee)|
+|routes with no db data found|21|articles with shut down routes or missing db data|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
 
 ### Extracting the route infos
 
@@ -56,7 +63,7 @@ Matching the db station names with wiki station names gives the follwing results
 
 | Count | Value | Example |
 |---|-----:|---|
-|equal shortnames|1848|Hamm (Westf) Pbf - EHM|
+|equal [shortnames](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)|1848|Hamm (Westf) Pbf - EHM|
 |equal shortnames with incorrect distance|49|Overath [2657](https://de.wikipedia.org/wiki/Oberbergische_Bahn)|
 |equal names|3970|Vaihingen (Enz) - Vaihingen (Enz)|
 |equal names with some fixed parts removed (i.e. Hbf) |138|Schönwalde - Abzw Schönwalde|

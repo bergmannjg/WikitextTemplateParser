@@ -7,6 +7,7 @@ open Types
 open Templates
 open System.Text.RegularExpressions
 open FSharp.Collections
+open Microsoft.FSharp.Reflection
 
 let private createRouteInfo (nummer: int)
                             (title: string)
@@ -39,17 +40,17 @@ let showRouteInfoResults () =
         Serializer.Deserialize<RouteInfo []>(DataAccess.RouteInfo.queryAll ())
 
     printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.nummer)).Length
-    printfn "route name empty: %d" (lengthOfKind RoutenameKind.Empty results)
-    printfn "route name emptyWithIgnored: %d" (lengthOfKind EmptyWithIgnored results)
-    printfn "route names in small format: %d" (lengthOfKind SmallFormat results)
-    printfn "route names in small parenthesis: %d" (lengthOfKind Parenthesis results)
-    printfn "route names in text: %d" (lengthOfKind Text results)
-    printfn "route names not matched: %d" (lengthOfKind Unmatched results)
 
-let figureDash = "–" // FIGURE DASH U+2012
-let hyphenMinus = "-" // HYPHEN-MINUS U+002D
-let minusSign = "−" // MINUS SIGN U+2212
-let leftRightArrow = "↔" // MINUS SIGN U+2194
+    for case in FSharpType.GetUnionCases typeof<RoutenameKind> do
+        let mk =
+            FSharpValue.MakeUnion(case, [||]) :?> RoutenameKind
+
+        printfn "route name empty: %s %d" case.Name (lengthOfKind mk results)
+
+let private figureDash = "–" // FIGURE DASH U+2012
+let private hyphenMinus = "-" // HYPHEN-MINUS U+002D
+let private minusSign = "−" // MINUS SIGN U+2212
+let private leftRightArrow = "↔" // MINUS SIGN U+2194
 
 let private separators =
     [| leftRightArrow
@@ -144,13 +145,16 @@ let private findBsHeaderInTemplates templates =
         | _ -> ("", "")
     | Option.None -> ("", "")
 
+let private htmlTags =
+    [ "<br />"
+      "<br/>"
+      "<br>"
+      "</span>"
+      "<!-- -->" ]
+
 let private rmHtmlTags (value: string) =
     value
-    |> StringUtilities.replaceFromListToEmpty [ "<br />"
-                                                "<br/>"
-                                                "<br>"
-                                                "</span>"
-                                                "<!-- -->" ]
+    |> StringUtilities.replaceFromListToEmpty htmlTags
     |> StringUtilities.removeSubstring "<ref" "/ref>"
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexSpanOPen
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRefSelfClosed
