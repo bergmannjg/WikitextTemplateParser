@@ -19,7 +19,7 @@ The comparison of wiki data with available db data gives the follwing results:
 | Count | Value | Remarks | Example |
 |---|-----:|---|---|
 |routes with all db data found in wikidata|595|all db operational points of a route found in wikidata|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with some db data not found in wikidata|35|some db operational points of a route not found in wikidata|[Villingen Dietrich, Route 4250](https://de.wikipedia.org/wiki/Schwarzwaldbahn_(Baden))|
+|routes with some db data not found in wikidata|35|some db operational points of a route not found in wikidata|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
 
 ## Statistics about operational points not found
 
@@ -27,8 +27,9 @@ How many operational points are not found:
 
 | Count | Value | Routes| 
 |--|-----:|----:|
-| operational point missing |40|27|
-| operational point with specified matching |15| 11|
+| operational points matched |6094|595|
+| operational points missing |40|27|
+| operational points with specified matching |15| 11|
 
 ## Statistics about articles
 
