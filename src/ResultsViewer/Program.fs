@@ -7,6 +7,7 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open Giraffe
 open Giraffe.ViewEngine
+open RInfData
 
 let contentTypeText = "text/plain; charset=utf-8"
 let contentTypeJson = "application/json; charset=utf-8"
@@ -58,6 +59,14 @@ let loadWithTitleAndRoute (query: string -> int -> list<string>) (title:string, 
     | Some json -> sendText json contentTypeJson
     | _ -> sendText "" contentTypeJson
 
+let sendTextWithRoute (query: int -> string) (route:int) : HttpHandler =
+    sendText (query route) contentTypeJson
+
+let redirectOsmRelation (route:int) : HttpHandler =
+    match OsmData.loadRelationId route with
+    | Some relation -> redirectTo false ("https://www.openstreetmap.org/relation/" + relation.ToString() + "#map=7/51.771/10.811")
+    | _ -> (RenderView.AsString.htmlDocument >> htmlString) Views.index
+
 let concat (p1,p2) = p1 + "/" + p2
 
 let webApp =
@@ -71,14 +80,19 @@ let webApp =
         routef "/data/WikitextOfStop/%s" loadWikitextOfStop
         routef "/data/WikitextOfStop/%s/%s" (concat >> loadWikitextOfStop)
         routef "/data/Templates/%s" (loadWithTitle DataAccess.TemplatesOfRoute.queryAsStrings)
-        routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkStationOfInfobox.queryAsStrings)
-        routef "/data/DbStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.DbStationOfRoute.queryAsStrings)
-        routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkStationOfRoute.queryAsStrings)
-        routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute DataAccess.DbWkStationOfRoute.querysAsStrings)
+        routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkOpPointOfInfobox.queryAsStrings)
+        routef "/data/DbStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.DbOpPointOfRoute.queryAsStrings)
+        routef "/data/RInfStationOfRoute/%i" (sendTextWithRoute (RInfData.loadRouteAsJSon))
+        routef "/data/RInfSolOfRoute/%i" (sendTextWithRoute (RInfData.loadSoLAsJSon))
+        routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkOpPointOfRoute.queryAsStrings)
+        routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute DataAccess.DbWkOpPointOfRoute.querysAsStrings)
         routef "/js/%s" ((+) "./js/" >> jsonFile)
+        routef "/osmRelationOfRoute/%i" redirectOsmRelation
         routef "/stationOfDbWk/%s/%i" (Views.stationOfDbWk >> RenderView.AsString.htmlDocument >> htmlString)
         routef "/wkStationOfRoute/%s/%i" (Views.wkStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/dbStationOfRoute/%s/%i" (Views.dbStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
+        routef "/rinfStationOfRoute/%i" (Views.rinfStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
+        routef "/rinfSoLOfRoute/%i" (Views.rinfSoLOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/stationOfInfobox/%s" (Views.stationOfInfobox >> RenderView.AsString.htmlDocument >> htmlString)
         route "/routeinfos" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.routeinfos
         route "/stops" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.stops

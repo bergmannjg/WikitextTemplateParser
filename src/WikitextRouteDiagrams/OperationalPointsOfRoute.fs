@@ -1,10 +1,10 @@
-/// collect StationsOfRoute data from StationOfInfobox data with corresponding RouteInfo
-module StationsOfRoute
+/// collect OpPointOfRoute data from OpPointOfInfobox data with corresponding RouteInfo
+module OpPointsOfRoute
 
 // fsharplint:disable RecordFieldNames
 
 open Types
-open StationsOfInfobox
+open OpPointsOfInfobox
 open RouteInfo
 open FSharp.Collections
 
@@ -38,7 +38,7 @@ let private getMatchInReplacements (isExactMatch: bool)
                                    (nameInTemplate: string)
                                    =
     let candidates =
-        AdhocReplacements.replacementsInRouteStation
+        AdhocReplacements.RouteInfo.replacementsInRouteStation
         |> Array.filter (fun (title, route, _, _) ->
             (route = 0 && title = strecke.title)
             || route = strecke.nummer)
@@ -87,7 +87,7 @@ let private getBestMatch (strecke: RouteInfo) (nameInHeader: string) (namesInTem
     | Some result -> Some result
     | None -> getBestMatchWithStrategy false strecke nameInHeader namesInTemplate
 
-let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox []) =
+let private refillRouteInfo (strecke: RouteInfo) (stations: OpPointOfInfobox []) =
     if stations.Length > 1
        && strecke.routenameKind <> RoutenameKind.Unmatched then
 
@@ -115,7 +115,22 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: StationOfInfobox [])
     else
         strecke
 
-let private getMatchedRouteStations (strecke: RouteInfo) (stations: StationOfInfobox []) =
+let private getIndexTo (strecke: RouteInfo) (indexFrom: int) (name: string) (namesInTemplate: string []) =
+    let index1 =
+        namesInTemplate |> Array.findIndex ((=) name)
+
+    let index2 =
+        namesInTemplate |> Array.findIndexBack ((=) name)
+
+    /// special handling for multiple occurrence of name 
+    if strecke.bis = name
+       && index1 <> index2
+       && indexFrom < index2 then
+        index2
+    else
+        index1
+
+let private getMatchedRouteStations (strecke: RouteInfo) (stations: OpPointOfInfobox []) =
     let namesInTemplate =
         stations
         |> Array.filter (fun s -> s.distances.Length > 0)
@@ -133,14 +148,15 @@ let private getMatchedRouteStations (strecke: RouteInfo) (stations: StationOfInf
             namesInTemplate |> Array.findIndex ((=) fromFirst)
 
         let indedTo =
-            namesInTemplate |> Array.findIndex ((=) toLast)
+            namesInTemplate
+            |> getIndexTo strecke indedFrom toLast
 
         if indedFrom < indedTo then Some(fromFirst, toLast) else Some(toFirst, fromLast) // reverse search
     | _ -> None
 
 let private maybeReplaceRouteNr (strecke: RouteInfo) =
     let candidate =
-        AdhocReplacements.maybeWrongRouteNr
+        AdhocReplacements.RouteInfo.maybeWrongRouteNr
         |> Array.tryFind (fun (title, routeWrong, route) ->
             title = strecke.title
             && routeWrong = strecke.nummer)
@@ -150,7 +166,7 @@ let private maybeReplaceRouteNr (strecke: RouteInfo) =
     | None -> strecke
 
 let private maybeReplaceRouteStation (strecke: RouteInfo) =
-    match AdhocReplacements.maybeReplaceRouteStation
+    match AdhocReplacements.RouteInfo.maybeReplaceRouteStation
           |> Array.tryFind (fun (title, route, _, _) -> title = strecke.title && route = strecke.nummer) with
     | Some (_, _, Some von, Some bis) -> { strecke with von = von; bis = bis }
     | Some (_, _, Some von, None) -> { strecke with von = von }
@@ -158,7 +174,7 @@ let private maybeReplaceRouteStation (strecke: RouteInfo) =
     | _ -> strecke
 
 /// match RouteInfo station names with station names of templates
-let findRouteInfoStations (strecke0: RouteInfo) (stations: StationOfInfobox []) (refillPossible: bool) =
+let findRouteInfoStations (strecke0: RouteInfo) (stations: OpPointOfInfobox []) (refillPossible: bool) =
     let strecke =
         strecke0
         |> maybeReplaceRouteNr
@@ -173,12 +189,12 @@ let findRouteInfoStations (strecke0: RouteInfo) (stations: StationOfInfobox []) 
             { strecke with
                   routenameKind = Unmatched }
 
-let private equalsStationOfInfobox (name: string) (station: StationOfInfobox) =
+let private equalsStationOfInfobox (name: string) (station: OpPointOfInfobox) =
     station.name = name
     && station.distances.Length > 0
 
 /// filter station list beginning and ending with nameFrom and nameTo
-let filterStations (strecke: RouteInfo) (stations: StationOfInfobox []) =
+let filterStations (strecke: RouteInfo) (stations: OpPointOfInfobox []) =
     let maybeIndex1 =
         stations
         |> Array.tryFindIndex (equalsStationOfInfobox strecke.von)
@@ -190,9 +206,20 @@ let filterStations (strecke: RouteInfo) (stations: StationOfInfobox []) =
     match maybeIndex1, maybeIndex2 with
     | Some (indexFrom), Some (indexTo)
     | Some (indexTo), Some (indexFrom) when indexFrom < indexTo ->
+        // try find a further index
+        let indexTo2 =
+            if stations.Length > (indexTo + 1) then
+                match stations
+                      |> Array.skip (indexTo + 1)
+                      |> Array.tryFindIndex (equalsStationOfInfobox strecke.bis) with
+                | Some i -> indexTo + 1 + i
+                | None -> indexTo
+            else
+                indexTo
+
         stations
         |> Array.mapi (fun i v ->
-            if i >= indexFrom && i <= indexTo then
+            if i >= indexFrom && i <= indexTo2 then
                 Some
                     ({ kms = v.distances
                        name = v.name
@@ -208,6 +235,6 @@ let findStations strecke templates =
     |> Array.choose id
     |> filterStations strecke
 
-let dump (title: string) (strecke: RouteInfo) (stations: StationOfRoute []) =
-    DataAccess.WkStationOfRoute.insert title strecke.nummer stations
+let dump (title: string) (strecke: RouteInfo) (stations: WkOpPointOfRoute []) =
+    DataAccess.WkOpPointOfRoute.insert title strecke.nummer stations
     |> ignore

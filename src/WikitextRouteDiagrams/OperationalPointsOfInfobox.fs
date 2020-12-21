@@ -1,5 +1,5 @@
-/// collect StationOfInfobox data from templates
-module StationsOfInfobox
+/// collect OpPointsOfInfobox data from templates
+module OpPointsOfInfobox
 
 open Types
 open Templates
@@ -18,18 +18,19 @@ let BhfSymbolTypes =
        "KRW"
        "ABZ"
        "KRZ"
+       "EIU"
        "GRENZE"
        "TZOLLWo"
        "xGRENZE"
        "BS2" |]
 
 let private hasReplaceDistance (name: string) (kms: float []) =
-    AdhocReplacements.maybeWrongDistances
+    AdhocReplacements.Wikitext.maybeWrongDistances
     |> Array.exists (fun (_, name0, distanceWrong, _) -> name = name0 && distanceWrong = kms)
 
 let private maybeReplaceDistances (name: string) (kms: float []) =
     let candidate =
-        AdhocReplacements.maybeWrongDistances
+        AdhocReplacements.Wikitext.maybeWrongDistances
         |> Array.tryFind (fun (_, name0, distanceWrong, _) -> name = name0 && distanceWrong = kms)
 
     match candidate with
@@ -58,7 +59,7 @@ let NOBREAKSPACE = '\xA0' // NO-BREAK SPACE U+00A0
 
 let private createStationOfInfobox (symbols: string []) (kms: float []) (name: string) (link: string) =
     let name0 =
-        name.Replace(" -", "-").Replace("- ", "-").Replace(NOBREAKSPACE, ' ')
+        name.Replace(" -", "-").Replace("- ", "-").Replace(NOBREAKSPACE, ' ').Replace("<!--sic!-->", "")
 
     let isStation =
         symbols
@@ -85,11 +86,24 @@ let isValidText (s: string) =
     && s
     <> "'''"
     && s <> "("
+    && s <> "/"
 
 let private normalizeTextOfLink (link: Link) = (textOfLink link).Replace("&nbsp;", " ")
 
+let onlyChars (s: string) =
+    let s0 =
+        if s.EndsWith "-" then s.Substring(0, s.Length - 1) else s
+
+    s0 |> Seq.forall System.Char.IsLetter
+
 let private findStationName (p: Parameter) =
     match p with // try first string
+    | Composite (_,
+                 Composite.String ("'''") :: Link link1 :: Composite.String ("-") :: Link link2 :: Composite.String ("'''") :: _) ->
+        Some(linktextOfLink link1 + "-" + linktextOfLink link2, linktextOfLink link1)
+    | Composite (_, Composite.String (s0) :: Link link :: Composite.String (s1) :: _) when onlyChars (s0)
+                                                                                           && isValidText (s1) ->
+        Some(s0 + " " + normalizeTextOfLink link + " " + s1, linktextOfLink link)
     | Composite (_, Composite.String (_) :: Link link :: Composite.String (s) :: _) when isValidText (s) ->
         Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
     | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
@@ -102,6 +116,12 @@ let private findStationName (p: Parameter) =
              linktextOfLink link1)
     | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
         Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
+    | Composite (_, Composite.Link link1 :: Composite.Link link2 :: _) ->
+        Some
+            (normalizeTextOfLink link1
+             + " "
+             + normalizeTextOfLink link2,
+             linktextOfLink link2)
     | Composite (_, Composite.String (s) :: Composite.Link link :: _) when isValidText (s) ->
         Some(s + " " + normalizeTextOfLink link, linktextOfLink link)
     | Composite (_, cl) ->
@@ -130,10 +150,12 @@ let private normalizeKms (kms: string) =
         " "
         (kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", ""))
 
-let private regexFloat = Regex(@"^([0-9\.]+)")
+let private regexFloat = Regex(@"^([-]?[0-9\.]+)")
 
 let private parse2float (km: string) =
-    match StringUtilities.regexMatchedValues regexFloat (km.Replace(",", ".").Replace("(", "").Replace(")", "")) with
+    match StringUtilities.regexMatchedValues
+              regexFloat
+              (km.Replace(",", ".").Replace("(", "").Replace(")", "").Replace("~", "").Replace("−", "-")) with
     | [ float ] -> System.Math.Round(double (System.Single.Parse(float)), 1)
     | _ -> -1.0
 
@@ -211,6 +233,8 @@ let findStationOfInfobox (t: Template) =
         match t with
         | (n, [], l) when matchConditionWithParameters n [| "BS"; "BSe" |] 4 2 [| "T" |] l -> matchStationAt 2 l
         | (n, [], l) when matchCondition n [| "BS"; "BSe" |] 3 1 l -> matchStationAt 1 l
+        | (n, [], l) when matchConditionWithParameters n [| "BS2"; "BS2e" |] 7 5 [| "T1"; "T2" |] l ->
+            matchStationAt 4 l
         | (n, [], l) when matchCondition n [| "BS2"; "BS2e" |] 4 2 l -> matchStationAt 2 l
         | (n, [], l) when matchConditionWithParameters n [| "BS3"; "BS3e" |] 8 6 [| "T1"; "T2"; "T3" |] l ->
             matchStationAt 6 l
@@ -234,7 +258,7 @@ let queryName (name: string) =
             yield r.title ]
     |> List.distinct
     |> List.iter (fun t ->
-        match DataAccess.WkStationOfInfobox.query t
+        match DataAccess.WkOpPointOfInfobox.query t
               |> List.tryHead with
         | Some stations ->
             stations
@@ -242,6 +266,6 @@ let queryName (name: string) =
             |> Array.iter (fun s -> printfn "'%s', '%s'" t s.name)
         | None -> ())
 
-let dump (title: string) (precodedStations: StationOfInfobox []) =
-    DataAccess.WkStationOfInfobox.insert title precodedStations
+let dump (title: string) (precodedStations: OpPointOfInfobox []) =
+    DataAccess.WkOpPointOfInfobox.insert title precodedStations
     |> ignore

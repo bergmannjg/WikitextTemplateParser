@@ -5,12 +5,12 @@ open Templates
 open Wikidata
 
 /// prepare template string, todo: add to parser
-let prepare (s: string) (title: string) =
+let private prepare (s: string) (title: string) =
     s
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRef
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRefSelfClosed
     |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexComment
-    |> StringUtilities.replaceFromList AdhocReplacements.replacements (fun t -> t = title)
+    |> StringUtilities.replaceFromList AdhocReplacements.Wikitext.replacements (fun t -> t = title)
 
 let loadAndParseTemplate title (parseTemplates: (string -> unit)) =
     loadTemplatesOfRoutes false [| title |]
@@ -32,7 +32,7 @@ let rec parseTemplatesOfType (maybeCheck: (Templates -> (string -> unit) -> unit
     fprintfn stdout "parseTemplates: %s" title
     match (query title |> List.tryHead) with
     | Some text ->
-        match Parser.parse text with
+        match Parser.parse (prepare text title) with
         | FParsec.CharParsers.ParserResult.Success (result, _, _) ->
             fprintfn stdout "Success: %s, templates Length %d" title result.Length
             insert title result |> ignore

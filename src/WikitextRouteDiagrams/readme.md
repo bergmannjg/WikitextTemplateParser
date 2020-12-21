@@ -2,8 +2,8 @@
 
 Parse wikitext [templates](https://www.mediawiki.org/wiki/Help:Templates) of type
 
-* [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) - route diagrams in germany,
-* [Station](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnhof) - the stations from the route diagrams.
+* [Bahnstrecke](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) - route diagrams in germany,
+* [Bahnhof](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnhof) - the operational points from the route diagrams.
 
 The wikipedia articles using the Route diagram templates can be retrieved with
 
@@ -69,20 +69,21 @@ type Templates = Template list
 
 # Wikitext Db Comparer
 
-Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [route diagram data](https://data.deutschebahn.com/dataset?groups=datasets) from Open-Data-Portal of Deutsche Bahn.
+Compare wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke) templates with [route diagram data](https://rinf.era.europa.eu/RINF) from Register of infrastructure of Deutsche Bahn.
 
 This is done in several steps.
 
 ## Load Db Data
 
-* [Geo-Betriebsstelle](https://data.deutschebahn.com/dataset/geo-betriebsstelle): Stops with positions of all routes,
-* [Geo-Streckennetz](https://data.deutschebahn.com/dataset/geo-strecke) Start/Stop station and usage (i.e. is passenger train) of a route.
+* [Section of Line](https://rinf.era.europa.eu/RINF): Section of Line data of register of infrastructure, 
+* [Operational points](https://rinf.era.europa.eu/RINF): Operational points of register of infrastructure,
+* [Geo-Streckennetz](https://data.deutschebahn.com/dataset/geo-strecke) Start/Stop of a route and usage (i.e. is passenger train) of a route.
 
 The data is restored with this [script](../../scripts/restore.sh).
 
 ## Extract route info in 'STRECKENNR' Template
 
-The route number and start/stop stations of a route are given in the 'STRECKENNR' template parameter in multiple ways, for example:
+The route number and start/stop operational point of a route are given in the 'STRECKENNR' template parameter in multiple ways, for example:
 
 ```
 1730 (Hannover–Lehrte)
@@ -90,7 +91,7 @@ The route number and start/stop stations of a route are given in the 'STRECKENNR
 1101 Lütjenbrode–Heiligenhafen
 ```
 
- Stations from route parameters should match with stations from templates having distances. The content of the template parameter is transformed in RouteInfo type (**matching step 1**, see function RouteInfo.findRouteInfoInTemplates).
+ Operational points from route parameters should match with operational points from templates having distances. The content of the template parameter is transformed in RouteInfo type (**matching step 1**, see function RouteInfo.findRouteInfoInTemplates).
 
 ## From Templates to StationsOfInfobox
 
@@ -98,16 +99,16 @@ All templates of an wiki info box with station data are extracted and transforme
 
 ## From StationsOfInfobox to StationsOfRoute
 
-The stations of a route are filtered from the StationOfInfobox data with the RouteInfo and transformed in StationOfRoute type:
+The operational points of a route are filtered from the StationOfInfobox data with the RouteInfo and transformed in StationOfRoute type:
 
-* find the stations from RouteInfo in the list of StationOfInfobox (**matching step 2**, see function StationsOfRoute.findRouteInfoStations)
-* filter the stations in the list of StationOfInfobox (see function StationsOfRoute.filterStations)
+* find the operational points from RouteInfo in the list of StationOfInfobox (**matching step 2**, see function StationsOfRoute.findRouteInfoStations)
+* filter the operational points in the list of StationOfInfobox (see function StationsOfRoute.filterStations)
 
-## Compare Wikitext Stations with DB Stations
+## Compare Wikitext operational points with DB operational points
 
-Compare the wikitext station data of a route with the corresponding db data, i.e. are the stations in db data a subset of the stations in wiki data.
+Compare the wikitext data of a route with the corresponding db data, i.e. are the operational points in db data a subset of the operational points in wiki data.
 
-A wikitext station matches with a db station (**matching step 3**, see function StationMatch.matchesWkStationWithDbStation)
+A wikitext operational point matches with a db operational point (**matching step 3**, see function StationMatch.matchesWkStationWithDbStation)
 
 * if the distance differences are small 
-* and station shortnames ([DS100](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)) are equal or the station names have a common substring.
+* and shortnames ([DS100](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)) are equal or the names have a common substring.

@@ -28,6 +28,10 @@ let titleAndScripts (titleString: string) =
           .tabulator .tabulator-tableHolder {
                 background:white;
             }
+            .status {
+                margin-left: 5%;
+                margin-bottom: 5px;
+            }
             .remark {
                 margin-left: 50px;
                 margin-bottom: 10px;
@@ -57,7 +61,7 @@ let index =
             h1 [ _style "text-align:center" ] [
                 str "Results"
             ]
-            div [ _style "margin-left:5%; margin-bottom:5px;" ] [
+            div [ _class "status" ] [
                 span [ _id "statusMsg" ] []
                 str " "
                 a [ _href ("/routeinfos") ] [
@@ -85,8 +89,7 @@ let routeinfos =
             h1 [ _style "text-align:center" ] [
                 str "Route Infos"
             ]
-            div [ _id "statusMsg"
-                  _style "margin-left:5%; margin-bottom:5px;" ] []
+            div [ _id "statusMsg"; _class "status" ] []
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
@@ -104,8 +107,7 @@ let stops =
             h1 [ _style "text-align:center" ] [
                 str "Stops"
             ]
-            div [ _id "statusMsg"
-                  _style "margin-left:5%; margin-bottom:5px;" ] []
+            div [ _id "statusMsg"; _class "status" ] []
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
@@ -181,6 +183,62 @@ let dbStationOfRoute (title: string, route: int) =
          + "\");")
         None
 
+let rinfStationOfRoute (route: int) =
+    html [] [
+        head [] (titleAndScripts "RINF Stations of Route")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str ("RINF Stations of Route " + route.ToString())
+            ]
+            div [ _class "status" ] [
+                a [ _href ("/rinfSoLOfRoute/" + route.ToString()) ] [
+                    str "RINF SoL of route"
+                ]
+                str " "
+                a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
+                    str "DB ISR"
+                ]
+            ]
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+
+            script [ _type "application/javascript" ] [
+                rawText
+                    ("loadRInfStationOfRouteTable(\"#results-table\", \"/data/RInfStationOfRoute/"
+                     + route.ToString()
+                     + "\");")
+            ]
+        ]
+    ]
+
+let rinfSoLOfRoute (route: int) =
+    html [] [
+        head [] (titleAndScripts "RINF Sections of Lines of Route")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str ("RINF Sections of Line of Route " + route.ToString())
+            ]
+            div [ _class "status" ] [
+                a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
+                    str "DB Infrastrukturregister"
+                ]
+                str " "
+                a [ _href ("https://www.openrailwaymap.org/") ] [
+                    str "OpenRailwayMap"
+                ]
+            ]
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+
+            script [ _type "application/javascript" ] [
+                rawText
+                    ("loadRInfSolOfRouteTable(\"#results-table\", \"/data/RInfSolOfRoute/"
+                     + route.ToString()
+                     + "\");")
+            ]
+        ]
+    ]
+
 let stationOfDbWk (title: string, route: int) =
     let extraNode =
         div [ _class "remark" ] [
@@ -196,12 +254,21 @@ let stationOfDbWk (title: string, route: int) =
                     ("/wkStationOfRoute/"
                      + title
                      + "/"
-                     + route.ToString()) ] [
+                     + route.ToString())
+                _target "_blank" ] [
                 str "Wiki stations of route"
+            ]
+            str " "
+            a [ _href ("/osmRelationOfRoute/" + route.ToString()) ] [
+                str "OSM data of route"
             ]
             str " "
             a [ _href ("/stationOfInfobox/" + title) ] [
                 str "Wiki stations of infobox"
+            ]
+            str " "
+            a [ _href ("/rinfStationOfRoute/" + route.ToString()) ] [
+                str "RINF stations of route"
             ]
         ]
 
@@ -211,7 +278,11 @@ let stationOfDbWk (title: string, route: int) =
          + " "
          + route.ToString())
         title
-        ("loadStationOfDbWkTable(\"#leftbox\", \"/data/StationOfDbWk/"
+        ("loadStationOfDbWkTable(\""
+         + title
+         + "\","
+         + route.ToString()
+         + ",\"#leftbox\", \"/data/StationOfDbWk/"
          + title
          + "/"
          + route.ToString()

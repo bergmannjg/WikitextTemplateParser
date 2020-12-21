@@ -116,30 +116,30 @@ module TemplatesOfStop =
     let query title =
         typedCollectionQuery<Templates> collection (toMap title)
 
-module DbStationOfRoute =
+module DbOpPointOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
     let collection = "DbStationOfRoute"
 
     let insert title route value =
-        typedCollectionInsert<DbStationOfRoute []> collection (toMap title route) value
+        typedCollectionInsert<DbOpPointOfRoute []> collection (toMap title route) value
 
     let query title route =
-        typedCollectionQuery<DbStationOfRoute []> collection (toMap title route)
+        typedCollectionQuery<DbOpPointOfRoute []> collection (toMap title route)
 
     let queryAsStrings title route =
         collectionQuery collection (toMap title route)
 
-module WkStationOfInfobox =
+module WkOpPointOfInfobox =
     let private toMap (title: string) = Map.empty.Add("title", title)
     let collection = "WkStationOfInfobox"
 
     let insert title value =
-        typedCollectionInsert<StationOfInfobox []> collection (toMap title) value
+        typedCollectionInsert<OpPointOfInfobox []> collection (toMap title) value
 
     let query title =
-        typedCollectionQuery<StationOfInfobox []> collection (toMap title)
+        typedCollectionQuery<OpPointOfInfobox []> collection (toMap title)
 
     let queryKeys () =
         collectionQueryKeys collection Map.empty
@@ -147,32 +147,32 @@ module WkStationOfInfobox =
 
     let queryAsStrings title = collectionQuery collection (toMap title)
 
-module DbWkStationOfRoute =
+module DbWkOpPointOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
     let collection = "DbWkStationOfRoute"
 
     let insert title route value =
-        typedCollectionInsert<list<StationOfDbWk>> collection (toMap title route) value
+        typedCollectionInsert<list<OpPointOfDbWk>> collection (toMap title route) value
 
     let query title route =
-        typedCollectionQuery<list<StationOfDbWk>> collection (toMap title route)
+        typedCollectionQuery<list<OpPointOfDbWk>> collection (toMap title route)
 
     let querysAsStrings title route =
         collectionQuery collection (toMap title route)
 
-module WkStationOfRoute =
+module WkOpPointOfRoute =
     let private toMap (title: string) (route: int) =
         Map.empty.Add("title", title).Add("route", route.ToString())
 
     let collection = "WkStationOfRoute"
 
     let insert title route value =
-        typedCollectionInsert<StationOfRoute []> collection (toMap title route) value
+        typedCollectionInsert<WkOpPointOfRoute []> collection (toMap title route) value
 
     let query title route =
-        typedCollectionQuery<StationOfRoute []> "WkStationOfRoute" (toMap title route)
+        typedCollectionQuery<WkOpPointOfRoute []> "WkStationOfRoute" (toMap title route)
 
     let queryAsStrings title route =
         collectionQuery "WkStationOfRoute" (toMap title route)

@@ -12,12 +12,14 @@
     <Compile Include="StringUtilities.fs" />
     <Compile Include="AdhocReplacements.fs" />
     <Compile Include="DbData.fs" />
+    <Compile Include="RInfData.fs" />
+    <Compile Include="OsmData.fs" />
     <Compile Include="Wikidata.fs" />
     <Compile Include="ParserProcessing.fs" />
     <Compile Include="RouteInfo.fs" />
-    <Compile Include="StationsOfInfobox.fs" />
-    <Compile Include="StationsOfRoute.fs" />
-    <Compile Include="StationMatch.fs" />
+    <Compile Include="OperationalPointsOfInfobox.fs" />
+    <Compile Include="OperationalPointsOfRoute.fs" />
+    <Compile Include="OperationalPointMatch.fs" />
     <Compile Include="ResultOfMatch.fs" />
     <Compile Include="Comparer.fs" />
   </ItemGroup>

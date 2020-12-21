@@ -82,7 +82,7 @@ let private tagsInRoutename = [ "<small>"; "</small>" ]
 
 let private replacements =
     List.concat [ tagsInRoutename
-                  AdhocReplacements.ignoreStringsInRoutename ]
+                  AdhocReplacements.RouteInfo.ignoreStringsInRoutename ]
 
 let private applayReplacements (s: string) =
     s
@@ -93,7 +93,7 @@ let private isEmpytRouteName (name: string) =
     System.String.IsNullOrEmpty(name) || name = ","
 
 let private isEmpytIgnoredRouteName (name: string) =
-    AdhocReplacements.prefixesOfEmptyRouteNames
+    AdhocReplacements.RouteInfo.prefixesOfEmptyRouteNames
     |> Array.exists (fun s -> name.StartsWith(s))
 
 let private makeRouteÎnfo (nr: int)

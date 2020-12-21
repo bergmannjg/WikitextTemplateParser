@@ -4,7 +4,8 @@ open Comparer
 open ResultsOfMatch
 open Wikidata
 open ParserProcessing
-open StationsOfInfobox
+open OpPointMatch
+open RInfData
 
 let loadTemplatesOfRoutesFromFile filename =
     System.IO.File.ReadAllLines filename
@@ -28,11 +29,15 @@ let classifyRouteInfos () =
 
 let comparetitle showDetails title =
     loadTemplatesForWikiTitle title  
-    |> compare showDetails title
+    |> compare showDetails title RInfData.loadRoute
 
 let comparetitles () =
     DataAccess.TemplatesOfRoute.queryKeys()
     |> List.iter (comparetitle false)
+
+let loadOsmData (route :int) = 
+    let id = OsmData.loadRelationId (route)
+    printfn "%A" id
 
 [<EntryPoint>]
 let main argv =
@@ -62,7 +67,10 @@ let main argv =
     | [| "-showRouteInfoResults" |] -> showRouteInfoResults ()
     | [| "-showMatchKindStatistics" |] -> showMatchKindStatistics ()
     | [| "-showNotFoundStatistics" |] -> showNotFoundStatistics ()
-    | [| "-queryName"; name |] -> StationsOfInfobox.queryName name
+    | [| "-queryName"; name |] -> OpPointsOfInfobox.queryName name
+    | [| "-loadOsmData"; route |] -> loadOsmData (route |> int)
+    | [| "-loadSoL"; route|] -> RInfData.loadRoute (route |> int) |> ignore
+    | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (matchStationName wkname dbname false)
     | _ -> fprintfn stderr "usage: -loadroutes | -parseroutes | -comparetitles"
     0
 

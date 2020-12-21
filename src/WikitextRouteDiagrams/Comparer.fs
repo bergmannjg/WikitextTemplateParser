@@ -3,65 +3,140 @@ module Comparer
 
 open Types
 open RouteInfo
-open StationsOfInfobox
-open StationsOfRoute
-open DbData
-open StationMatch
+open OpPointsOfInfobox
+open OpPointsOfRoute
+open OpPointMatch
 open ResultsOfMatch
 open Templates
 
-let compareMatch ((db0, wk0, mk0): DbStationOfRoute * StationOfRoute * MatchKind)
-                 ((db1, wk1, mk1): DbStationOfRoute * StationOfRoute * MatchKind)
-                 =
-    if wk0.kms.Length = 0 || wk1.kms.Length = 0 then
-        if mk0 = mk1 then 0
-        else if mk0 < mk1 then -1
-        else 1
-    else
-        let diff0 =
-            wk0.kms
-            |> Array.map (fun k -> abs (db0.km - k))
-            |> Array.min
-
-        let diff1 =
-            wk1.kms
-            |> Array.map (fun k -> abs (db1.km - k))
-            |> Array.min
-
-        if diff0 = diff1 then 0
-        else if diff0 < diff1 then -1
-        else 1
-
-let getBestMatch (matches: (DbStationOfRoute * StationOfRoute * MatchKind) []) =
+let getBestMatch (matches: (DbOpPointOfRoute * WkOpPointOfRoute * MatchKind) []) =
     if matches.Length > 1 then
         let sorted = matches |> Array.sortWith compareMatch
         sorted.[0]
     else
         matches.[0]
 
-let findStation (wikiStations: StationOfRoute []) (dbStation: DbStationOfRoute) =
+let findStation isPhase1 (wikiStations: WkOpPointOfRoute []) (dbStation: DbOpPointOfRoute) =
     let res =
         wikiStations
-        |> Array.map (fun b -> matchesWkStationWithDbStation b dbStation)
+        |> Array.map (fun b ->
+            if isPhase1
+            then matchesWkStationWithDbStationPhase1 b dbStation
+            else matchesWkStationWithDbStationPhase2 b dbStation)
         |> Array.choose id
 
     if res.Length = 0 then Failure(dbStation) else Success(getBestMatch res)
 
-let maybeReplaceDbStation (strecke: RouteInfo) (station: DbStationOfRoute) =
-    match AdhocReplacements.replacementsInDbStation
-          |> Array.tryFind (fun (t, r, s, _) ->
-              t = strecke.title
-              && r = strecke.nummer
-              && s = station.name) with
-    | Some (_, _, _, s) -> { station with name = s }
-    | None -> station
+let private checkDbDataInWikiDataPhase1 (route: RouteInfo)
+                                        (wikiStations: WkOpPointOfRoute [])
+                                        (dbStations: DbOpPointOfRoute [])
+                                        =
+    dbStations
+    |> Array.map (fun p -> findStation true wikiStations p)
+    |> removeDoubleWkStations
 
-let checkDbDataInWikiData (strecke: RouteInfo) (wikiStations: StationOfRoute []) (dbStations: DbStationOfRoute []) =
-    let results =
-        dbStations
-        |> Array.map (fun p -> findStation wikiStations (maybeReplaceDbStation strecke p))
+let private checkDbDataInWikiDataPhase2 (route: RouteInfo)
+                                        (wikiStations: WkOpPointOfRoute [])
+                                        (results: ResultOfOpPoint [])
+                                        =
+    let restOfWikiStations =
+        wikiStations
+        |> Array.filter (fun p ->
+            not
+                (results
+                 |> Array.exists (fun r ->
+                     match r with
+                     | Success (_, wk, _) -> wk.name = p.name && wk.kms = p.kms
+                     | Failure p -> false)))
 
-    results |> filterResultsOfRoute strecke
+    results
+    |> Array.map (fun r ->
+        match r with
+        | Success _ -> r
+        | Failure p -> findStation false restOfWikiStations p)
+    |> removeDoubleWkStations
+
+let private mapReplacements (route: RouteInfo)
+                            (wikiStations: WkOpPointOfRoute [])
+                            (replacements: (string * int * string * string) [])
+                            (results: ResultOfOpPoint [])
+                            =
+    results
+    |> Array.map (fun result ->
+        match result with
+        | Failure db
+        | Success (db, _, _) ->
+            match (replacements
+                   |> Array.tryFind (fun (t, r, dbname, _) ->
+                       route.title = t
+                       && route.nummer = r
+                       && dbname = db.name)) with
+            | Some (_, _, _, wkname) ->
+                let kms =
+                    match wikiStations
+                          |> Array.tryFind (fun s -> s.name = wkname) with
+                    | Some s -> s.kms
+                    | None -> [||]
+
+                Success
+                    (db,
+                     { kms = kms
+                       name = wkname
+                       shortname = "" },
+                     MatchKind.SpecifiedMatch)
+            | None -> result)
+
+let private mapNonexistentStationsInFailures (route: RouteInfo)
+                                             (nonexistentStations: (string * int * string) [])
+                                             (mk: MatchKind)
+                                             (results: ResultOfOpPoint [])
+                                             =
+    results
+    |> Array.map (fun result ->
+        match result with
+        | Failure db ->
+            match (nonexistentStations
+                   |> Array.tryFind (fun (t, r, s) -> route.title = t && route.nummer = r && s = db.name)) with
+            | Some (t, r, s) ->
+                Success
+                    (db,
+                     { kms = [||]
+                       name = "---"
+                       shortname = "" },
+                     mk)
+            | None -> result
+        | _ -> result)
+
+let private mapNonexistentPrefixInFailures (route: RouteInfo)
+                                           (prefix: string)
+                                           (stelleArt:string)
+                                           (mk: MatchKind)
+                                           (results: ResultOfOpPoint [])
+                                           =
+    results
+    |> Array.map (fun result ->
+        match result with
+        | Failure db when db.name.StartsWith prefix
+                          || db.STELLE_ART = stelleArt ->
+            Success
+                (db,
+                 { kms = [||]
+                   name = "---"
+                   shortname = "" },
+                 mk)
+        | _ -> result)
+
+let private checkDbDataInWikiData (route: RouteInfo)
+                                  (wikiStations: WkOpPointOfRoute [])
+                                  (dbStations: DbOpPointOfRoute [])
+                                  =
+    dbStations
+    |> checkDbDataInWikiDataPhase1 route wikiStations
+    |> checkDbDataInWikiDataPhase2 route wikiStations
+    |> filterResultsOfRoute route
+    |> mapReplacements route wikiStations AdhocReplacements.Comparer.matchingsOfDbWkOpPoints
+    |> mapNonexistentPrefixInFailures route "StrUeb" "Weiche" IgnoredDbOpPoint
+    |> mapNonexistentStationsInFailures route AdhocReplacements.Comparer.nonexistentWkOpPoints IgnoredWkOpPoint
 
 let countResultFailures results =
     results
@@ -79,12 +154,12 @@ let countResultSuccess results =
         | Success _ -> true)
     |> Array.length
 
-let dump (title: string)
-         (strecke: RouteInfo)
-         (precodedStations: StationOfInfobox [])
-         (stations: StationOfRoute [])
-         (results: ResultOfStation [])
-         =
+let private dump (title: string)
+                 (strecke: RouteInfo)
+                 (precodedStations: OpPointOfInfobox [])
+                 (stations: WkOpPointOfRoute [])
+                 (results: ResultOfOpPoint [])
+                 =
     let lines = ResizeArray<string>()
     sprintf "fromTo: %A" [| strecke.von; strecke.bis |]
     |> lines.Add
@@ -112,7 +187,7 @@ let dump (title: string)
          + ".txt",
          s)
 
-let private isDbRouteComplete (results: ResultOfStation []) (dbStations: DbStationOfRoute []) =
+let private isDbRouteComplete (results: ResultOfOpPoint []) (dbStations: DbOpPointOfRoute []) =
     let dbFirst = dbStations.[0]
     let dbLast = dbStations.[dbStations.Length - 1]
 
@@ -163,14 +238,14 @@ let private isShutdownStation (symbols: string []) =
     symbols
     |> Array.exists (fun s -> s.StartsWith "x" || s.StartsWith "e")
 
-let private countShutdownStations (stationsOfInfobox: seq<StationOfInfobox>) =
+let private countShutdownStations (stationsOfInfobox: seq<OpPointOfInfobox>) =
     stationsOfInfobox
     |> Seq.filter (fun s ->
         isStation s.symbols checkIsShutdownBhfSymbolTypes
         && isShutdownStation s.symbols)
     |> Seq.length
 
-let private countActiveStations (stationsOfInfobox: seq<StationOfInfobox>) =
+let private countActiveStations (stationsOfInfobox: seq<OpPointOfInfobox>) =
     stationsOfInfobox
     |> Seq.filter (fun s ->
         isStation s.symbols checkIsActiveBhfSymbolTypes
@@ -181,9 +256,9 @@ let private compareStations (title: string)
                             (routesInTitle: int)
                             (routeInfoOrig: RouteInfo)
                             (routeInfoMatched: RouteInfo)
-                            (wikiStations: StationOfRoute [])
-                            (dbStations: DbStationOfRoute [])
-                            (stationsOfInfobox: StationOfInfobox [])
+                            (wikiStations: WkOpPointOfRoute [])
+                            (dbStations: DbOpPointOfRoute [])
+                            (stationsOfInfobox: OpPointOfInfobox [])
                             =
     let resultsOfMatch =
         if wikiStations.Length > 0 && dbStations.Length > 0
@@ -240,10 +315,10 @@ let private compareStations (title: string)
 
 let private printResult (title: string)
                         (streckeMatched: RouteInfo)
-                        (wikiStations: StationOfRoute [])
-                        (stationsOfInfobox: StationOfInfobox [])
+                        (wikiStations: WkOpPointOfRoute [])
+                        (stationsOfInfobox: OpPointOfInfobox [])
                         showDetails
-                        ((resultOfRoute, resultsOfMatch): (ResultOfRoute * ResultOfStation []))
+                        ((resultOfRoute, resultsOfMatch): (ResultOfRoute * ResultOfOpPoint []))
                         =
     if (showDetails) then
         dump title streckeMatched stationsOfInfobox wikiStations resultsOfMatch
@@ -272,9 +347,13 @@ let private isPassengerRoute (routeInfo: RouteInfo) =
     not
         (routeInfo.railwayGuide.IsSome
          && routeInfo.railwayGuide.Value.Contains "nur Güterverkehr")
-    && checkPersonenzugStreckenutzung routeInfo.nummer
+    && DbData.checkPersonenzugStreckenutzung routeInfo.nummer
 
-let private findPassengerRouteInfoInTemplates (routeInfosFromParameter: List<RouteInfo>) title showDetails =
+let private findPassengerRouteInfoInTemplates (routeInfosFromParameter: List<RouteInfo>)
+                                              title
+                                              showDetails
+                                              (loadRoute: int -> DbOpPointOfRoute [])
+                                              =
     let passengerRoutes =
         routeInfosFromParameter
         |> List.filter isPassengerRoute
@@ -285,31 +364,31 @@ let private findPassengerRouteInfoInTemplates (routeInfosFromParameter: List<Rou
             printResultOfRoute
                 showDetails
                 (createResult title route.nummer routeInfosFromParameter.Length Types.ResultKind.RouteIsNoPassengerTrain)
-            let dbStations = loadDBStations route.nummer
+            let dbStations = loadRoute route.nummer
             DbData.dump title route.nummer dbStations
             ResultsOfMatch.dump title route.nummer (ResultsOfMatch.toResultOfStation dbStations))
     passengerRoutes
 
-let compare showDetails title templates =
+let compare showDetails title (loadRoute: int -> DbOpPointOfRoute []) templates =
     let stationsOfInfobox =
         templates
         |> Array.map findStationOfInfobox
         |> Array.choose id
 
-    StationsOfInfobox.dump title stationsOfInfobox
+    OpPointsOfInfobox.dump title stationsOfInfobox
 
     let routeInfosFromParameter =
         findRouteInfoInTemplatesWithParameter templates title showDetails
 
     let routeInfos =
-        findPassengerRouteInfoInTemplates routeInfosFromParameter title showDetails
+        findPassengerRouteInfoInTemplates routeInfosFromParameter title showDetails loadRoute
 
     routeInfos
     |> Seq.iter (fun route ->
         let routeMatched =
             findRouteInfoStations route stationsOfInfobox (routeInfos.Length = 1)
 
-        let dbStations = loadDBStations routeMatched.nummer
+        let dbStations = loadRoute routeMatched.nummer
         DbData.dump title routeMatched.nummer dbStations
 
         let wikiStations =
@@ -317,7 +396,7 @@ let compare showDetails title templates =
             then filterStations routeMatched stationsOfInfobox
             else Array.empty
 
-        StationsOfRoute.dump title routeMatched wikiStations
+        OpPointsOfRoute.dump title routeMatched wikiStations
         compareStations
             title
             routeInfosFromParameter.Length

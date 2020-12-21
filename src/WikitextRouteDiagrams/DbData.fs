@@ -16,7 +16,7 @@ type Strecke =
       STRNAME: string
       STRKURZN: string }
 
-type BetriebsstelleRailwayRoutePosition =
+type OperationalPointRailwayRoutePosition =
     { STRECKE_NR: int
       RICHTUNG: int
       KM_I: int
@@ -107,7 +107,7 @@ let private loadStreckenCsvData () =
 
 let private loadStreckenCsvDataCached = memoize loadStreckenCsvData
 
-let private loadBetriebsstellenCsvData () =
+let private loadOperationalPointsCsvData () =
     loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun dict row ->
         let data =
             { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
@@ -126,7 +126,7 @@ let private loadBetriebsstellenCsvData () =
         dict |> add data.STRECKE_NR data
         dict)
 
-let loadBetriebsstellenCsvDataCached = memoize loadBetriebsstellenCsvData
+let loadOperationalPointsCsvDataCached = memoize loadOperationalPointsCsvData
 
 let private loadStreckenutzungCsvData () =
     loadCsvData "./dbdata/original/strecken_nutzung.csv" 1252 (fun dict row ->
@@ -157,15 +157,15 @@ let removeRest (name: string) (pattern: string) =
     let index = name.IndexOf(pattern)
     if index > 0 then name.Substring(0, index) else name
 
-/// split streckekurzname like 'Bln-Spandau - Hamburg-Altona'
-let splitStreckekurzname (streckekurzname: string) =
+/// split route name like 'Bln-Spandau - Hamburg-Altona'
+let private splitRoutename (streckekurzname: string) =
     let split = streckekurzname.Split " - "
     if (split.Length = 2) then split else Array.empty
 
 /// ignore meters < 100
 let kmIEqual (km_I0: int) (km_I1: int) = abs (km_I0 - km_I1) < 100
 
-let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwayRoutePosition>) =
+let private addRouteEndpoints (route: Strecke) (dbdata: seq<OperationalPointRailwayRoutePosition>) =
     let indexAnf =
         dbdata
         |> Seq.tryFind (fun d -> kmIEqual d.KM_I route.KMANF_E)
@@ -174,14 +174,23 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
         dbdata
         |> Seq.tryFind (fun d -> kmIEqual d.KM_I route.KMEND_E)
 
-    let split = splitStreckekurzname route.STRNAME
+    let split = splitRoutename route.STRNAME
 
     if split.Length = 2
        && (indexAnf.IsNone || indexEnd.IsNone) then
 
+        let isRailroadSwitch =
+            AdhocReplacements.regexRailroadSwitch.IsMatch split.[0]
+
+        let useDistance =
+            not isRailroadSwitch
+            || split.[0].StartsWith "Abzw "
+
+
         let station0 =
             split.[0]
             |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRailroadSwitch
+            |> StringUtilities.replaceFromListToEmpty [ "Abzw " ]
 
         let found0 =
             dbdata
@@ -191,13 +200,13 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
             if indexAnf.IsNone && not found0 then
                 [ { STRECKE_NR = route.STRNR
                     RICHTUNG = 1
-                    KM_I = route.KMANF_E
+                    KM_I = if useDistance then route.KMANF_E else 100000000
                     KM_L = route.KMANF_V
-                    BEZEICHNUNG = split.[0]
+                    BEZEICHNUNG = station0
                     STELLE_ART = "ANF"
                     KUERZEL = ""
                     GEOGR_BREITE = 0.0
-                    GEOGR_LAENGE = 0.0 } ] :> seq<BetriebsstelleRailwayRoutePosition>
+                    GEOGR_LAENGE = 0.0 } ] :> seq<OperationalPointRailwayRoutePosition>
             else
                 Seq.empty
 
@@ -219,7 +228,7 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
                     STELLE_ART = "END"
                     KUERZEL = ""
                     GEOGR_BREITE = 0.0
-                    GEOGR_LAENGE = 0.0 } ] :> seq<BetriebsstelleRailwayRoutePosition>
+                    GEOGR_LAENGE = 0.0 } ] :> seq<OperationalPointRailwayRoutePosition>
             else
                 Seq.empty
 
@@ -227,8 +236,35 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<BetriebsstelleRailwa
     else
         dbdata
 
-let private loadDBRoutePosition routenr =
-    match (loadBetriebsstellenCsvDataCached ()).TryGetValue routenr with
+/// load
+/// name - route start op
+/// km - reference of kilometering of line
+let loadRouteStart routenr =
+    match (loadStreckenCsvDataCached ()).TryGetValue routenr with
+    | true, routes when routes.Count = 1 ->
+        let route = routes.[0]
+        let split = splitRoutename route.STRNAME
+
+        if split.Length = 2 then
+            // split.[0] may contain
+            // - a junction 'Abzw j, W n'
+            // - a junction with a station name 's, W n'
+            // - a station name 's'
+
+            let station =
+                split.[0]
+                |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexRailroadSwitch
+                |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexTrackInStation
+                |> StringUtilities.replaceFromListToEmpty [ "Abzw " ]
+
+            let km = getKMI2Float route.KMANF_E
+            if km >= 0.0 then Some(station, km) else Some("", km)
+        else
+            None
+    | _ -> None
+
+let private loadRoutePosition routenr =
+    match (loadOperationalPointsCsvDataCached ()).TryGetValue routenr with
     | true, dbdata ->
         let dbdataOfRoute =
             dbdata
@@ -242,8 +278,8 @@ let private loadDBRoutePosition routenr =
             dbdataOfRoute
     | _ -> Seq.empty
 
-let loadDBStations routenr =
-    loadDBRoutePosition routenr
+let loadRoute routenr =
+    loadRoutePosition routenr
     |> Seq.map (fun p ->
         { km = getKMI2Float p.KM_I
           name = p.BEZEICHNUNG
@@ -256,9 +292,9 @@ let checkPersonenzugStreckenutzung routenr =
     | true, dbdata ->
         dbdata
         |> Seq.map (fun s -> s.bahnnutzung)
-        |> Seq.exists (fun bn -> bn.Contains "Pz")
+        |> Seq.forall (fun bn -> bn.Contains "Pz")
     | _ -> true
 
-let dump (title: string) (strecke: int) (stations: DbStationOfRoute []) =
-    DataAccess.DbStationOfRoute.insert title strecke stations
+let dump (title: string) (strecke: int) (stations: DbOpPointOfRoute []) =
+    DataAccess.DbOpPointOfRoute.insert title strecke stations
     |> ignore

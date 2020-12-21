@@ -10,7 +10,7 @@
     <Compile Include="UnitTestParse.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.SystemTextJson" Version="0.14.8" />
+    <PackageReference Include="FSharp.SystemTextJson" Version="0.15.14" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />

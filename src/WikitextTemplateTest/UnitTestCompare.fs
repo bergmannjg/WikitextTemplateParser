@@ -4,7 +4,7 @@ module TestCompare
 open NUnit.Framework
 open Templates
 open RouteInfo
-open StationsOfRoute
+open OpPointsOfRoute
 open Types
 
 [<SetUp>]
@@ -25,7 +25,7 @@ let loadTemplatesForWikiTitle (title: string) =
         fprintfn stderr "file not found: %s" path
         Array.empty
 
-let checkStationDistance (stations: StationOfRoute []) (name: string) (km: string) =
+let checkStationDistance (stations: WkOpPointOfRoute []) (name: string) (km: string) =
     let s =
         stations |> Array.tryFind (fun b -> b.name = name)
 

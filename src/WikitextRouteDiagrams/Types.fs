@@ -3,27 +3,31 @@ module Types
 
 // fsharplint:disable RecordFieldNames
 
-type DbStationOfRoute =
+/// operational point of db data
+type DbOpPointOfRoute =
     { km: float
       name: string
       STELLE_ART: string
       KUERZEL: string }
 
-type StationOfInfobox =
+/// operational point of wiki infobox
+type OpPointOfInfobox =
     { symbols: string []
       distances: float []
       name: string
       link: string
       shortname: string } // ds100
 
-type StationOfRoute =
+/// operational point of wiki data
+type WkOpPointOfRoute =
     { kms: float []
       name: string
       shortname: string }
 
+/// result kind of route match
 type ResultKind =
     | WikidataFoundInDbData
-    | StartStopStationsNotFound
+    | StartStopOpPointsNotFound
     | WikidataNotFoundInTemplates
     | WikidataNotFoundInDbData
     | WikidataWithoutDistancesInDbData
@@ -52,29 +56,38 @@ type ResultOfRoute =
       railwayGuide: string
       isCompleteDbRoute: bool }
 
-/// kind of match of wk station name and db station name
+/// kind of match of wk operational point and db operational point
 type MatchKind =
     | EqualShortNames
     | EqualShortNamesNotDistance
     | EqualNames
     | EqualtNamesNotDistance
+    | EqualWithoutIgnoredNotDistance
     | EqualWithoutIgnored
     | EqualWithoutParentheses
+    | EqualBorder
+    | EqualBorderNotDistance
     | EqualOrderChanged
-    | StartsWith
-    | EndsWith
     | Levenshtein
+    | LevenshteinNotDistance
+    | StartsWith
+    | StartsWithNotDistance
+    | EndsWith
+    | EndsWithNotDistance
     | SameSubstring
     | SameSubstringNotDistance
+    | SpecifiedMatch
+    | IgnoredDbOpPoint
+    | IgnoredWkOpPoint
     | Failed
+    
+/// result of match of operational points
+type ResultOfOpPoint =
+    | Success of DbOpPointOfRoute * WkOpPointOfRoute * MatchKind
+    | Failure of DbOpPointOfRoute
 
-/// result of station match
-type ResultOfStation =
-    | Success of DbStationOfRoute * StationOfRoute * MatchKind
-    | Failure of DbStationOfRoute
-
-/// view of ResultOfStation.Success
-type StationOfDbWk =
+/// view of ResultOfOpPoint.Success
+type OpPointOfDbWk =
     { dbname: string
       dbkm: float
       wkname: string
@@ -89,6 +102,7 @@ type RoutenameKind =
     | Text
     | Unmatched
 
+/// info of a route in a wikipedia article
 type RouteInfo =
     { nummer: int
       title: string

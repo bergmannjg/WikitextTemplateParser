@@ -10,9 +10,13 @@ function loadResultsTable(tableId, statusElementId, url) {
         layout: "fitColumns",
         pagination: "local",
         paginationSize: 20,
+        initialHeaderFilter:[
+            {field:"resultKind.Case", value:"WikidataNotFoundInDbData"} 
+        ],
+        initialSort:[
+            {column:"route", dir:"asc"}, //sort by this first
+        ],
         dataFiltered: function (filters, rows) {
-            //filters - array of filters currently applied
-            //rows - array of row components that pass the filters
             statusElementId.textContent = rows.length + " rows selected"
         },
         columns: [
@@ -187,6 +191,7 @@ function loadDbStationOfRouteTable(id, url) {
         layout: "fitColumns",
         columns: [
             { title: "Station", field: "name" },
+            { title: "DS100", field: "KUERZEL" },
             { title: "Distance", field: "km", width: 150 },
             { title: "Art", field: "STELLE_ART", width: 150 }
         ],
@@ -194,13 +199,45 @@ function loadDbStationOfRouteTable(id, url) {
 
 }
 
-function loadStationOfDbWkTable(id, url) {
+function loadRInfStationOfRouteTable(id, url) {
 
     new Tabulator(id, {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
-            { title: "DB Station", field: "dbname" },
+            { title: "Station", field: "name" },
+            { title: "DS100", field: "KUERZEL", width: 200 },
+            { title: "Art", field: "STELLE_ART", width: 200 },
+            { title: "Distance", field: "km", width: 200 }
+        ],
+    });
+
+}
+
+function loadRInfSolOfRouteTable(id, url) {
+
+    new Tabulator(id, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        columns: [
+            { title: "Start", field: "OperationalPointStart" },
+            { title: "End", field: "OperationalPointEnd" },
+            { title: "LengthOfSoL", field: "LengthOfSoL", width: 150 },
+        ],
+    });
+
+}
+
+function loadStationOfDbWkTable(title,route,id, url) {
+
+    new Tabulator(id, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        columns: [
+            { title: "DB Station", field: "dbname", cellClick: function(e, cell){
+                        alert("(\"" + title + "\", " + route + ", \""+ cell.getValue() + "\", \"\")")
+                    } 
+            },
             {
                 title: "Db Distance", field: "dbkm", width: 90, formatter: function (cell, formatterParams, onRendered) {
                     return cell.getValue().toFixed(1);
