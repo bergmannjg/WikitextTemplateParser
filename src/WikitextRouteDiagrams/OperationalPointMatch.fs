@@ -14,10 +14,13 @@ let private replaceIgnored s =
     s
     |> StringUtilities.replaceFromListToEmpty AdhocReplacements.OpPointMatch.ignoreStringsInStationname
     |> StringUtilities.replaceWithBlank '-'
+    |> StringUtilities.replaceWithBlank '.'
     |> StringUtilities.replaceWithBlank ','
     |> StringUtilities.replaceWithBlank '“'
     |> StringUtilities.replaceWithBlank '„'
     |> StringUtilities.trim
+
+let private replaceMultipleSpaces (s: string) = s.Replace(" ", "")
 
 let checkEqualOrderChanged (s1: string) (s2: string) =
     if s1.Contains ' ' && s2.Contains ' ' then
@@ -34,7 +37,10 @@ let checkStartsWith (s1: string) (s2: string) =
 
 let private prepareWkName wikiName =
     let wikiName0 = replaceIgnored wikiName
-    (wikiName0, StringUtilities.replaceFromRegexToEmpty regexTextInParentheses wikiName0)
+
+    (wikiName0,
+     StringUtilities.replaceFromRegexToEmpty regexTextInParentheses wikiName0
+     |> replaceMultipleSpaces)
 
 let private prepareDbName dbName =
     let dbName0 =
@@ -44,7 +50,9 @@ let private prepareDbName dbName =
         |> replaceIgnored
         |> StringUtilities.replaceFromRegexToEmpty AdhocReplacements.regexChangeOfRoute2
 
-    (dbName0, StringUtilities.replaceFromRegexToEmpty regexTextInParentheses dbName0)
+    (dbName0,
+     StringUtilities.replaceFromRegexToEmpty regexTextInParentheses dbName0
+     |> replaceMultipleSpaces)
 
 let private checkBorder (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) withDistance =
     (wikiStation.name.Contains "Staatsgrenze"
@@ -54,10 +62,8 @@ let private checkBorder (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfR
         || dbStation.STELLE_ART = RInfData.StelleArtGrenze
         || withDistance && dbStation.name.Contains "Grenze")
 
-let private tryMatch (op: unit -> bool) (mknext: MatchKind) (mkprev: MatchKind option) =
-    match mkprev with
-    | Some _ -> mkprev
-    | None -> if op () then Some mknext else None
+let private orElse (op: unit -> bool) (mknext: MatchKind) (mkprev: MatchKind option) =
+    Option.orElseWith (fun _ -> if op () then Some mknext else None) mkprev
 
 /// no strict matching af names
 let matchStationName (wikiName: string) (dbName: string) withDistance =
@@ -65,20 +71,16 @@ let matchStationName (wikiName: string) (dbName: string) withDistance =
     let (dbName0, dbNamex) = prepareDbName dbName
     let limit = if withDistance then 5 else 12
 
-    if wikiName.Contains "Satz" && dbName.Contains "Satz"
-    then 
-        printfn "%s" wikiName
-
-    tryMatch (fun _ -> System.String.Compare(wikiName, dbName, true) = 0) MatchKind.EqualNames None
-    |> tryMatch (fun _ -> wikiName0 = dbName0) MatchKind.EqualWithoutIgnored
-    |> tryMatch (fun _ -> wikiNamex = dbNamex) MatchKind.EqualWithoutParentheses
-    |> tryMatch (fun _ -> checkEqualOrderChanged wikiName0 dbName0) MatchKind.EqualOrderChanged
-    |> tryMatch (fun _ -> checkStartsWith dbName0 wikiName0) MatchKind.StartsWith
-    |> tryMatch (fun _ -> dbName0.EndsWith wikiName0) MatchKind.EndsWith
-    |> tryMatch (fun _ -> checkStartsWith wikiName0 dbName0) MatchKind.StartsWith
-    |> tryMatch (fun _ -> wikiName0.EndsWith dbName0) MatchKind.EndsWith
-    |> tryMatch (fun _ -> StringUtilities.startsWithSameSubstring wikiName0 dbName0 limit) MatchKind.SameSubstring
-    |> tryMatch (fun _ -> (StringUtilities.levensht wikiNamex dbNamex) <= 3) MatchKind.Levenshtein
+    None
+    |> orElse (fun _ -> System.String.Compare(wikiName, dbName, true) = 0) MatchKind.EqualNames
+    |> orElse (fun _ -> System.String.Compare(wikiName0, dbName0, true) = 0) MatchKind.EqualWithoutIgnored
+    |> orElse (fun _ -> System.String.Compare(wikiNamex, dbNamex, true) = 0) MatchKind.EqualWithoutParentheses
+    |> orElse (fun _ -> checkEqualOrderChanged wikiName0 dbName0) MatchKind.EqualOrderChanged
+    |> orElse (fun _ -> checkStartsWith dbName0 wikiName0) MatchKind.StartsWith
+    |> orElse (fun _ -> dbName0.EndsWith wikiName0) MatchKind.EndsWith
+    |> orElse (fun _ -> checkStartsWith wikiName0 dbName0) MatchKind.StartsWith
+    |> orElse (fun _ -> wikiName0.EndsWith dbName0) MatchKind.EndsWith
+    |> orElse (fun _ -> StringUtilities.startsWithSameSubstring wikiName0 dbName0 limit) MatchKind.SameSubstring
     |> Option.fold (fun _ mk -> mk) MatchKind.Failed
 
 /// the distance matches, if any of the wikiDistances matches with the dbDistance
@@ -121,7 +123,6 @@ let private matchkindOfWkStationWithDbStationPhase2 (wikiStation: WkOpPointOfRou
         match matchStationName wikiStation.name dbStation.name false with
         | MatchKind.EqualNames -> MatchKind.EqualtNamesNotDistance
         | MatchKind.EqualWithoutIgnored -> MatchKind.EqualWithoutIgnoredNotDistance
-        | MatchKind.Levenshtein -> MatchKind.LevenshteinNotDistance
         | MatchKind.StartsWith -> MatchKind.StartsWithNotDistance
         | MatchKind.EndsWith -> MatchKind.EndsWithNotDistance
         | MatchKind.SameSubstring -> MatchKind.SameSubstringNotDistance

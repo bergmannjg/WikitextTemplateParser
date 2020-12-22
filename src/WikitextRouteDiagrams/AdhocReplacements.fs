@@ -266,6 +266,7 @@ module Comparer =
            ("Bahnstrecke Hagen–Hamm", 2550, "Schwerte (Ruhr) Ost", "Schwerte Heide")
            ("Bahnstrecke Düsseldorf–Elberfeld", 2550, "Wuppertal Linden", "Linden")
            ("Bahnstrecke Elberfeld–Dortmund", 2801, "Dortmund Dfd", "Strecke nach Soest")
+           ("Bahnstrecke Finnentrop–Freudenberg", 2864, "Hohenhagen", "Attendorn-Hohen Hagen")
            ("Bahnstrecke Göttingen–Bebra", 3600, "Eschwege-Stegmühle", "Eschwege West Stegmühle")
            ("Bahnstrecke Göttingen–Bebra", 3600, "Eschwege-Wehre", "Eschwege West Wehre")
            ("Bahnstrecke Stuttgart–Tuttlingen", 4600, "Rietheim-Weilheim", "Weilheim (Württ)")

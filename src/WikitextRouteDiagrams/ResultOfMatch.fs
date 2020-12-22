@@ -45,6 +45,7 @@ let getResultKind countWikiStops
                   (countShutdownStations: int)
                   =
     let dbStopsWithRoute = countDbStops > 0
+
     if countWikiStops = 0 && dbStopsWithRoute then
         StartStopOpPointsNotFound
     else if dbStopsWithRoute && unmatched then
@@ -62,8 +63,7 @@ let getResultKind countWikiStops
     else if countWikiStops = 0 && dbStopsWithRoute then
         WikidataNotFoundInTemplates
     else if not dbStopsWithRoute then
-        if countShutdownStations
-           >= 2
+        if countShutdownStations >= 2
            && countAciveStations <= 2 then
             RouteIsShutdown
         else if guessRailwayGuideIsValid railwayGuide then
@@ -75,25 +75,28 @@ let getResultKind countWikiStops
 
 let existsInDbSuccessResults (pred: DbOpPointOfRoute -> bool) (results: seq<ResultOfOpPoint>) =
     results
-    |> Seq.exists (fun result ->
-        match result with
-        | Success (db, _, _) -> pred (db)
-        | _ -> false)
+    |> Seq.exists
+        (fun result ->
+            match result with
+            | Success (db, _, _) -> pred (db)
+            | _ -> false)
 
 let tryFindIndexWkNameInSuccessResults (wkname: string) (results: seq<ResultOfOpPoint>) =
     results
-    |> Seq.tryFindIndex (fun result ->
-        match result with
-        | Success (_, wk, _) -> wk.name = wkname
-        | _ -> false)
+    |> Seq.tryFindIndex
+        (fun result ->
+            match result with
+            | Success (_, wk, _) -> wk.name = wkname
+            | _ -> false)
 
 let getSuccessMinMaxDbKm (results: seq<ResultOfOpPoint>) =
     let dbkm =
         results
-        |> Seq.map (fun result ->
-            match result with
-            | Success (db, _, mk) when mk <> MatchKind.SameSubstringNotDistance -> Some(db.km)
-            | _ -> None)
+        |> Seq.map
+            (fun result ->
+                match result with
+                | Success (db, _, mk) when mk <> MatchKind.SameSubstringNotDistance -> Some(db.km)
+                | _ -> None)
         |> Seq.choose id
 
     if Seq.isEmpty dbkm then
@@ -115,13 +118,14 @@ let private getCandidate (l: ((DbOpPointOfRoute * WkOpPointOfRoute * MatchKind) 
 let removeDoubleWkStations (results: ResultOfOpPoint []) =
     let candidates =
         results
-        |> Array.map (fun r ->
-            match r with
-            | Success (db, wk, mk) ->
-                if db.STELLE_ART <> RInfData.StelleArtGrenze
-                then Some(db, wk, mk)
-                else None
-            | Failure (_) -> None)
+        |> Array.map
+            (fun r ->
+                match r with
+                | Success (db, wk, mk) ->
+                    if db.STELLE_ART <> RInfData.StelleArtGrenze
+                    then Some(db, wk, mk)
+                    else None
+                | Failure (_) -> None)
         |> Array.choose id
         |> Array.groupBy (fun (db, wk, mk) -> (wk.name, wk.kms))
         |> Array.filter (fun ((s, kms), v) -> s.Length > 0 && v.Length > 1)
@@ -131,14 +135,15 @@ let removeDoubleWkStations (results: ResultOfOpPoint []) =
         results
     else
         results
-        |> Array.map (fun r ->
-            match r with
-            | Success (db, wk, _) ->
-                match candidates
-                      |> Array.tryFind (fun (c_db, c_wk, c_mk) -> wk.name = c_wk.name) with
-                | Some (c_db, c_wk, c_mk) -> if db.name = c_db.name then r else Failure db
-                | None -> r
-            | Failure (_) -> r)
+        |> Array.map
+            (fun r ->
+                match r with
+                | Success (db, wk, _) ->
+                    match candidates
+                          |> Array.tryFind (fun (c_db, c_wk, c_mk) -> wk.name = c_wk.name) with
+                    | Some (c_db, c_wk, c_mk) -> if db.name = c_db.name then r else Failure db
+                    | None -> r
+                | Failure (_) -> r)
 
 let private filterResultsOfRouteWithRouteInfo (route: RouteInfo) (results: ResultOfOpPoint []) =
     let maybefrom =
@@ -157,14 +162,16 @@ let private filterResultsOfRouteWithRouteInfo (route: RouteInfo) (results: Resul
 
 let private filterResultsOfRouteWithKm (route: RouteInfo) (results: ResultOfOpPoint []) =
     let fromToKm = getSuccessMinMaxDbKm results // assumes start/stop of route is in success array
+
     match fromToKm with
     | [| fromKm; toKm |] when fromKm = toKm -> results
     | [| fromKm; toKm |] ->
         results
-        |> Array.filter (fun result ->
-            match result with
-            | Failure s -> (s.km) >= fromKm && (s.km) <= toKm
-            | _ -> true)
+        |> Array.filter
+            (fun result ->
+                match result with
+                | Failure s -> (s.km) >= fromKm && (s.km) <= toKm
+                | _ -> true)
     | _ -> Array.empty
 
 /// filter results outside of current route
@@ -178,8 +185,15 @@ let showComparisonResults () =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
 
-    printfn "distinct routes count: %d" (results |> Array.countBy (fun r -> r.route)).Length
-    printfn "articles count : %d" (results |> Array.countBy (fun r -> r.title)).Length
+    printfn
+        "distinct routes count: %d"
+        (results |> Array.countBy (fun r -> r.route))
+            .Length
+
+    printfn
+        "articles count : %d"
+        (results |> Array.countBy (fun r -> r.title))
+            .Length
 
     for case in FSharpType.GetUnionCases typeof<ResultKind> do
         let rk =
@@ -189,7 +203,8 @@ let showComparisonResults () =
             "ResultKind: %s %d"
             case.Name
             (results
-             |> Array.filter (fun r -> r.resultKind = rk)).Length
+             |> Array.filter (fun r -> r.resultKind = rk))
+                .Length
 
 let private showMatchKindStatistic (mk: MatchKind) (l: List<MatchKind * int>) =
     match l |> List.tryFind (fun (mk0, _) -> mk = mk0) with
@@ -201,7 +216,7 @@ let showNotFoundStatistics () =
         AdhocReplacements.Comparer.matchingsOfDbWkOpPoints
         |> Array.groupBy (fun (_, r, _, _) -> r)
         |> Array.map (fun (k, _) -> k)
- 
+
     printfn "matchingsOfDbWkOpPoints, entries %d" AdhocReplacements.Comparer.matchingsOfDbWkOpPoints.Length
     printfn "matchingsOfDbWkOpPoints, routes %d" groupsMatchingsOfDbWkOpPoints.Length
 
@@ -213,13 +228,14 @@ let showNotFoundStatistics () =
     printfn "nonexistentWkOpPoints, entries %d" AdhocReplacements.Comparer.nonexistentWkOpPoints.Length
     printfn "nonexistentWkOpPoints, routes %d" groupsNonexistentWkOpPoints.Length
 
-    let routes = 
-        Array.concat [groupsMatchingsOfDbWkOpPoints; groupsNonexistentWkOpPoints]
+    let routes =
+        Array.concat [ groupsMatchingsOfDbWkOpPoints
+                       groupsNonexistentWkOpPoints ]
         |> Array.distinct
 
     printfn "total routes %d" routes.Length
 
-let showMatchKindStatistics () =
+let showMatchKindStatistics verbose =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
 
@@ -235,23 +251,54 @@ let showMatchKindStatistics () =
     let examples =
         routesAndStations
         |> List.groupBy (fun (r, s) -> s.matchkind)
-        |> List.map (fun (k, l) ->
-            printfn
-                "kind %A %A"
-                k
-                (if numExamplesPerRoute > l.Length then
-                    List.empty
-                 else
-                     ((List.take numExamplesPerRoute l)
-                      |> List.map (fun (r, s) -> (r, s.dbname, s.wkname))))
-            (k, l.Length))
+        |> List.map
+            (fun (k, l) ->
+                if verbose then
+                    printfn
+                        "kind %A %A"
+                        k
+                        (if numExamplesPerRoute > l.Length then
+                            List.empty
+                         else
+                             ((List.take numExamplesPerRoute l)
+                              |> List.map (fun (r, s) -> (r, s.dbname, s.wkname))))
 
-    printfn "MatchKindStatistics"
+                (k, l.Length))
+
+    printfn "MatchKindStatistics, total: %d" routesAndStations.Length
+
     for case in FSharpType.GetUnionCases typeof<MatchKind> do
         let mk =
             FSharpValue.MakeUnion(case, [||]) :?> MatchKind
 
         showMatchKindStatistic mk examples
+
+    let groups =
+        [ [ EqualShortNames
+            EqualShortNamesNotDistance ]
+          [ EqualNames; EqualtNamesNotDistance ]
+          [ SameSubstring
+            SameSubstringNotDistance
+            EqualWithoutIgnoredNotDistance
+            EqualWithoutIgnored
+            EqualWithoutParentheses
+            EqualBorder
+            EqualBorderNotDistance
+            EqualOrderChanged
+            StartsWith
+            StartsWithNotDistance
+            EndsWith
+            EndsWithNotDistance ] ]
+
+    printfn "MatchKindStatistics of groups"
+
+    for g in groups do
+        let sum =
+            examples
+            |> List.filter (fun (mk, _) -> g |> List.exists ((=) mk))
+            |> List.fold (fun s (_, len) -> s + len) 0
+
+        printfn "%A %d" g.[0] sum
 
 let toResultOfStation (stations: seq<DbOpPointOfRoute>) =
     stations |> Seq.map (fun db -> Failure(db))
@@ -265,11 +312,13 @@ let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
                 resultOfRoute.title
                 resultOfRoute.route
                 resultOfRoute.fromToNameOrig.[0]
+
             printfn
                 "(\"%s\", %d, \"%s\", \"\")"
                 resultOfRoute.title
                 resultOfRoute.route
                 resultOfRoute.fromToNameOrig.[1]
+
         printfn
             "%A"
             { resultOfRoute with
@@ -282,20 +331,21 @@ let printResultOfRoute showDetails (resultOfRoute: ResultOfRoute) =
 let dump (title: string) (route: int) (results: seq<ResultOfOpPoint>) =
     let both =
         results
-        |> Seq.map (fun result ->
-            match result with
-            | Failure db ->
-                { dbname = db.name
-                  dbkm = db.km
-                  wkname = ""
-                  wkkms = [||]
-                  matchkind = MatchKind.Failed }
-            | Success (db, wk, mk) ->
-                { dbname = db.name
-                  dbkm = db.km
-                  wkname = wk.name
-                  wkkms = wk.kms
-                  matchkind = mk })
+        |> Seq.map
+            (fun result ->
+                match result with
+                | Failure db ->
+                    { dbname = db.name
+                      dbkm = db.km
+                      wkname = ""
+                      wkkms = [||]
+                      matchkind = MatchKind.Failed }
+                | Success (db, wk, mk) ->
+                    { dbname = db.name
+                      dbkm = db.km
+                      wkname = wk.name
+                      wkkms = wk.kms
+                      matchkind = mk })
         |> Seq.toList
 
     DataAccess.DbWkOpPointOfRoute.insert title route both

@@ -65,7 +65,8 @@ let main argv =
     | [| "-showComparisonResults" |] -> showComparisonResults ()
     | [| "-classifyRouteInfos" |] -> classifyRouteInfos ()
     | [| "-showRouteInfoResults" |] -> showRouteInfoResults ()
-    | [| "-showMatchKindStatistics" |] -> showMatchKindStatistics ()
+    | [| "-verbose"; "-showMatchKindStatistics" |] -> showMatchKindStatistics true
+    | [| "-showMatchKindStatistics" |] -> showMatchKindStatistics false
     | [| "-showNotFoundStatistics" |] -> showNotFoundStatistics ()
     | [| "-queryName"; name |] -> OpPointsOfInfobox.queryName name
     | [| "-loadOsmData"; route |] -> loadOsmData (route |> int)

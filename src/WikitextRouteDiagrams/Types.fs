@@ -68,8 +68,6 @@ type MatchKind =
     | EqualBorder
     | EqualBorderNotDistance
     | EqualOrderChanged
-    | Levenshtein
-    | LevenshteinNotDistance
     | StartsWith
     | StartsWithNotDistance
     | EndsWith
