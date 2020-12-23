@@ -300,6 +300,30 @@ let showMatchKindStatistics verbose =
 
         printfn "%A %d" g.[0] sum
 
+    let titlesAndRoutesAndStations =
+        [ for r in results do
+            if r.resultKind = ResultKind.WikidataFoundInDbData
+               || r.resultKind = ResultKind.WikidataNotFoundInDbData then
+                for s in DataAccess.DbWkOpPointOfRoute.query r.title r.route do
+                    yield! s |> List.map (fun s -> (r.title, r.route, s)) ]
+
+    let routesOnlyEqualNames =
+        titlesAndRoutesAndStations
+        |> List.groupBy (fun (t, r, s) -> (t, r))
+        |> List.filter
+            (fun (r, l) ->
+                l
+                |> List.forall
+                    (fun (_, _, s) ->
+                        match s.matchkind with
+                        | EqualNames
+                        | EqualtNamesNotDistance
+                        | EqualShortNames
+                        | EqualShortNamesNotDistance -> true
+                        | _ -> false))
+
+    printfn "routesOnlyEqualNames: count %d" routesOnlyEqualNames.Length
+
 let toResultOfStation (stations: seq<DbOpPointOfRoute>) =
     stations |> Seq.map (fun db -> Failure(db))
 

@@ -5,7 +5,6 @@ open ResultsOfMatch
 open Wikidata
 open ParserProcessing
 open OpPointMatch
-open RInfData
 
 let loadTemplatesOfRoutesFromFile filename =
     System.IO.File.ReadAllLines filename
@@ -27,13 +26,17 @@ let classifyRouteInfos () =
     DataAccess.TemplatesOfRoute.queryKeys()
     |> List.iter (classifyRouteInfo false)
 
-let comparetitle showDetails title =
+let private chooseRouteLoader () =
+    if System.IO.Directory.Exists "./dbdata/RINF" then RInfData.loadRoute else DbData.loadRoute
+
+let comparetitle showDetails loadRoute title =
     loadTemplatesForWikiTitle title  
-    |> compare showDetails title RInfData.loadRoute
+    |> compare showDetails title loadRoute
 
 let comparetitles () =
+    let loadRoute = chooseRouteLoader ()
     DataAccess.TemplatesOfRoute.queryKeys()
-    |> List.iter (comparetitle false)
+    |> List.iter (comparetitle false loadRoute)
 
 let loadOsmData (route :int) = 
     let id = OsmData.loadRelationId (route)
@@ -59,8 +62,8 @@ let main argv =
         |> Seq.iter (fun t -> printfn "%A" t)
     | [| "-dropCollection"; collection |] -> DataAccess.dropCollection collection |> ignore
     | [| "-getStationLinks" |] -> getStationLinks ()
-    | [| "-comparetitle"; title |] -> comparetitle false title
-    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle true title
+    | [| "-comparetitle"; title |] -> comparetitle false (chooseRouteLoader()) title
+    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle true (chooseRouteLoader()) title
     | [| "-comparetitles" |] -> comparetitles ()
     | [| "-showComparisonResults" |] -> showComparisonResults ()
     | [| "-classifyRouteInfos" |] -> classifyRouteInfos ()
@@ -70,6 +73,8 @@ let main argv =
     | [| "-showNotFoundStatistics" |] -> showNotFoundStatistics ()
     | [| "-queryName"; name |] -> OpPointsOfInfobox.queryName name
     | [| "-loadOsmData"; route |] -> loadOsmData (route |> int)
+    | [| "-compareDbDataRoute"; route |] -> RInfData.compareDbDataRoute (route |> int) |> ignore
+    | [| "-compareDbDataRoutes" |] -> RInfData.compareDbDataRoutes ()
     | [| "-loadSoL"; route|] -> RInfData.loadRoute (route |> int) |> ignore
     | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (matchStationName wkname dbname false)
     | _ -> fprintfn stderr "usage: -loadroutes | -parseroutes | -comparetitles"

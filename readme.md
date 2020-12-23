@@ -16,10 +16,10 @@ Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvor
 
 The comparison of wiki data with available db data gives the follwing results:
 
-| Count | Value | Remarks | Example |
+| Count | Value | Example |
 |---|-----:|---|---|
-|routes with all db data found in wikidata|595|all db operational points of a route found in wikidata|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with some db data not found in wikidata|35|some db operational points of a route not found in wikidata|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
+|routes with all db data found in wikidata|595|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes with some db data not found in wikidata|35|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
 
 ## Statistics about operational points found
 
@@ -31,13 +31,15 @@ How many operational points are found:
 | operational points missing |39|27|
 | operational points with specified matching |16| 11|
 
-How does operational points match:
+How do operational points match:
 
 | Count | Value |
 |--|-----:|
 | equal short names |1821|
 | equal names |3771|
 | same substring |503|
+
+There are **227** routes having only equal short names and equal names.
 
 ## Statistics about articles
 
@@ -65,7 +67,7 @@ Extracting the route infos (i.e. route number, start and stop operational point)
 
 Operational points from route parameters should match with operational points from templates having distances, 100 entries are specified manually
 
-### Usage of shortnames
+## Usage of shortnames
 
 Analyzing the shortnames of operational points in the route diagrams gives the follwing results:
 
@@ -74,3 +76,14 @@ Analyzing the shortnames of operational points in the route diagrams gives the f
 |distinct operational points with links to articles |12753||
 |articles with infobox Bahnhof and  [shortname](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)|2143|[Wuppertal](https://de.wikipedia.org/wiki/Wuppertal_Hauptbahnhof) in route [Düsseldorf–Elberfeld](https://de.wikipedia.org/wiki/Bahnstrecke_D%C3%BCsseldorf%E2%80%93Elberfeld)|
 |articles without infobox Bahnhof |10610|[Troisdorf](https://de.wikipedia.org/wiki/Troisdorf#Eisenbahnverkehr) in route [Rechte Rheinstrecke](https://de.wikipedia.org/wiki/Rechte_Rheinstrecke)|
+
+## Installation
+
+* Login to [RINF](https://rinf.era.europa.eu/RINF)
+  * manually download data of type SOL to file *dbdata/RINF/SectionOfLines.csv*,
+  * manually download data of type OP to file *dbdata/RINF/OperationalPoints.csv*,
+* execute script scripts/restore.sh to download DB open data,
+* execute script scripts/rebuild.sh to download wikipedia articles and compare data,
+* execute *dotnet run --project src/ResultsViewer/ResultsViewer.fsproj* to view results.
+
+There is a dockerfile containing these steps.

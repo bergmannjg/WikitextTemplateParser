@@ -81,7 +81,7 @@ let webApp =
         routef "/data/WikitextOfStop/%s/%s" (concat >> loadWikitextOfStop)
         routef "/data/Templates/%s" (loadWithTitle DataAccess.TemplatesOfRoute.queryAsStrings)
         routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkOpPointOfInfobox.queryAsStrings)
-        routef "/data/DbStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.DbOpPointOfRoute.queryAsStrings)
+        routef "/data/DbStationOfRoute/%i" (sendTextWithRoute (DbData.loadRouteAsJSon))
         routef "/data/RInfStationOfRoute/%i" (sendTextWithRoute (RInfData.loadRouteAsJSon))
         routef "/data/RInfSolOfRoute/%i" (sendTextWithRoute (RInfData.loadSoLAsJSon))
         routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkOpPointOfRoute.queryAsStrings)
@@ -90,7 +90,7 @@ let webApp =
         routef "/osmRelationOfRoute/%i" redirectOsmRelation
         routef "/stationOfDbWk/%s/%i" (Views.stationOfDbWk >> RenderView.AsString.htmlDocument >> htmlString)
         routef "/wkStationOfRoute/%s/%i" (Views.wkStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
-        routef "/dbStationOfRoute/%s/%i" (Views.dbStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
+        routef "/dbStationOfRoute/%i" (Views.dbStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/rinfStationOfRoute/%i" (Views.rinfStationOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/rinfSoLOfRoute/%i" (Views.rinfSoLOfRoute >>  RenderView.AsString.htmlDocument >> htmlString)
         routef "/stationOfInfobox/%s" (Views.stationOfInfobox >> RenderView.AsString.htmlDocument >> htmlString)

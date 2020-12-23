@@ -26,6 +26,7 @@ type OperationalPoint =
 
 let private memoize<'k, 'a> f =
     let mutable cache: Dictionary<'k, ResizeArray<'a>> option = None
+
     (fun () ->
         match cache with
         | Some data -> data
@@ -58,33 +59,37 @@ let private loadCsvData<'k, 'a when 'k: comparison> path loader =
 
 let private loadSoLCsvData () =
     let data =
-        loadCsvData "./dbdata/RINF/SectionOfLines.csv" (fun dict row ->
-            let data =
-                { IMName = row.[0].AsInteger()
-                  NationalLine = row.[1].AsInteger()
-                  OperationalPointStart = row.[2]
-                  OperationalPointStartLocation = row.[3]
-                  OperationalPointEnd = row.[4]
-                  OperationalPointEndLocation = row.[5]
-                  LengthOfSoL = row.[6].Replace(",", ".").AsFloat()
-                  LengthOfTracks = row.[7].Replace(",", ".").AsFloat() }
+        loadCsvData
+            "./dbdata/RINF/SectionOfLines.csv"
+            (fun dict row ->
+                let data =
+                    { IMName = row.[0].AsInteger()
+                      NationalLine = row.[1].AsInteger()
+                      OperationalPointStart = row.[2]
+                      OperationalPointStartLocation = row.[3]
+                      OperationalPointEnd = row.[4]
+                      OperationalPointEndLocation = row.[5]
+                      LengthOfSoL = row.[6].Replace(",", ".").AsFloat()
+                      LengthOfTracks = row.[7].Replace(",", ".").AsFloat() }
 
-            dict |> add data.NationalLine data
-            dict)
+                dict |> add data.NationalLine data
+                dict)
 
     data
 
 let private loadOperationalPointsCsvData () =
     let data =
-        loadCsvData "./dbdata/RINF/OperationalPoints.csv" (fun dict row ->
-            let data =
-                { Name = row.[0]
-                  UOPID = row.[1]
-                  Type = row.[2]
-                  GeographicalLocation = row.[3] }
+        loadCsvData
+            "./dbdata/RINF/OperationalPoints.csv"
+            (fun dict row ->
+                let data =
+                    { Name = row.[0]
+                      UOPID = row.[1]
+                      Type = row.[2]
+                      GeographicalLocation = row.[3] }
 
-            dict |> add data.Name data
-            dict)
+                dict |> add data.Name data
+                dict)
 
     data
 
@@ -165,8 +170,10 @@ let private regexRoutes = Regex(@"StrUeb_(\d{4})_(\d{4})")
 
 let private findEntry opname routenr startname =
     let mc = regexRoutes.Matches opname
+
     if mc.Count > 0 then
         let m = mc |> Seq.head
+
         if m.Groups.Count = 3 then
             let routenr1 = m.Groups.[1].Value |> int
             let routenr2 = m.Groups.[2].Value |> int
@@ -198,26 +205,31 @@ let private adhocPreReplacements routenr (edges: SectionOfLine []) =
 let private adhocPostReplacements routenr (ops: DbOpPointOfRoute []) =
     if routenr = 2610 then
         ops
-        |> Array.filter (fun op ->
-            op.name
-            <> "Dormagen Chempark        (Nordbahnsteig)")
-        |> Array.map (fun op ->
-            if op.name = "Dormagen Chempark         (Südbahnsteig)"
-            then { op with name = "Dormagen Chempark" }
-            else op)
+        |> Array.filter
+            (fun op ->
+                op.name
+                <> "Dormagen Chempark        (Nordbahnsteig)")
+        |> Array.map
+            (fun op ->
+                if op.name = "Dormagen Chempark         (Südbahnsteig)"
+                then { op with name = "Dormagen Chempark" }
+                else op)
     else
         ops
 
-let loadRoute routenr =
-    let edges = 
-            loadSoL routenr |> Seq.toArray
-            |> adhocPreReplacements routenr
+let private loadRoutewithRefill routenr refill =
+    let edges =
+        loadSoL routenr
+        |> Seq.toArray
+        |> adhocPreReplacements routenr
 
     if edges.Length = 0 then
         Array.empty
     else
         let mutable (kmCurr, maybeSoL) =
-            maybeLoadRouteStartSoL routenr edges.[0].OperationalPointStart
+            if refill
+            then maybeLoadRouteStartSoL routenr edges.[0].OperationalPointStart
+            else (0.0, None)
 
         let h =
             if maybeSoL.IsSome then
@@ -227,20 +239,23 @@ let loadRoute routenr =
                 [ { km = 0.0 // maybeSoL.Value.LengthOfSoL should be eqaul to kmCurr
                     name = maybeSoL.Value.OperationalPointStart
                     STELLE_ART = a
-                    KUERZEL = k } ] :> seq<DbOpPointOfRoute>
+                    KUERZEL = k } ]
+                :> seq<DbOpPointOfRoute>
             else
                 Seq.empty
 
         let ops =
             edges
-            |> Array.map (fun e ->
-                let kmAct = kmCurr
-                let (k, a) = (loadKuerzelArt e.OperationalPointStart)
-                kmCurr <- e.LengthOfSoL + kmCurr
-                { km = System.Math.Round(kmAct, 1)
-                  name = e.OperationalPointStart
-                  STELLE_ART = a
-                  KUERZEL = k })
+            |> Array.map
+                (fun e ->
+                    let kmAct = kmCurr
+                    let (k, a) = (loadKuerzelArt e.OperationalPointStart)
+                    kmCurr <- e.LengthOfSoL + kmCurr
+
+                    { km = System.Math.Round(kmAct, 1)
+                      name = e.OperationalPointStart
+                      STELLE_ART = a
+                      KUERZEL = k })
             |> adhocPostReplacements routenr
 
         let operationalPointEnd =
@@ -253,8 +268,11 @@ let loadRoute routenr =
                      [ { km = System.Math.Round(kmCurr, 1)
                          name = operationalPointEnd
                          STELLE_ART = a
-                         KUERZEL = k } ] :> seq<DbOpPointOfRoute> ]
+                         KUERZEL = k } ]
+                     :> seq<DbOpPointOfRoute> ]
         |> Seq.toArray
+
+let loadRoute routenr = loadRoutewithRefill routenr true
 
 let loadSoLAsJSon routenr =
     Serializer.Serialize<seq<SectionOfLine>>(loadSoL routenr)
@@ -264,5 +282,39 @@ let loadRouteAsJSon routenr =
 
 let printSoL (data: seq<SectionOfLine>) =
     data
-    |> Seq.iter (fun d ->
-        printfn "%s %s %.1f %.1f" d.OperationalPointStart d.OperationalPointEnd d.LengthOfSoL d.LengthOfTracks)
+    |> Seq.iter
+        (fun d ->
+            printfn "%s %s %.1f %.1f" d.OperationalPointStart d.OperationalPointEnd d.LengthOfSoL d.LengthOfTracks)
+
+let getRouteNumbers =
+    (loadSoLCsvDataCached ()).Keys :> seq<int>
+
+let compareDbDataRoute (routenr: int) =
+    let rinfRoute = loadRoutewithRefill routenr false
+    let dbRoute = DbData.loadRoute routenr
+
+    let missing =
+        rinfRoute
+        |> Seq.filter (fun r -> r.STELLE_ART = "Bf" || r.STELLE_ART = "Hp")
+        |> Seq.filter
+            (fun r ->
+                not (
+                    dbRoute
+                    |> Seq.exists (fun d -> d.KUERZEL = r.KUERZEL)
+                ))
+
+    let count = missing |> Seq.length
+
+    if count > 0
+    then printfn "route %d, %d missing, %A" routenr count missing
+
+    (routenr, count)
+
+let compareDbDataRoutes () =
+    let keys = (loadSoLCsvDataCached ()).Keys
+    let missing =
+        keys
+        |> Seq.map compareDbDataRoute
+        |> Seq.filter (fun (r, m) -> m > 0)
+
+    printfn "total %d routes, %d routes with missing data" (keys |> Seq.length) (missing |> Seq.length)

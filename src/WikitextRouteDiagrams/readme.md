@@ -75,11 +75,12 @@ This is done in several steps.
 
 ## Load Db Data
 
-* [Section of Line](https://rinf.era.europa.eu/RINF): Section of Line data of register of infrastructure, 
+* [Section of Line](https://rinf.era.europa.eu/RINF): Section of Line of register of infrastructure, 
 * [Operational points](https://rinf.era.europa.eu/RINF): Operational points of register of infrastructure,
 * [Geo-Streckennetz](https://data.deutschebahn.com/dataset/geo-strecke) Start/Stop of a route and usage (i.e. is passenger train) of a route.
 
-The data is restored with this [script](../../scripts/restore.sh).
+The Geo-Streckennetz data is restored with this [script](../../scripts/restore.sh).
+Data from the register of infrastructure should be downloaded from RINF website.
 
 ## Extract route info in 'STRECKENNR' Template
 

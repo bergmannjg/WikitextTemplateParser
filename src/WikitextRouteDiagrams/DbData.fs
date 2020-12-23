@@ -287,6 +287,9 @@ let loadRoute routenr =
           KUERZEL = p.KUERZEL })
     |> Seq.toArray
 
+let loadRouteAsJSon routenr =
+    Serializer.Serialize<seq<DbOpPointOfRoute>>(loadRoute routenr)
+
 let checkPersonenzugStreckenutzung routenr =
     match (loadStreckenutzungCsvDataCached ()).TryGetValue routenr with
     | true, dbdata ->

@@ -192,8 +192,8 @@ function loadDbStationOfRouteTable(id, url) {
         columns: [
             { title: "Station", field: "name" },
             { title: "DS100", field: "KUERZEL" },
+            { title: "Art", field: "STELLE_ART", width: 150 },
             { title: "Distance", field: "km", width: 150 },
-            { title: "Art", field: "STELLE_ART", width: 150 }
         ],
     });
 
@@ -206,9 +206,9 @@ function loadRInfStationOfRouteTable(id, url) {
         layout: "fitColumns",
         columns: [
             { title: "Station", field: "name" },
-            { title: "DS100", field: "KUERZEL", width: 200 },
-            { title: "Art", field: "STELLE_ART", width: 200 },
-            { title: "Distance", field: "km", width: 200 }
+            { title: "DS100", field: "KUERZEL" },
+            { title: "Art", field: "STELLE_ART", width: 150 },
+            { title: "Distance", field: "km", width: 150 }
         ],
     });
 

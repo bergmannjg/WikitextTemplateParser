@@ -24,7 +24,8 @@ let titleAndScripts (titleString: string) =
       script [ _type "application/javascript"
                _src "/js/loadTable.js" ] []
       style [] [
-          rawText """
+          rawText
+              """
           .tabulator .tabulator-tableHolder {
                 background:white;
             }
@@ -43,12 +44,12 @@ let titleAndScripts (titleString: string) =
             }
             #leftbox {
                 float:left;
-                width:700px;
+                width:650px;
                 height:600px;
             }
             #rightbox{
                 float:right;
-                width:600px;
+                width:650px;
                 height:600px;
             }
             """
@@ -75,7 +76,8 @@ let index =
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
-                rawText """
+                rawText
+                    """
                 loadResultsTable("#results-table", document.getElementById("statusMsg"), "/data/results");
             """
             ]
@@ -93,7 +95,8 @@ let routeinfos =
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
-                rawText """
+                rawText
+                    """
                 loadRouteInfosTable("#results-table", document.getElementById("statusMsg"), "/data/routeinfos");
             """
             ]
@@ -111,14 +114,15 @@ let stops =
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
             script [ _type "application/javascript" ] [
-                rawText """
+                rawText
+                    """
                 loadStopsTable("#results-table", document.getElementById("statusMsg"), "/data/stops");
             """
             ]
         ]
     ]
 
-let viewWithLeftRightBox (title: string) (wikititle: string) (scripttext: string) (extraNode: XmlNode option) =
+let viewWithLeftRightIFrameBox (title: string) (wikititle: string) (scripttext: string) (extraNode: XmlNode option) =
     html [] [
         head [] (titleAndScripts title)
         body [] [
@@ -138,6 +142,25 @@ let viewWithLeftRightBox (title: string) (wikititle: string) (scripttext: string
         ]
     ]
 
+let viewWithLeftRightBox (title: string) (scripttext: string) (extraNode: XmlNode option) =
+    html [] [
+        head [] (titleAndScripts title)
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str title
+            ]
+            if extraNode.IsSome then extraNode.Value
+
+            div [ _class "container" ] [
+                div [ _id "leftbox" ] []
+                div [ _id "rightbox" ] []
+                script [ _type "application/javascript" ] [
+                    rawText scripttext
+                ]
+            ]
+        ]
+    ]
+
 let stationOfInfobox (title: string) =
     let extraNode =
         div [ _class "remark" ] [
@@ -150,7 +173,7 @@ let stationOfInfobox (title: string) =
             ]
         ]
 
-    viewWithLeftRightBox
+    viewWithLeftRightIFrameBox
         ("StationsOfInfobox " + title)
         title
         ("loadStationOfInfoTable(\"#leftbox\", \"/data/StationOfInfobox/"
@@ -159,7 +182,7 @@ let stationOfInfobox (title: string) =
         (Some extraNode)
 
 let wkStationOfRoute (title: string, route: int) =
-    viewWithLeftRightBox
+    viewWithLeftRightIFrameBox
         ("StationOfRoute " + title + " " + route.ToString())
         title
         ("loadStationOfRouteTable(\"#leftbox\", \"/data/WkStationOfRoute/"
@@ -169,19 +192,27 @@ let wkStationOfRoute (title: string, route: int) =
          + "\");")
         None
 
-let dbStationOfRoute (title: string, route: int) =
+let dbStationOfRoute (route: int) =
+    let extraNode =
+        div [ _class "remark" ] [
+                a [ _href ("/rinfSoLOfRoute/" + route.ToString()) ] [
+                    str "RINF SoL of route"
+                ]
+                str " "
+                a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
+                    str "DB ISR"
+                ]
+        ]
+
     viewWithLeftRightBox
-        ("DB Stations of Route "
-         + title
-         + " "
-         + route.ToString())
-        title
-        ("loadDbStationOfRouteTable(\"#leftbox\", \"/data/DbStationOfRoute/"
-         + title
-         + "/"
+        ("RINF versus DB Open data Stations " + route.ToString())
+        ("loadRInfStationOfRouteTable(\"#leftbox\", \"/data/RInfStationOfRoute/"
+         + route.ToString()
+         + "\");"
+         + "loadDbStationOfRouteTable(\"#rightbox\", \"/data/DbStationOfRoute/"
          + route.ToString()
          + "\");")
-        None
+        (Some extraNode)
 
 let rinfStationOfRoute (route: int) =
     html [] [
@@ -203,10 +234,11 @@ let rinfStationOfRoute (route: int) =
                   _style "width:90%; left:5%" ] []
 
             script [ _type "application/javascript" ] [
-                rawText
-                    ("loadRInfStationOfRouteTable(\"#results-table\", \"/data/RInfStationOfRoute/"
-                     + route.ToString()
-                     + "\");")
+                rawText (
+                    "loadRInfStationOfRouteTable(\"#results-table\", \"/data/RInfStationOfRoute/"
+                    + route.ToString()
+                    + "\");"
+                )
             ]
         ]
     ]
@@ -216,7 +248,10 @@ let rinfSoLOfRoute (route: int) =
         head [] (titleAndScripts "RINF Sections of Lines of Route")
         body [] [
             h1 [ _style "text-align:center" ] [
-                str ("RINF Sections of Line of Route " + route.ToString())
+                str (
+                    "RINF Sections of Line of Route "
+                    + route.ToString()
+                )
             ]
             div [ _class "status" ] [
                 a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
@@ -231,10 +266,11 @@ let rinfSoLOfRoute (route: int) =
                   _style "width:90%; left:5%" ] []
 
             script [ _type "application/javascript" ] [
-                rawText
-                    ("loadRInfSolOfRouteTable(\"#results-table\", \"/data/RInfSolOfRoute/"
-                     + route.ToString()
-                     + "\");")
+                rawText (
+                    "loadRInfSolOfRouteTable(\"#results-table\", \"/data/RInfSolOfRoute/"
+                    + route.ToString()
+                    + "\");"
+                )
             ]
         ]
     ]
@@ -242,25 +278,18 @@ let rinfSoLOfRoute (route: int) =
 let stationOfDbWk (title: string, route: int) =
     let extraNode =
         div [ _class "remark" ] [
-            a [ _href
-                    ("/dbStationOfRoute/"
-                     + title
-                     + "/"
-                     + route.ToString()) ] [
-                str "Db stations of route"
-            ]
-            str " "
-            a [ _href
-                    ("/wkStationOfRoute/"
-                     + title
-                     + "/"
-                     + route.ToString())
+            a [ _href (
+                    "/wkStationOfRoute/"
+                    + title
+                    + "/"
+                    + route.ToString()
+                )
                 _target "_blank" ] [
-                str "Wiki stations of route"
+                str "Wiki stations"
             ]
             str " "
             a [ _href ("/osmRelationOfRoute/" + route.ToString()) ] [
-                str "OSM data of route"
+                str "OSM data"
             ]
             str " "
             a [ _href ("/stationOfInfobox/" + title) ] [
@@ -268,11 +297,15 @@ let stationOfDbWk (title: string, route: int) =
             ]
             str " "
             a [ _href ("/rinfStationOfRoute/" + route.ToString()) ] [
-                str "RINF stations of route"
+                str "RINF stations"
+            ]
+            str " "
+            a [ _href ("/dbStationOfRoute/" + route.ToString()) ] [
+                str "Db Open data stations"
             ]
         ]
 
-    viewWithLeftRightBox
+    viewWithLeftRightIFrameBox
         ("DB/Wiki Stations "
          + title
          + " "
