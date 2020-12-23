@@ -17,7 +17,7 @@ Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvor
 The comparison of wiki data with available db data gives the follwing results:
 
 | Count | Value | Example |
-|---|-----:|---|---|
+|---|-----:|---|
 |routes with all db data found in wikidata|595|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
 |routes with some db data not found in wikidata|35|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
 
