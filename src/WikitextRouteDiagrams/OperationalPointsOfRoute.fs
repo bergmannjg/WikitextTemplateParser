@@ -39,13 +39,15 @@ let private getMatchInReplacements (isExactMatch: bool)
                                    =
     let candidates =
         AdhocReplacements.RouteInfo.replacementsInRouteStation
-        |> Array.filter (fun (title, route, _, _) ->
-            (route = 0 && title = strecke.title)
-            || route = strecke.nummer)
-        |> Array.map (fun (_, _, ab, s) ->
-            if getMatchInReplacement isExactMatch strecke nameInTemplate nameInHeader ab s
-            then Some nameInTemplate
-            else None)
+        |> Array.filter
+            (fun (title, route, _, _) ->
+                (route = 0 && title = strecke.title)
+                || route = strecke.nummer)
+        |> Array.map
+            (fun (_, _, ab, s) ->
+                if getMatchInReplacement isExactMatch strecke nameInTemplate nameInHeader ab s
+                then Some nameInTemplate
+                else None)
         |> Array.choose id
 
     if candidates.Length > 0 then Some candidates.[0] else None
@@ -97,7 +99,7 @@ let private refillRouteInfo (strecke: RouteInfo) (stations: OpPointOfInfobox [])
 
         let last =
             stations
-            |> Array.tryFindBack (fun s -> s.distances.Length > 0)
+            |> Array.tryFindBack (fun s -> s.distances.Length > 0 && s.distances.[0] <> -1.0)
 
         { nummer = strecke.nummer
           title = strecke.title
@@ -122,7 +124,7 @@ let private getIndexTo (strecke: RouteInfo) (indexFrom: int) (name: string) (nam
     let index2 =
         namesInTemplate |> Array.findIndexBack ((=) name)
 
-    /// special handling for multiple occurrence of name 
+    /// special handling for multiple occurrence of name
     if strecke.bis = name
        && index1 <> index2
        && indexFrom < index2 then
@@ -157,9 +159,10 @@ let private getMatchedRouteStations (strecke: RouteInfo) (stations: OpPointOfInf
 let private maybeReplaceRouteNr (strecke: RouteInfo) =
     let candidate =
         AdhocReplacements.RouteInfo.maybeWrongRouteNr
-        |> Array.tryFind (fun (title, routeWrong, route) ->
-            title = strecke.title
-            && routeWrong = strecke.nummer)
+        |> Array.tryFind
+            (fun (title, routeWrong, route) ->
+                title = strecke.title
+                && routeWrong = strecke.nummer)
 
     match candidate with
     | Some (_, _, nr) -> { strecke with nummer = nr }
@@ -218,14 +221,16 @@ let filterStations (strecke: RouteInfo) (stations: OpPointOfInfobox []) =
                 indexTo
 
         stations
-        |> Array.mapi (fun i v ->
-            if i >= indexFrom && i <= indexTo2 then
-                Some
-                    ({ kms = v.distances
-                       name = v.name
-                       shortname = v.shortname })
-            else
-                None)
+        |> Array.mapi
+            (fun i v ->
+                if i >= indexFrom && i <= indexTo2 then
+                    Some(
+                        { kms = v.distances
+                          name = v.name
+                          shortname = v.shortname }
+                    )
+                else
+                    None)
         |> Array.choose id
     | _ -> Array.empty
 

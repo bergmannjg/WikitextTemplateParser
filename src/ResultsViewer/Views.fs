@@ -72,6 +72,10 @@ let index =
                 a [ _href ("/stops") ] [
                     str "Summary of stops"
                 ]
+                str " "
+                a [ _href ("/substringMatches") ] [
+                    str "SubstringMatches"
+                ]
             ]
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
@@ -274,6 +278,30 @@ let rinfSoLOfRoute (route: int) =
             ]
         ]
     ]
+
+let substringMatches  =
+    html [] [
+        head [] (titleAndScripts "SubstringMatches")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str (
+                    "SubstringMatches"
+                )
+            ]
+            div [ _class "status" ] [
+                span [ _id "statusMsg" ] []
+            ]
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+
+            script [ _type "application/javascript" ] [
+                rawText (
+                    "loadSubstringMatches(\"#results-table\", document.getElementById(\"statusMsg\"), \"/data/SubstringMatches\");"
+                )
+            ]
+        ]
+    ]
+
 
 let stationOfDbWk (title: string, route: int) =
     let extraNode =

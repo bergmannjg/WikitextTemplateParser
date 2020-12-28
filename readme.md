@@ -29,15 +29,16 @@ How many operational points are found:
 |--|-----:|----:|
 | operational points matched |6095|595|
 | operational points missing |39|27|
-| operational points with specified matching |16| 11|
+| operational points with specified matching |17| 11|
 
 How do operational points match:
 
 | Count | Value |
 |--|-----:|
-| equal short names |1821|
-| equal names |3771|
-| same substring |503|
+| equal short names |1823|
+| equal names |3785|
+| same substring |442|
+| border |36|
 
 There are **227** routes having only equal short names and equal names.
 

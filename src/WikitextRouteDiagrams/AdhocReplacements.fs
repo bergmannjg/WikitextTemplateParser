@@ -11,10 +11,13 @@ let regexComment = Regex(@"<!--.*?-->")
 let regexSpanOPen = Regex(@"<span[^>]+>")
 let regexRailroadSwitch = Regex(@",\s* W.*$")
 let regexTrackInStation = Regex(@",\s* Gl.*$")
-let regexChangeOfRoute1 = Regex(@",\s* Streckenwechsel.*$")
-let regexChangeOfRoute2 = Regex(@"\s* Strw .*$")
 let regexYear = Regex(@"ab 19\d{2}")
 let regexYearDiff = Regex(@"19\d{2}–19\d{2}")
+
+module RInfData =
+    /// maybe errors in rinf lengthOfSoL data
+    let replacements =
+        [| (2550, "Neuss Erftkanal", "Düsseldorf-Bilk", 3.6) |]
 
 module Wikitext =
     /// maybe errors in wikitext
@@ -213,8 +216,13 @@ module RouteInfo =
     /// replace strings in a specific route (ignore matching)
     let maybeReplaceRouteStation: (string * int * string option * string option) [] =
         [| ("Bahnstrecke Lübeck–Lübeck-Travemünde Strand", 1100, Some "Lübeck Hbf", Some "Schwartau Waldhalle")
+           ("Heidebahn", 1711, Some "Hannover Hbf", Some "Walsrode")
+           ("Bahnstrecke Düsseldorf-Unterrath–Düsseldorf Flughafen Terminal", 2406, None, Some "Düsseldorf-Unterrath")
            ("Bahnstrecke Düsseldorf–Elberfeld", 2550, Some "Wuppertal Hbf", Some "Düsseldorf Hbf")
+           ("Ennepetalbahn", 2804, None, Some "Hagen-Wehringhausen")
            ("Bahnstrecke Neuwied–Koblenz", 3014, None, Some "Koblenz-Lützel")
+           ("Rechte Rheinstrecke", 3507, None, Some "Wiesbaden-Biebrich")
+           ("Nassauische Rheinbahn", 3507, Some "Niederlahnstein", Some "Wiesbaden-Biebrich")
            ("Bahnstrecke Mühldorf–Burghausen", 5723, Some "Mühldorf (Oberbay)", Some "Tüßling")
            ("Bahnstrecke Cottbus–Frankfurt (Oder)",
             6253,
@@ -235,9 +243,17 @@ module OpPointMatch =
           "Anschluss"
           ", ehem. Bf"
           "Str."
-          " Hp"
+          "Hp"
+          "Hp Abzw"
           "Abzw."
-          "Abzw" ]
+          "(Abzw)"
+          "Abzw"
+          "-"
+          "/"
+          "."
+          ","
+          "“"
+          "„" ]
 
 /// changes of ResultKind by case analysis
 let adhocResultKindChanges =
@@ -260,6 +276,7 @@ module Comparer =
     /// fixed matchings of db and wiki operational points, maybe error in wikidata
     let matchingsOfDbWkOpPoints =
         [| ("Bahnstrecke Lübeck–Puttgarden", 1100, "Burg (Fehmarn) West", "Bbf Burg-West")
+           ("Bahnstrecke Lübeck–Puttgarden", 1100, "Schwartau Waldhalle", "Abzw Wr")
            ("Bahnstrecke Dortmund–Soest", 2103, "Dortmund Dfd", "Strecke von Dortmund-Dortmunderfeld")
            ("Bahnstrecke Wanne-Eickel–Hamburg", 2200, "Hörne", "Osnabrück-Hörne Bbf")
            ("Bahnstrecke Wanne-Eickel–Hamburg", 2200, "Bremen Utbremen", "Strecke von/nach Bremerhaven")
@@ -267,12 +284,12 @@ module Comparer =
            ("Bahnstrecke Düsseldorf–Elberfeld", 2550, "Wuppertal Linden", "Linden")
            ("Bahnstrecke Elberfeld–Dortmund", 2801, "Dortmund Dfd", "Strecke nach Soest")
            ("Bahnstrecke Finnentrop–Freudenberg", 2864, "Hohenhagen", "Attendorn-Hohen Hagen")
+           ("Bahnstrecke Mainz–Mannheim", 3522, "Ludwigshafen (Rhein) Rotes Kreuz", "Rotes Kreuz")
            ("Bahnstrecke Göttingen–Bebra", 3600, "Eschwege-Stegmühle", "Eschwege West Stegmühle")
            ("Bahnstrecke Göttingen–Bebra", 3600, "Eschwege-Wehre", "Eschwege West Wehre")
            ("Bahnstrecke Stuttgart–Tuttlingen", 4600, "Rietheim-Weilheim", "Weilheim (Württ)")
            ("Bahnstrecke Plochingen–Tübingen", 4600, "Oberboihingen Abzw", "Wendlinger Kurve")
            ("Bahnstrecke Berlin–Blankenheim", 6118, "Potsdam Griebnitzsee", "Griebnitzsee Ost")
-           ("Bahnstrecke Zittau–Löbau", 6214, "Mittelherwigsdorf (Sachs)", "Hp Abzw Mittelherwigsdorf")
            ("Bahnstrecke Magdeburg–Leipzig", 6403, "Halle-Kanena", "Kanena, Abzw Leuchtturm")
            ("Bahnstrecke Rostock–Rostock Seehafen Nord",
             6443,
@@ -285,7 +302,7 @@ module Comparer =
            ("Bahnstrecke Kreuztal–Cölbe", 2870, "Oberndorf (Kr Wittgenstein)")
            ("Bahnstrecke Altenbeken–Kreiensen", 2974, "Brakel")
            ("Eifelquerbahn", 3005, "Mayen Mitte")
-           ("Moselstrecke", 3010, "Trier Mäusheckerweg              ")
+           ("Moselstrecke", 3010, "Trier Mäusheckerweg")
            ("Nahetalbahn", 3511, "Martinstein West")
            ("Nahetalbahn", 3511, "Martinstein Ost")
            ("Bahnstrecke Göttingen–Bebra", 3600, "Grone")

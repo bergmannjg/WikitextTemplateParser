@@ -197,9 +197,19 @@ let private maybeLoadRouteStartSoL routenr (opname: string) =
 let private adhocPreReplacements routenr (edges: SectionOfLine []) =
     if routenr = 6425 then
         edges
-        |> Array.filter (fun op -> op.OperationalPointStart = "Bad Harzburg")
+        |> Array.filter (fun op -> op.OperationalPointStart = "Bad Harzburg") // start of first part of route
     else
         edges
+        |> Array.map
+            (fun op ->
+                match AdhocReplacements.RInfData.replacements
+                      |> Array.tryFind
+                          (fun (r, opStart, opEnd, _) ->
+                              r = routenr
+                              && opStart = op.OperationalPointStart
+                              && opEnd = op.OperationalPointEnd) with
+                | Some (_, _, _, length) -> { op with LengthOfSoL = length } // error in rinf data ??
+                | None -> op)
 
 // todo
 let private adhocPostReplacements routenr (ops: DbOpPointOfRoute []) =
@@ -208,14 +218,16 @@ let private adhocPostReplacements routenr (ops: DbOpPointOfRoute []) =
         |> Array.filter
             (fun op ->
                 op.name
-                <> "Dormagen Chempark        (Nordbahnsteig)")
+                <> "Dormagen Chempark (Nordbahnsteig)")
         |> Array.map
             (fun op ->
-                if op.name = "Dormagen Chempark         (Südbahnsteig)"
+                if op.name = "Dormagen Chempark (Südbahnsteig)"
                 then { op with name = "Dormagen Chempark" }
                 else op)
     else
         ops
+
+let regexSpaces = Regex(@"\s\s+")
 
 let private loadRoutewithRefill routenr refill =
     let edges =
@@ -253,7 +265,7 @@ let private loadRoutewithRefill routenr refill =
                     kmCurr <- e.LengthOfSoL + kmCurr
 
                     { km = System.Math.Round(kmAct, 1)
-                      name = e.OperationalPointStart
+                      name = StringUtilities.replaceFromRegexToString regexSpaces " " e.OperationalPointStart
                       STELLE_ART = a
                       KUERZEL = k })
             |> adhocPostReplacements routenr
@@ -312,6 +324,7 @@ let compareDbDataRoute (routenr: int) =
 
 let compareDbDataRoutes () =
     let keys = (loadSoLCsvDataCached ()).Keys
+
     let missing =
         keys
         |> Seq.map compareDbDataRoute

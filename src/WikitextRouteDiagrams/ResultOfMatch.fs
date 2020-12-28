@@ -4,6 +4,7 @@ module ResultsOfMatch
 open Types
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Reflection
+open DiffMatchPatch
 
 let createResult title route routesInTitle resultKind =
     { route = route
@@ -235,6 +236,52 @@ let showNotFoundStatistics () =
 
     printfn "total routes %d" routes.Length
 
+type SubstringMatch =
+    { title: string
+      route: int
+      dbname: string
+      dbkm: float
+      wkname: string
+      matchkind: MatchKind } // ds100
+
+let loadDiffMatchPatch s1 s2 =
+    let d = diff_match_patch ()
+    let diffs = d.diff_main (s1, s2)
+    d.diff_cleanupSemantic (diffs)
+    diffs |> Seq.iter (fun s -> printfn "diffs: %A" s)
+
+let loadSubstringMatches () =
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
+
+    let groups =
+        [ SameSubstring
+          SameSubstringNotDistance
+          EqualWithoutIgnoredNotDistance
+          EqualWithoutIgnored
+          EqualWithoutParentheses
+          EqualOrderChanged
+          StartsWith
+          StartsWithNotDistance
+          EndsWith
+          EndsWithNotDistance ]
+
+    [ for r in results do
+        if r.resultKind = ResultKind.WikidataFoundInDbData
+           || r.resultKind = ResultKind.WikidataNotFoundInDbData then
+            for s in DataAccess.DbWkOpPointOfRoute.query r.title r.route do
+                yield! s |> List.map (fun s -> (r.title, r.route, s)) ]
+    |> List.filter (fun (_, _, op) -> groups |> List.exists ((=) op.matchkind))
+    |> List.map
+        (fun (t, r, op) ->
+            { title = t
+              route = r
+              dbname = op.dbname
+              dbkm = op.dbkm
+              wkname = op.wkname
+              matchkind = op.matchkind })
+    |> Serializer.Serialize
+
 let showMatchKindStatistics verbose =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
@@ -282,13 +329,15 @@ let showMatchKindStatistics verbose =
             EqualWithoutIgnoredNotDistance
             EqualWithoutIgnored
             EqualWithoutParentheses
-            EqualBorder
-            EqualBorderNotDistance
             EqualOrderChanged
             StartsWith
             StartsWithNotDistance
             EndsWith
-            EndsWithNotDistance ] ]
+            EndsWithNotDistance ]
+          [ EqualBorder; EqualBorderNotDistance ]
+          [ IgnoredDbOpPoint
+            IgnoredWkOpPoint
+            SpecifiedMatch ] ]
 
     printfn "MatchKindStatistics of groups"
 

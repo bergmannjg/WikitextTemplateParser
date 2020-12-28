@@ -76,6 +76,7 @@ let webApp =
         route "/data/results" >=> (loadAll DataAccess.ResultOfRoute.queryAll)
         route "/data/routeinfos" >=> (loadAll DataAccess.RouteInfo.queryAll)
         route "/data/stops" >=> (loadAll DataAccess.WikitextOfStop.queryKeysAsJson)
+        route "/data/SubstringMatches" >=> (loadAll  ResultsOfMatch.loadSubstringMatches)
         routef "/data/Wikitext/%s" loadWikitext
         routef "/data/WikitextOfStop/%s" loadWikitextOfStop
         routef "/data/WikitextOfStop/%s/%s" (concat >> loadWikitextOfStop)
@@ -96,6 +97,7 @@ let webApp =
         routef "/stationOfInfobox/%s" (Views.stationOfInfobox >> RenderView.AsString.htmlDocument >> htmlString)
         route "/routeinfos" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.routeinfos
         route "/stops" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.stops
+        route "/substringMatches" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.substringMatches
         route "/" >=> (RenderView.AsString.htmlDocument >> htmlString) Views.index ]
 
 let configureApp (app : IApplicationBuilder) =
@@ -109,6 +111,7 @@ let configureLogging (builder : ILoggingBuilder) =
 
 [<EntryPoint>]
 let main _ =
+    Serializer.addConverters ([||])
     Host.CreateDefaultBuilder()
         .ConfigureWebHostDefaults(
             fun webHostBuilder ->

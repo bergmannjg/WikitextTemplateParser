@@ -8,7 +8,7 @@ open FSharp.Collections
 
 /// see https://de.wikipedia.org/wiki/Wikipedia:Formatvorlage_Bahnstrecke/Bilderkatalog
 /// "BS2l" "BS2r" are wrong symbols
-let BhfSymbolTypes =
+let private BhfSymbolTypes =
     [| "BHF"
        "DST"
        "ÜST"
@@ -23,6 +23,8 @@ let BhfSymbolTypes =
        "TZOLLWo"
        "xGRENZE"
        "BS2" |]
+
+let private BhfSymbolTypesIgnored = [| "hKRZWae"; "tKRZW" |]
 
 let private hasReplaceDistance (name: string) (kms: float []) =
     AdhocReplacements.Wikitext.maybeWrongDistances
@@ -59,7 +61,11 @@ let NOBREAKSPACE = '\xA0' // NO-BREAK SPACE U+00A0
 
 let private createStationOfInfobox (symbols: string []) (kms: float []) (name: string) (link: string) =
     let name0 =
-        name.Replace(" -", "-").Replace("- ", "-").Replace(NOBREAKSPACE, ' ').Replace("<!--sic!-->", "")
+        name
+            .Replace(" -", "-")
+            .Replace("- ", "-")
+            .Replace(NOBREAKSPACE, ' ')
+            .Replace("<!--sic!-->", "")
 
     let isStation =
         symbols
@@ -75,6 +81,7 @@ let private createStationOfInfobox (symbols: string []) (kms: float []) (name: s
             ""
 
     let kms0 = maybeReplaceDistances name0 kms
+
     { symbols = symbols
       distances = kms0
       name = name0
@@ -83,12 +90,12 @@ let private createStationOfInfobox (symbols: string []) (kms: float []) (name: s
 
 let isValidText (s: string) =
     not (System.String.IsNullOrEmpty(s))
-    && s
-    <> "'''"
+    && s <> "'''"
     && s <> "("
     && s <> "/"
 
-let private normalizeTextOfLink (link: Link) = (textOfLink link).Replace("&nbsp;", " ")
+let private normalizeTextOfLink (link: Link) =
+    (textOfLink link).Replace("&nbsp;", " ")
 
 let onlyChars (s: string) =
     let s0 =
@@ -104,24 +111,35 @@ let private findStationName (p: Parameter) =
     | Composite (_, Composite.String (s0) :: Link link :: Composite.String (s1) :: _) when onlyChars (s0)
                                                                                            && isValidText (s1) ->
         Some(s0 + " " + normalizeTextOfLink link + " " + s1, linktextOfLink link)
+    | Composite (_, Composite.String (s0) :: Link link :: Composite.String (s1) :: _) when s0.EndsWith("(") && s1 = ")" ->
+        Some(s0 + " " + normalizeTextOfLink link + " " + s1, linktextOfLink link)
     | Composite (_, Composite.String (_) :: Link link :: Composite.String (s) :: _) when isValidText (s) ->
         Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
+    | Composite (_, Composite.Link link1 :: Composite.String ("/") :: [ Composite.Link link2 ]) ->
+        Some(
+            normalizeTextOfLink link1
+            + "/"
+            + normalizeTextOfLink link2,
+            linktextOfLink link1
+        )
     | Composite (_, Composite.Link link1 :: Composite.String (s) :: Composite.Link link2 :: _) when isValidText (s) ->
-        Some
-            (normalizeTextOfLink link1
-             + " "
-             + s
-             + " "
-             + normalizeTextOfLink link2,
-             linktextOfLink link1)
+        Some(
+            normalizeTextOfLink link1
+            + " "
+            + s
+            + " "
+            + normalizeTextOfLink link2,
+            linktextOfLink link1
+        )
     | Composite (_, Composite.Link link :: Composite.String (s) :: _) when isValidText (s) ->
         Some(normalizeTextOfLink link + " " + s, linktextOfLink link)
     | Composite (_, Composite.Link link1 :: Composite.Link link2 :: _) ->
-        Some
-            (normalizeTextOfLink link1
-             + " "
-             + normalizeTextOfLink link2,
-             linktextOfLink link2)
+        Some(
+            normalizeTextOfLink link1
+            + " "
+            + normalizeTextOfLink link2,
+            linktextOfLink link2
+        )
     | Composite (_, Composite.String (s) :: Composite.Link link :: _) when isValidText (s) ->
         Some(s + " " + normalizeTextOfLink link, linktextOfLink link)
     | Composite (_, cl) ->
@@ -136,7 +154,11 @@ let private findStationName (p: Parameter) =
 
 let private matchesSymbolType (parameters: seq<Parameter>) =
     parameters
-    |> existsParameterStringValueInList BhfSymbolTypes (fun x y -> x.Contains(y))
+    |> existsParameterStringValueInList
+        BhfSymbolTypes
+        (fun s p ->
+            s.Contains(p)
+            && not (BhfSymbolTypesIgnored |> Array.exists ((=) s)))
 
 let private matchesParameterName (parameters: seq<Parameter>) (names: string []) =
     parameters
@@ -148,14 +170,22 @@ let private normalizeKms (kms: string) =
     StringUtilities.replaceFromRegexToString
         regexSpaces
         " "
-        (kms.Replace("(", "").Replace(")", "").Replace("&nbsp;", ""))
+        (kms
+            .Replace("(", "")
+            .Replace(")", "")
+            .Replace("&nbsp;", ""))
 
 let private regexFloat = Regex(@"^([-]?[0-9\.]+)")
 
 let private parse2float (km: string) =
     match StringUtilities.regexMatchedValues
               regexFloat
-              (km.Replace(",", ".").Replace("(", "").Replace(")", "").Replace("~", "").Replace("−", "-")) with
+              (km
+                  .Replace(",", ".")
+                  .Replace("(", "")
+                  .Replace(")", "")
+                  .Replace("~", "")
+                  .Replace("−", "-")) with
     | [ float ] -> System.Math.Round(double (System.Single.Parse(float)), 1)
     | _ -> -1.0
 
@@ -178,22 +208,24 @@ let private matchStationDistances (p: Parameter) (name: string) =
                 | _ -> [||]
             | _ ->
                 getCompositeStrings cl
-                |> Seq.map (fun s ->
-                    match s with
-                    | Composite.String (f) -> parse2float f
-                    | _ -> -1.0)
+                |> Seq.map
+                    (fun s ->
+                        match s with
+                        | Composite.String (f) -> parse2float f
+                        | _ -> -1.0)
                 |> Seq.toArray
         | _ -> [||]
-    with ex ->
+    with ex -> // todo: find index
         fprintfn stderr "error: %A, findKm parameter %A" ex p
         [||]
 
 let private findSymbols (parameters: List<Parameter>) =
     getParameterStrings parameters
-    |> Seq.map (fun s ->
-        match s with
-        | Parameter.String (_, str) -> str
-        | _ -> "")
+    |> Seq.map
+        (fun s ->
+            match s with
+            | Parameter.String (_, str) -> str
+            | _ -> "")
     |> Seq.toArray
 
 let private matchStation (symbols: string []) (p1: Parameter) (p2: Parameter) =
@@ -208,19 +240,16 @@ let private chooseNonEmptyParameter (index: int) (l: Parameter list) =
     match l.[index] with // try first string
     | Parameter.Empty when index + 1 < l.Length -> l.[index + 1]
     | Parameter.String (n, _) when not (System.String.IsNullOrEmpty n) // bypass hints
-                                   && index
-                                   + 1 < l.Length -> l.[index + 1]
+                                   && index + 1 < l.Length -> l.[index + 1]
     | _ -> l.[index]
 
 let private matchCondition name (names: string []) minLength index (l: list<Parameter>) =
-    names
-    |> Array.exists ((=) name)
+    names |> Array.exists ((=) name)
     && l.Length >= minLength
     && matchesSymbolType (List.take index l)
 
 let private matchConditionWithParameters name (names: string []) minLength index parameterNames (l: list<Parameter>) =
-    names
-    |> Array.exists ((=) name)
+    names |> Array.exists ((=) name)
     && l.Length >= minLength
     && matchesParameterName (List.take index l) parameterNames
     && matchesSymbolType (List.take index l)
@@ -257,14 +286,15 @@ let queryName (name: string) =
            || r.resultKind = ResultKind.WikidataNotFoundInDbData then
             yield r.title ]
     |> List.distinct
-    |> List.iter (fun t ->
-        match DataAccess.WkOpPointOfInfobox.query t
-              |> List.tryHead with
-        | Some stations ->
-            stations
-            |> Array.filter (fun s -> s.name.Contains name)
-            |> Array.iter (fun s -> printfn "'%s', '%s'" t s.name)
-        | None -> ())
+    |> List.iter
+        (fun t ->
+            match DataAccess.WkOpPointOfInfobox.query t
+                  |> List.tryHead with
+            | Some stations ->
+                stations
+                |> Array.filter (fun s -> s.name.Contains name)
+                |> Array.iter (fun s -> printfn "'%s', '%s'" t s.name)
+            | None -> ())
 
 let dump (title: string) (precodedStations: OpPointOfInfobox []) =
     DataAccess.WkOpPointOfInfobox.insert title precodedStations

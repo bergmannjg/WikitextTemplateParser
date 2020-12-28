@@ -77,6 +77,7 @@ let main argv =
     | [| "-compareDbDataRoutes" |] -> RInfData.compareDbDataRoutes ()
     | [| "-loadSoL"; route|] -> RInfData.loadRoute (route |> int) |> ignore
     | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (matchStationName wkname dbname false)
+    | [| "-diffMatchPatch"; s1; s2 |] -> loadDiffMatchPatch s1 s2
     | _ -> fprintfn stderr "usage: -loadroutes | -parseroutes | -comparetitles"
     0
 

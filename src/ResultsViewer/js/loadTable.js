@@ -10,11 +10,11 @@ function loadResultsTable(tableId, statusElementId, url) {
         layout: "fitColumns",
         pagination: "local",
         paginationSize: 20,
-        initialHeaderFilter:[
-            {field:"resultKind.Case", value:"WikidataNotFoundInDbData"} 
+        initialHeaderFilter: [
+            { field: "resultKind.Case", value: "WikidataFoundInDbData" }
         ],
-        initialSort:[
-            {column:"route", dir:"asc"}, //sort by this first
+        initialSort: [
+            { column: "route", dir: "asc" }, //sort by this first
         ],
         dataFiltered: function (filters, rows) {
             statusElementId.textContent = rows.length + " rows selected"
@@ -66,13 +66,13 @@ function loadResultsTable(tableId, statusElementId, url) {
         ],
     });
 
-    function customFilter(data){
-        return data.resultKind.Case == 'WikidataNotFoundInDbData' 
+    function customFilter(data) {
+        return data.resultKind.Case == 'WikidataNotFoundInDbData'
             && !(
                 data.countDbStopsNotFound <= 4 && (data.countDbStopsFound - data.countDbStopsNotFound >= 1)
                 || data.countDbStopsNotFound == 5 && (data.countDbStopsFound - data.countDbStopsNotFound >= 5)
                 || data.countDbStopsNotFound == 6 && (data.countDbStopsFound - data.countDbStopsNotFound >= 6)
-                );
+            );
     }
     // table.setFilter(customFilter);
     return table;
@@ -90,8 +90,6 @@ function loadRouteInfosTable(tableId, statusElementId, url) {
         pagination: "local",
         paginationSize: 20,
         dataFiltered: function (filters, rows) {
-            //filters - array of filters currently applied
-            //rows - array of row components that pass the filters
             statusElementId.textContent = rows.length + " rows selected"
         },
         columns: [
@@ -228,15 +226,54 @@ function loadRInfSolOfRouteTable(id, url) {
 
 }
 
-function loadStationOfDbWkTable(title,route,id, url) {
+function loadSubstringMatches(id, statusElementId, url) {
+
+    let urlOfRoute = (cell) => {
+        return "/stationOfDbWk/" + cell.getData().title + '/' + cell.getValue();
+    }
+
+    new Tabulator(id, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        initialSort: [
+            { column: "route", dir: "asc" }, //sort by this first
+        ],
+        pagination: "local",
+        paginationSize: 20,
+        dataFiltered: function (filters, rows) {
+            statusElementId.textContent = rows.length + " rows selected"
+        },
+        columns: [
+            { title: "title", field: "title", headerFilter: "input", width: 350 },
+            {
+                title: "route", field: "route", headerFilter: "input", width: 100, formatter: "link", formatterParams: {
+                    url: urlOfRoute,
+                    target: "_blank",
+                }
+            },
+            {
+                title: "Db Distance", field: "dbkm", width: 90, formatter: function (cell, formatterParams, onRendered) {
+                    return cell.getValue().toFixed(1);
+                },
+            },
+            { title: "dbname", field: "dbname" },
+            { title: "wkname", field: "wkname" },
+            { title: "matchkind", field: "matchkind.Case" }
+        ],
+    });
+
+}
+
+function loadStationOfDbWkTable(title, route, id, url) {
 
     new Tabulator(id, {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
-            { title: "DB Station", field: "dbname", cellClick: function(e, cell){
-                        alert("(\"" + title + "\", " + route + ", \""+ cell.getValue() + "\", \"\")")
-                    } 
+            {
+                title: "DB Station", field: "dbname", cellClick: function (e, cell) {
+                    alert("(\"" + title + "\", " + route + ", \"" + cell.getValue() + "\", \"\")")
+                }
             },
             {
                 title: "Db Distance", field: "dbkm", width: 90, formatter: function (cell, formatterParams, onRendered) {
