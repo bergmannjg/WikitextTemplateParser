@@ -18,8 +18,8 @@ The comparison of wiki data with available db data gives the follwing results:
 
 | Count | Value | Example |
 |---|-----:|---|
-|routes with all db data found in wikidata|595|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with some db data not found in wikidata|35|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
+|routes with all db data found in wikidata|647|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes with some db data not found in wikidata|50|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
 
 ## Statistics about operational points found
 
@@ -27,20 +27,20 @@ How many operational points are found:
 
 | Count | Value | Routes| 
 |--|-----:|----:|
-| operational points matched |6095|595|
-| operational points missing |39|27|
-| operational points with specified matching |17| 11|
+| operational points matched |6783|647|
+| operational points missing |49|31|
+| operational points with specified matching |24| 19|
 
 How do operational points match:
 
 | Count | Value |
 |--|-----:|
-| equal short names |1823|
-| equal names |3785|
-| same substring |442|
-| border |36|
+| equal short names |2065|
+| equal names |4130|
+| same substring |551|
+| border |37|
 
-There are **227** routes having only equal short names and equal names.
+There are **232** routes having only equal short names and equal names.
 
 ## Statistics about articles
 
@@ -51,7 +51,7 @@ There are several reasons why it is not posssible to compare the data:
 |articles total|1499|all articles with route templates are parsed||
 |articles with empty route parameter|317||[Schluff Eisenbahn](https://de.wikipedia.org/wiki/Schluff_(Eisenbahn))|
 |route is no passenger train|305|urban trains and freight trains are not checked|[Route 1734](https://de.wikipedia.org/wiki/Bahnstrecke_Hannover%E2%80%93Braunschweig)|
-|routes compared with db data|630|routes with available db data are comapred|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes compared with db data|697|routes with available db data are comapred|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
 |routes shutdown|473|remark in railway guide (KBS) or operational points out of service|[Route 3745](https://de.wikipedia.org/wiki/Oberwaldbahn)|
 |routes with no db data found|185|articles with shut down routes|[Route 6603 down](https://de.wikipedia.org/wiki/Bahnstrecke_Pirna%E2%80%93Gottleuba)|
 

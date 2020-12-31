@@ -3,9 +3,7 @@ module RInfData
 
 open FSharp.Data
 open System.Collections.Generic
-open Serializer
 open Types
-open DbData
 open System.Text.RegularExpressions
 
 type SectionOfLine =
@@ -119,142 +117,192 @@ let private loadKuerzelArt (name: string) =
             (data.[0].UOPID.Substring(2).Trim(), convertType data.[0].Type)
         | _ -> ("", "")
 
-let rec private sortEdges (data: List<SectionOfLine>) =
-    let rec collect (data: seq<SectionOfLine>)
-                    (curr: SectionOfLine)
-                    (follows: SectionOfLine -> SectionOfLine -> bool)
-                    (sorted: ResizeArray<SectionOfLine>)
-                    =
+/// returns a list of sorted seqs
+let rec sortEdges<'a, 's when 'a: equality and 's: equality>
+    (nodeStart: 'a -> 's)
+    (nodeEnd: 'a -> 's)
+    (edges: List<'a>)
+    =
+    let rec collect (data: seq<'a>) (curr: 'a) (follows: 'a -> 'a -> bool) (sorted: List<'a>) =
         match data |> Seq.tryFind (follows curr) with
         | Some next ->
-            if not (sorted.Exists(fun s -> s.OperationalPointStart = next.OperationalPointStart)) then
+            if (not (sorted.Exists(fun s -> follows next s))) then // no cycles
                 sorted.Add(next)
                 collect data next follows sorted
             else
                 sorted
         | None -> sorted
 
-    if data.Count = 0 then
-        Seq.empty
+    if edges.Count = 0 then
+        [ Seq.empty ]
     else
-        let h = data |> Seq.head
+        let h = edges |> Seq.head
 
         let sortedBefore =
-            collect data h (fun h d -> h.OperationalPointStart = d.OperationalPointEnd) (ResizeArray())
+            collect edges h (fun h d -> nodeStart h = nodeEnd d) (List())
             |> Seq.rev
 
         let sortedAfter =
-            collect data h (fun h d -> h.OperationalPointEnd = d.OperationalPointStart) (ResizeArray())
+            collect edges h (fun h d -> nodeEnd h = nodeStart d) (List())
 
         let sorted =
             Seq.concat [ sortedBefore
-                         [ h ] :> seq<SectionOfLine>
-                         sortedAfter :> seq<SectionOfLine> ]
-            |> Seq.toArray
+                         [ h ] :> seq<'a>
+                         sortedAfter :> seq<'a> ]
 
-        if data.Count > sorted.Length then
-            let rest =
-                sortEdges (data.FindAll(fun d -> not (sorted |> Array.exists (fun s -> s = d))))
+        if edges.Count > (Seq.length sorted) then
+            let sortedRests =
+                sortEdges nodeStart nodeEnd (edges.FindAll(fun d -> not (sorted |> Seq.exists (fun s -> s = d))))
 
-            Seq.concat [ sorted :> seq<SectionOfLine>
-                         rest ]
+            sorted :: sortedRests
         else
-            sorted :> seq<SectionOfLine>
+            [ sorted ]
+
+let private loadSeqsOfSoL routenr =
+    match (loadSoLCsvDataCached ()).TryGetValue routenr with
+    | true, data when data.Count > 0 -> data
+    | _ -> List<SectionOfLine>()
+
+let private loadSeqsOfSoLSorted routenr =
+    let data = loadSeqsOfSoL routenr
+
+    if data.Count > 0 then
+        let nodeStart (n: SectionOfLine) = n.OperationalPointStart
+        let nodeEnd (n: SectionOfLine) = n.OperationalPointEnd
+        sortEdges nodeStart nodeEnd data
+    else
+        [ Seq.empty ]
 
 let loadSoL routenr =
-    match (loadSoLCsvDataCached ()).TryGetValue routenr with
-    | true, data when data.Count > 0 -> sortEdges (data)
-    | _ -> Seq.empty
+    Seq.concat (loadSeqsOfSoLSorted routenr)
 
-let private regexRoutes = Regex(@"StrUeb_(\d{4})_(\d{4})")
+let private getPositionInRouteSeq routenr (opname: string) =
+    match loadKuerzelArt opname with
+    | (ds100, _) when ds100 <> "" ->
+        match DbData.getPositionInRoute routenr ds100 with
+        | Some (km) -> Some km
+        | _ -> None
+    | _ -> None
+    |> Option.orElseWith
+        (fun _ ->
+            match AdhocReplacements.RInfData.missingOperationalPoint
+                  |> Array.tryFind (fun (r, name, _) -> r = routenr && name = opname) with
+            | Some (_, _, km) -> Some km
+            | None -> None)
 
-let private findEntry opname routenr startname =
-    let mc = regexRoutes.Matches opname
+let isJunction (name: string) = name.StartsWith "StrUeb"
 
-    if mc.Count > 0 then
-        let m = mc |> Seq.head
-
-        if m.Groups.Count = 3 then
-            let routenr1 = m.Groups.[1].Value |> int
-            let routenr2 = m.Groups.[2].Value |> int
-
-            let routenrToSearch =
-                if routenr1 = routenr then routenr2 else routenr1
-
-            loadSoL routenrToSearch
-            |> Seq.tryFind (fun e -> e.OperationalPointStart = startname)
-        else
-            None
-    else
+let private getNthPositionInRouteSeq routenr index (edges: SectionOfLine []) =
+    if index >= edges.Length
+       || isJunction edges.[index].OperationalPointStart then
         None
+    else
+        let dist =
+            if index = 0 then
+                0.0
+            else
+                edges
+                |> Array.take (index)
+                |> Array.sumBy (fun s -> s.LengthOfSoL)
 
-let private maybeLoadRouteStartSoL routenr (opname: string) =
-    match loadRouteStart routenr with
-    | Some (name, km) -> if name = "" || name = opname then (km, None) else (km, findEntry opname routenr name)
-    | _ -> (0.0, None)
+        match getPositionInRouteSeq routenr edges.[index].OperationalPointStart with
+        | Some km -> Some(km - dist)
+        | None -> None
 
-// todo
+/// get absolute start position (of kilometering) in route using db open data, rinf data is only relative in SectionOfLine
+let private getStartPositionInRoute routenr (edges: SectionOfLine []) =
+    getNthPositionInRouteSeq routenr 0 edges
+    |> Option.orElseWith (fun _ -> getNthPositionInRouteSeq routenr 1 edges)
+    |> Option.orElseWith (fun _ -> getNthPositionInRouteSeq routenr 2 edges)
+    |> Option.orElseWith (fun _ -> getNthPositionInRouteSeq routenr 3 edges)
+    |> Option.fold (fun _ p -> p) 0.0
+
 let private adhocPreReplacements routenr (edges: SectionOfLine []) =
-    if routenr = 6425 then
-        edges
-        |> Array.filter (fun op -> op.OperationalPointStart = "Bad Harzburg") // start of first part of route
-    else
-        edges
-        |> Array.map
-            (fun op ->
-                match AdhocReplacements.RInfData.replacements
-                      |> Array.tryFind
-                          (fun (r, opStart, opEnd, _) ->
-                              r = routenr
-                              && opStart = op.OperationalPointStart
-                              && opEnd = op.OperationalPointEnd) with
-                | Some (_, _, _, length) -> { op with LengthOfSoL = length } // error in rinf data ??
-                | None -> op)
+    edges
+    |> Array.map
+        (fun op ->
+            match AdhocReplacements.RInfData.replacementsOfLengthOfSoL
+                  |> Array.tryFind
+                      (fun (r, opStart, opEnd, _) ->
+                          r = routenr
+                          && opStart = op.OperationalPointStart
+                          && opEnd = op.OperationalPointEnd) with
+            | Some (_, _, _, length) -> { op with LengthOfSoL = length } // error in rinf data ??
+            | None -> op)
 
-// todo
 let private adhocPostReplacements routenr (ops: DbOpPointOfRoute []) =
-    if routenr = 2610 then
+    match AdhocReplacements.RInfData.replacementsOfOperationalPoints
+          |> Array.tryFind (fun (r, _, _, _) -> r = routenr) with
+    | Some (_, op1, op2, opReplace) -> // op1 and op2 are replaced with opReplace
         ops
-        |> Array.filter
-            (fun op ->
-                op.name
-                <> "Dormagen Chempark (Nordbahnsteig)")
+        |> Array.filter (fun op -> op.name <> op1)
         |> Array.map
             (fun op ->
-                if op.name = "Dormagen Chempark (Südbahnsteig)"
-                then { op with name = "Dormagen Chempark" }
-                else op)
-    else
-        ops
+                if op.name = op2 then
+                    { op with name = opReplace }
+                else
+                    op)
+    | None -> ops
 
 let regexSpaces = Regex(@"\s\s+")
 
-let private loadRoutewithRefill routenr refill =
-    let edges =
-        loadSoL routenr
-        |> Seq.toArray
-        |> adhocPreReplacements routenr
+let regexJunction = Regex(@"StrUeb_(\d{4})_(\d{4})")
+
+let getStationToJunctionDistance routenr nameOfStation nameOfJunction =
+    let m = regexJunction.Match nameOfJunction
+
+    if m.Success && m.Groups.Count = 3 then
+        let route1 = m.Groups.[1].Value |> int
+        let route2 = m.Groups.[2].Value |> int
+
+        let otherRoute =
+            if route1 = routenr then
+                route2
+            else
+                route1
+
+        match loadSeqsOfSoL otherRoute
+              |> Seq.tryFind
+                  (fun s ->
+                      (s.OperationalPointStart = nameOfStation
+                       && s.OperationalPointEnd = nameOfJunction)
+                      || (s.OperationalPointStart = nameOfJunction
+                          && s.OperationalPointEnd = nameOfStation)) with
+        | Some s -> s.LengthOfSoL
+        | None -> 0.0
+    else
+        0.0
+
+let private loadStationNearRouteJunction routenr nameOfJunction expectedKm =
+    match DbData.loadStartOfRoute routenr expectedKm with
+    | Some (nameOfStation, km) ->
+        let dist =
+            getStationToJunctionDistance routenr nameOfStation nameOfJunction
+
+        Some(nameOfStation, max (km - dist) 0.0)
+    | None -> None
+
+let private loadRouteOfSeq routenr (edges: SectionOfLine []) =
 
     if edges.Length = 0 then
-        Array.empty
+        Seq.empty
     else
-        let mutable (kmCurr, maybeSoL) =
-            if refill
-            then maybeLoadRouteStartSoL routenr edges.[0].OperationalPointStart
-            else (0.0, None)
+        let mutable kmCurr = getStartPositionInRoute routenr edges
 
         let h =
-            if maybeSoL.IsSome then
-                let (k, a) =
-                    (loadKuerzelArt maybeSoL.Value.OperationalPointStart)
+            if isJunction edges.[0].OperationalPointStart then
+                match loadStationNearRouteJunction routenr edges.[0].OperationalPointStart kmCurr with
+                | Some (name, km) ->
+                    let (k, a) = (loadKuerzelArt name)
 
-                [ { km = 0.0 // maybeSoL.Value.LengthOfSoL should be eqaul to kmCurr
-                    name = maybeSoL.Value.OperationalPointStart
-                    STELLE_ART = a
-                    KUERZEL = k } ]
-                :> seq<DbOpPointOfRoute>
+                    [| { km = km
+                         name = name
+                         STELLE_ART = a
+                         KUERZEL = k } |]
+
+                | None -> Array.empty
             else
-                Seq.empty
+                Array.empty
 
         let ops =
             edges
@@ -262,6 +310,7 @@ let private loadRoutewithRefill routenr refill =
                 (fun e ->
                     let kmAct = kmCurr
                     let (k, a) = (loadKuerzelArt e.OperationalPointStart)
+
                     kmCurr <- e.LengthOfSoL + kmCurr
 
                     { km = System.Math.Round(kmAct, 1)
@@ -276,15 +325,24 @@ let private loadRoutewithRefill routenr refill =
         let (k, a) = (loadKuerzelArt operationalPointEnd)
 
         Seq.concat [ h
-                     ops :> seq<DbOpPointOfRoute>
-                     [ { km = System.Math.Round(kmCurr, 1)
-                         name = operationalPointEnd
-                         STELLE_ART = a
-                         KUERZEL = k } ]
-                     :> seq<DbOpPointOfRoute> ]
-        |> Seq.toArray
+                     ops
+                     [| { km = System.Math.Round(kmCurr, 1)
+                          name = operationalPointEnd
+                          STELLE_ART = a
+                          KUERZEL = k } |] ]
 
-let loadRoute routenr = loadRoutewithRefill routenr true
+let loadRoute routenr =
+    loadSeqsOfSoLSorted routenr
+    |> Seq.collect
+        (fun edgesSeq ->
+            let edges =
+                edgesSeq
+                |> Seq.toArray
+                |> adhocPreReplacements routenr
+
+            loadRouteOfSeq routenr edges)
+    |> Seq.toArray
+    |> Array.sortBy (fun op -> op.km)
 
 let loadSoLAsJSon routenr =
     Serializer.Serialize<seq<SectionOfLine>>(loadSoL routenr)
@@ -302,7 +360,7 @@ let getRouteNumbers =
     (loadSoLCsvDataCached ()).Keys :> seq<int>
 
 let compareDbDataRoute (routenr: int) =
-    let rinfRoute = loadRoutewithRefill routenr false
+    let rinfRoute = loadRoute routenr
     let dbRoute = DbData.loadRoute routenr
 
     let missing =
@@ -317,8 +375,8 @@ let compareDbDataRoute (routenr: int) =
 
     let count = missing |> Seq.length
 
-    if count > 0
-    then printfn "route %d, %d missing, %A" routenr count missing
+    if count > 0 then
+        printfn "route %d, %d missing, %A" routenr count missing
 
     (routenr, count)
 

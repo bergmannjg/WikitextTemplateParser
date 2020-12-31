@@ -61,23 +61,38 @@ let private applyDeletes (s: string) (diffs: list<Diff>) = diffs |> List.fold (a
 let private (|Diff|_|) (op: Operation) (diff: Diff) =
     if diff.operation = op then Some(diff.text.Trim()) else None
 
+let private checkNeqDiffContainsIgnoredString (diff: Diff) =
+    diff.operation <> Operation.EQUAL
+    && isIgnoredStringsInStationname diff.text
+
+let private checkEqDiffStartsWith (diff: Diff) (s1: string) (s2: string) =
+    diff.operation = Operation.EQUAL
+    && (checkStartsWith diff.text s1
+        || checkStartsWith diff.text s2)
+
+let private checkEqDiffLengh (diff: Diff) limit =
+    diff.operation = Operation.EQUAL
+    && diff.text.Length >= limit
+
+let private checkEqDiffEndsWith (diff: Diff) (s1: string) (s2: string) =
+    diff.operation = Operation.EQUAL
+    && (checkEndsWith diff.text s1
+        || checkEndsWith diff.text s2)
+
 /// check equality if first text block or text block after first ignored text starts with 's1' or 's2'
 let private isStartsWith (diffs: list<Diff>) (s1: string) (s2: string) =
     let s1a = applyDeletes s1 diffs
+    let s2a = applyDeletes s2 diffs
 
     checkStartsWith s2 s1
     || checkStartsWith s2 s1a
-    || (diffs.Head.operation = Operation.EQUAL
-        && (checkStartsWith diffs.Head.text s1
-            || checkStartsWith diffs.Head.text s2))
+    || checkStartsWith s2a s1a
+    || checkEqDiffStartsWith diffs.Head s1 s2
     || (diffs.Length > 1
-        && diffs.Head.operation <> Operation.EQUAL
-        && isIgnoredStringsInStationname diffs.Head.text
-        && (diffs.[1].operation = Operation.EQUAL
-            && (checkStartsWith diffs.[1].text s1
-                || checkStartsWith diffs.[1].text s2)))
+        && checkNeqDiffContainsIgnoredString diffs.[0]
+        && checkEqDiffStartsWith diffs.[1] s1 s2)
 
-/// check equality if last text block or text block before last ignored text ends with 's1' or 's2'
+/// check equality if last text block or text block before last with ignored text ends with 's1' or 's2'
 let private isEndsWith (diffs: list<Diff>) (s1: string) (s2: string) =
     let s1a = (applyDeletes s1 diffs).TrimEnd()
     let s2a = (applyDeletes s2 diffs).TrimEnd()
@@ -89,27 +104,19 @@ let private isEndsWith (diffs: list<Diff>) (s1: string) (s2: string) =
     else
         let last = diffs.[diffs.Length - 1]
 
-        let prev =
-            if diffs.Length > 1 then Some diffs.[diffs.Length - 2] else None
+        checkEqDiffEndsWith last s1 s2
+        || (diffs.Length > 1
+            && (let prev = diffs.[diffs.Length - 2]
 
-        match prev, last with
-        | (_, Diff Operation.EQUAL s) -> s.EndsWith s1 || s.EndsWith s2
-        | (Some (Diff Operation.EQUAL s), Diff Operation.DELETE d) ->
-            (isIgnoredStringsInStationname d)
-            && (checkEndsWith s s1 || checkEndsWith s s2)
-        | _ -> false
+                checkEqDiffEndsWith prev s1 s2
+                && checkNeqDiffContainsIgnoredString last))
 
 /// check equality for start text block or text block after ignored text with min length 'limit'
-let private isSameSubstring (diffs: list<Diff>) (s1: string) (s2: string) limit =
-    diffs.Head.operation = Operation.EQUAL
-    && diffs.Head.text.Length >= limit
+let private isSameSubstring (diffs: list<Diff>) limit =
+    checkEqDiffLengh diffs.Head limit
     || (diffs.Length > 1
-        && diffs.Head.operation <> Operation.EQUAL
-        && isIgnoredStringsInStationname diffs.Head.text
-        && (diffs.[1].operation = Operation.EQUAL
-            && (diffs.[1].text.Length >= limit
-                || diffs.[1].text.StartsWith(s1)
-                || diffs.[1].text.StartsWith(s2))))
+        && checkNeqDiffContainsIgnoredString diffs.[0]
+        && checkEqDiffLengh diffs.[1] limit)
 
 /// check equality after removing ignored text blocks
 let private isEqualWithoutIgnored (diffs: list<Diff>) =
@@ -159,7 +166,7 @@ let private diffStationName (wikiName: string) (dbName: string) withDistance =
     else if isStartsWith diffs dbName wikiName then StartsWith
     else if isEndsWith diffs wikiName dbName then EndsWith
     else if isEndsWith diffs dbName wikiName then EndsWith
-    else if isSameSubstring diffs wikiName dbName limit then SameSubstring
+    else if isSameSubstring diffs limit then SameSubstring
     else Failed
 
 let matchStationName (wikiName: string) (dbName: string) withDistance =

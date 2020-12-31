@@ -16,8 +16,14 @@ let regexYearDiff = Regex(@"19\d{2}–19\d{2}")
 
 module RInfData =
     /// maybe errors in rinf lengthOfSoL data
-    let replacements =
+    let replacementsOfLengthOfSoL =
         [| (2550, "Neuss Erftkanal", "Düsseldorf-Bilk", 3.6) |]
+
+    let replacementsOfOperationalPoints =
+        [| (2610, "Dormagen Chempark (Nordbahnsteig)", "Dormagen Chempark (Südbahnsteig)", "Dormagen Chempark") |]
+
+    /// missing operational point in db open data
+    let missingOperationalPoint = [| (6935, "Warenshof", 93.0) |]
 
 module Wikitext =
     /// maybe errors in wikitext
@@ -277,11 +283,14 @@ module Comparer =
     let matchingsOfDbWkOpPoints =
         [| ("Bahnstrecke Lübeck–Puttgarden", 1100, "Burg (Fehmarn) West", "Bbf Burg-West")
            ("Bahnstrecke Lübeck–Puttgarden", 1100, "Schwartau Waldhalle", "Abzw Wr")
+           ("Bahnstrecke Münster–Enschede", 2014, "Borghorst Grottenkamp", "Steinfurt-Grottenkamp")
            ("Bahnstrecke Dortmund–Soest", 2103, "Dortmund Dfd", "Strecke von Dortmund-Dortmunderfeld")
            ("Bahnstrecke Wanne-Eickel–Hamburg", 2200, "Hörne", "Osnabrück-Hörne Bbf")
            ("Bahnstrecke Wanne-Eickel–Hamburg", 2200, "Bremen Utbremen", "Strecke von/nach Bremerhaven")
            ("Bahnstrecke Hagen–Hamm", 2550, "Schwerte (Ruhr) Ost", "Schwerte Heide")
            ("Bahnstrecke Düsseldorf–Elberfeld", 2550, "Wuppertal Linden", "Linden")
+           ("Bahnstrecke Düren–Neuss", 2580, "Neuss Nordkanal W 1", "Nordkanal W1")
+           ("Oberbergische Bahn", 2670, "Köln Messe/Deutz Hp (S-Bahn)", "Köln Messe/Deutz")
            ("Bahnstrecke Elberfeld–Dortmund", 2801, "Dortmund Dfd", "Strecke nach Soest")
            ("Bahnstrecke Finnentrop–Freudenberg", 2864, "Hohenhagen", "Attendorn-Hohen Hagen")
            ("Bahnstrecke Mainz–Mannheim", 3522, "Ludwigshafen (Rhein) Rotes Kreuz", "Rotes Kreuz")
@@ -289,16 +298,28 @@ module Comparer =
            ("Bahnstrecke Göttingen–Bebra", 3600, "Eschwege-Wehre", "Eschwege West Wehre")
            ("Bahnstrecke Stuttgart–Tuttlingen", 4600, "Rietheim-Weilheim", "Weilheim (Württ)")
            ("Bahnstrecke Plochingen–Tübingen", 4600, "Oberboihingen Abzw", "Wendlinger Kurve")
+           ("Bahnstrecke Crailsheim–Königshofen", 4922, "Bad Mergentheim Streckenw 4922/4953", "Bad Mergentheim")
+           ("Berliner Stadtbahn", 6109, "Berlin Hauptbahnhof-Lehrter Bf (Stadtb)", "Berlin Hbf")
+           ("Bahnstrecke Jüterbog–Nauen", 6115, "Beelitz Bea Streckenwechsel 6115/6119", "von Michendorf")
            ("Bahnstrecke Berlin–Blankenheim", 6118, "Potsdam Griebnitzsee", "Griebnitzsee Ost")
+           ("Bahnstrecke Leipzig-Leutzsch–Leipzig-Wahren", 6380, "Leipzig Wahrener Viadukt", "Viadukt Wahren")
+           ("Bahnstrecke Leipzig–Probstzella", 6383, "Leipzig-Plagwitz Gbf", "Leipzig-Plagwitz Industriebahnhof")
            ("Bahnstrecke Magdeburg–Leipzig", 6403, "Halle-Kanena", "Kanena, Abzw Leuchtturm")
            ("Bahnstrecke Rostock–Rostock Seehafen Nord",
             6443,
             "Rostock Seehafen Bw",
-            "Rostock Seehafen Bahnbetriebswerk") |]
+            "Rostock Seehafen Bahnbetriebswerk")
+           ("Bahnstrecke Treuenbrietzen–Neustadt (Dosse)", 6553, "Preußnitz Pra Strw 6542/6553", "Abzw Preußnitz B 1") |]
 
     /// maybe error in wiki data, checked with DB Netze Infrastrukturregister (https://geovdbn.deutschebahn.com/isr)
     let nonexistentWkOpPoints =
-        [| ("Bahnstrecke Hannover–Altenbeken", 1760, "Hannover-Waldhausen")
+        [| ("Bahnstrecke Wittenberge–Buchholz", 1151, "Lüneburg-Westseite")
+           ("Bahnstrecke Hannover–Altenbeken", 1760, "Hannover-Waldhausen")
+           ("Rechte Rheinstrecke", 2324, "Gremberg Nord")
+           ("Bahnstrecke Köln–Duisburg", 2413, "Düsseldorf-Eller Mitte")
+           ("Bahnstrecke Köln–Duisburg", 2413, "Düsseldorf Sturm")
+           ("Bahnstrecke Düren–Neuss", 2580, "Neuss Nordkanal")
+           ("Bahnstrecke Köln–Duisburg", 2670, "Duisburg-Buchholz Abzw")
            ("Bahnstrecke Kreuztal–Cölbe", 2870, "Oberndorf (Kr Wittgenstein)")
            ("Bahnstrecke Altenbeken–Kreiensen", 2974, "Brakel")
            ("Eifelquerbahn", 3005, "Mayen Mitte")
@@ -316,6 +337,7 @@ module Comparer =
            ("Güteraußenring", 6080, "Eichgestell Nord")
            ("Berliner Außenring", 6087, "Hennigsdorf Nord (Hdo)")
            ("Berliner Außenring", 6087, "Hennigsdorf Nord (Hdw)")
+           ("Berliner Nordbahn", 6088, "Stralsund SRG")
            ("Bahnstrecke Berlin–Magdeburg", 6110, "Potsdam Wildpark Ost")
            ("Bahnstrecke Berlin–Blankenheim", 6118, "Seddin Bla")
            ("Güteraußenring", 6126, "Grünauer Kreuz Süd")
@@ -326,6 +348,8 @@ module Comparer =
            ("Bahnstrecke Berlin–Halle", 6132, "Halle (Saale) Abzw Ab")
            ("Bahnstrecke Berlin–Halle", 6132, "Halle (Saale) Betriebsbahnhof Hnw")
            ("Bahnstrecke Berlin–Halle", 6132, "Halle (Saale) Gbf")
+           ("Bahnstrecke Berlin–Dresden", 6135, "Berlin Attilastraße Oiltanking")
+           ("Bahnstrecke Węgliniec–Roßlau", 6207, "Falkenberg (Elster) unt Bf Stw W 15")
            ("Bahnstrecke Halle–Bebra", 6340, "Halle Thüringer Bahn")
            ("Bahnstrecke Halle–Bebra", 6340, "Gotha (16W03)")
            ("Bahnstrecke Halle–Cottbus", 6345, "Halle (Saale) Gbf")
@@ -333,6 +357,7 @@ module Comparer =
            ("Bahnstrecke Halle–Cottbus", 6345, "Falkenberg (Elster) ob Bf Stw W 2")
            ("Bahnstrecke Halle–Cottbus", 6345, "Cottbus Cfw")
            ("Bahnstrecke Leipzig–Hof", 6362, "Werdau Bogendreieck Werdauer Spitze")
+           ("Bahnstrecke Leipzig–Probstzella", 6383, "Crossen an der Elster Ort")
            ("Bahnstrecke Magdeburg–Leipzig", 6403, "Magdeburg-Fermersleben")
            ("Bahnstrecke Magdeburg–Leipzig", 6403, "Schönebeck (Elbe) Gbf")
            ("Bahnstrecke Magdeburg–Leipzig", 6403, "Halle (Saale) Leuchtturm")

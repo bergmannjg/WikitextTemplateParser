@@ -60,6 +60,7 @@ let bfStelleArt =
 
 let private memoize<'a> f =
     let mutable cache: Dictionary<int, ResizeArray<'a>> option = None
+
     (fun () ->
         match cache with
         | Some data -> data
@@ -92,75 +93,93 @@ let private loadCsvData path (cp: int) loader =
         Dictionary<int, ResizeArray<'a>>()
 
 let private loadStreckenCsvData () =
-    loadCsvData "./dbdata/original/strecken.csv" 852 (fun dict row ->
-        let data =
-            { STRNR = row.["STRNR"].AsInteger()
-              KMANF_E = row.["KMANF_E"].AsInteger()
-              KMEND_E = row.["KMEND_E"].AsInteger()
-              KMANF_V = row.["KMANF_V"]
-              KMEND_V = row.["KMEND_V"]
-              STRNAME = row.["STRNAME"]
-              STRKURZN = row.["STRKURZN"] }
+    loadCsvData
+        "./dbdata/original/strecken.csv"
+        852
+        (fun dict row ->
+            let data =
+                { STRNR = row.["STRNR"].AsInteger()
+                  KMANF_E = row.["KMANF_E"].AsInteger()
+                  KMEND_E = row.["KMEND_E"].AsInteger()
+                  KMANF_V = row.["KMANF_V"]
+                  KMEND_V = row.["KMEND_V"]
+                  STRNAME = row.["STRNAME"]
+                  STRKURZN = row.["STRKURZN"] }
 
-        dict |> add data.STRNR data
-        dict)
+            dict |> add data.STRNR data
+            dict)
 
 let private loadStreckenCsvDataCached = memoize loadStreckenCsvData
 
 let private loadOperationalPointsCsvData () =
-    loadCsvData "./dbdata/original/betriebsstellen_open_data.csv" 852 (fun dict row ->
-        let data =
-            { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
-              RICHTUNG = row.["RICHTUNG"].AsInteger()
-              KM_I = row.["KM_I"].AsInteger()
-              KM_L = row.["KM_L"]
-              BEZEICHNUNG = row.["BEZEICHNUNG"]
-              STELLE_ART = row.["STELLE_ART"]
-              KUERZEL = row.["KUERZEL"]
-              GEOGR_BREITE =
-                  if System.String.IsNullOrEmpty(row.["GEOGR_BREITE"])
-                  then 0.0
-                  else row.["GEOGR_BREITE"].AsFloat()
-              GEOGR_LAENGE = row.["GEOGR_LAENGE"].AsFloat() }
+    loadCsvData
+        "./dbdata/original/betriebsstellen_open_data.csv"
+        852
+        (fun dict row ->
+            let data =
+                { STRECKE_NR = row.["STRECKE_NR"].AsInteger()
+                  RICHTUNG = row.["RICHTUNG"].AsInteger()
+                  KM_I = row.["KM_I"].AsInteger()
+                  KM_L = row.["KM_L"]
+                  BEZEICHNUNG = row.["BEZEICHNUNG"]
+                  STELLE_ART = row.["STELLE_ART"]
+                  KUERZEL = row.["KUERZEL"]
+                  GEOGR_BREITE =
+                      if System.String.IsNullOrEmpty(row.["GEOGR_BREITE"]) then
+                          0.0
+                      else
+                          row.["GEOGR_BREITE"].AsFloat()
+                  GEOGR_LAENGE = row.["GEOGR_LAENGE"].AsFloat() }
 
-        dict |> add data.STRECKE_NR data
-        dict)
+            dict |> add data.STRECKE_NR data
+            dict)
 
 let loadOperationalPointsCsvDataCached = memoize loadOperationalPointsCsvData
 
 let private loadStreckenutzungCsvData () =
-    loadCsvData "./dbdata/original/strecken_nutzung.csv" 1252 (fun dict row ->
-        let data =
-            { mifcode = row.[0]
-              strecke_nr = row.[1].AsInteger()
-              richtung = row.[2].AsInteger()
-              laenge = row.[3].AsInteger()
-              von_km_i = row.[4].AsInteger()
-              bis_km_i = row.[5].AsInteger()
-              von_km_l = row.[6]
-              bis_km_l = row.[7]
-              elektrifizierung = row.[8]
-              bahnnutzung = row.[9]
-              geschwindigkeit = row.[10]
-              strecke_kurzn = row.[11]
-              gleisanzahl = row.[12]
-              bahnart = row.[13]
-              kmspru_typ_anf = row.[14]
-              kmspru_typ_end = row.[15] }
+    loadCsvData
+        "./dbdata/original/strecken_nutzung.csv"
+        1252
+        (fun dict row ->
+            let data =
+                { mifcode = row.[0]
+                  strecke_nr = row.[1].AsInteger()
+                  richtung = row.[2].AsInteger()
+                  laenge = row.[3].AsInteger()
+                  von_km_i = row.[4].AsInteger()
+                  bis_km_i = row.[5].AsInteger()
+                  von_km_l = row.[6]
+                  bis_km_l = row.[7]
+                  elektrifizierung = row.[8]
+                  bahnnutzung = row.[9]
+                  geschwindigkeit = row.[10]
+                  strecke_kurzn = row.[11]
+                  gleisanzahl = row.[12]
+                  bahnart = row.[13]
+                  kmspru_typ_anf = row.[14]
+                  kmspru_typ_end = row.[15] }
 
-        dict |> add data.strecke_nr data
-        dict)
+            dict |> add data.strecke_nr data
+            dict)
 
 let private loadStreckenutzungCsvDataCached = memoize loadStreckenutzungCsvData
 
 let removeRest (name: string) (pattern: string) =
     let index = name.IndexOf(pattern)
-    if index > 0 then name.Substring(0, index) else name
+
+    if index > 0 then
+        name.Substring(0, index)
+    else
+        name
 
 /// split route name like 'Bln-Spandau - Hamburg-Altona'
 let private splitRoutename (streckekurzname: string) =
     let split = streckekurzname.Split " - "
-    if (split.Length = 2) then split else Array.empty
+
+    if (split.Length = 2) then
+        split
+    else
+        Array.empty
 
 /// ignore meters < 100
 let kmIEqual (km_I0: int) (km_I1: int) = abs (km_I0 - km_I1) < 100
@@ -200,13 +219,18 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<OperationalPointRail
             if indexAnf.IsNone && not found0 then
                 [ { STRECKE_NR = route.STRNR
                     RICHTUNG = 1
-                    KM_I = if useDistance then route.KMANF_E else 100000000
+                    KM_I =
+                        if useDistance then
+                            route.KMANF_E
+                        else
+                            100000000
                     KM_L = route.KMANF_V
                     BEZEICHNUNG = station0
                     STELLE_ART = "ANF"
                     KUERZEL = ""
                     GEOGR_BREITE = 0.0
-                    GEOGR_LAENGE = 0.0 } ] :> seq<OperationalPointRailwayRoutePosition>
+                    GEOGR_LAENGE = 0.0 } ]
+                :> seq<OperationalPointRailwayRoutePosition>
             else
                 Seq.empty
 
@@ -228,7 +252,8 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<OperationalPointRail
                     STELLE_ART = "END"
                     KUERZEL = ""
                     GEOGR_BREITE = 0.0
-                    GEOGR_LAENGE = 0.0 } ] :> seq<OperationalPointRailwayRoutePosition>
+                    GEOGR_LAENGE = 0.0 } ]
+                :> seq<OperationalPointRailwayRoutePosition>
             else
                 Seq.empty
 
@@ -236,10 +261,19 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<OperationalPointRail
     else
         dbdata
 
+let getPositionInRoute routenr kuerzel =
+    match (loadOperationalPointsCsvDataCached ()).TryGetValue routenr with
+    | true, ops ->
+        match ops
+              |> Seq.tryFind (fun op -> op.KUERZEL = kuerzel) with
+        | Some op -> Some(getKMI2Float op.KM_I)
+        | None -> None
+    | _ -> None
+
 /// load
 /// name - route start op
 /// km - reference of kilometering of line
-let loadRouteStart routenr =
+let loadStartOfRoute routenr expectedKm =
     match (loadStreckenCsvDataCached ()).TryGetValue routenr with
     | true, routes when routes.Count = 1 ->
         let route = routes.[0]
@@ -258,7 +292,11 @@ let loadRouteStart routenr =
                 |> StringUtilities.replaceFromListToEmpty [ "Abzw " ]
 
             let km = getKMI2Float route.KMANF_E
-            if km >= 0.0 then Some(station, km) else Some("", km)
+
+            if km >= 0.0 && abs (km - expectedKm) < 0.2 then
+                Some(station, km)
+            else
+                None
         else
             None
     | _ -> None
@@ -280,11 +318,12 @@ let private loadRoutePosition routenr =
 
 let loadRoute routenr =
     loadRoutePosition routenr
-    |> Seq.map (fun p ->
-        { km = getKMI2Float p.KM_I
-          name = p.BEZEICHNUNG
-          STELLE_ART = p.STELLE_ART
-          KUERZEL = p.KUERZEL })
+    |> Seq.map
+        (fun p ->
+            { km = getKMI2Float p.KM_I
+              name = p.BEZEICHNUNG
+              STELLE_ART = p.STELLE_ART
+              KUERZEL = p.KUERZEL })
     |> Seq.toArray
 
 let loadRouteAsJSon routenr =
@@ -295,7 +334,7 @@ let checkPersonenzugStreckenutzung routenr =
     | true, dbdata ->
         dbdata
         |> Seq.map (fun s -> s.bahnnutzung)
-        |> Seq.forall (fun bn -> bn.Contains "Pz")
+        |> Seq.exists (fun bn -> bn.Contains "Pz")
     | _ -> true
 
 let dump (title: string) (strecke: int) (stations: DbOpPointOfRoute []) =

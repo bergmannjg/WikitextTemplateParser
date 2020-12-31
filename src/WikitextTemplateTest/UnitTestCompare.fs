@@ -6,6 +6,8 @@ open Templates
 open RouteInfo
 open OpPointsOfRoute
 open Types
+open RInfData
+open OpPointMatch
 
 [<SetUp>]
 let Setup () = Serializer.addConverters ([||])
@@ -14,6 +16,7 @@ let loadTemplatesForWikiTitle (title: string) =
     let path = "../../../testdata/" + title + ".json"
 
     printfn "loading %s" path
+
     if System.IO.File.Exists path then
         let wikitext = System.IO.File.ReadAllText path
 
@@ -30,7 +33,7 @@ let checkStationDistance (stations: WkOpPointOfRoute []) (name: string) (km: str
         stations |> Array.tryFind (fun b -> b.name = name)
 
     Assert.That(s.IsSome, Is.EqualTo(true))
-    //Assert.That(sprintf "%.1f" s.Value.km, Is.EqualTo(km))
+//Assert.That(sprintf "%.1f" s.Value.km, Is.EqualTo(km))
 
 [<Test>]
 let TestCompareHammMinden () =
@@ -47,9 +50,73 @@ let TestCompareAltenbekenKreiensen () =
     Assert.That(templates.Length, Is.EqualTo(45))
 
     match findRouteInfoInTemplates templates "Bahnstrecke_Altenbeken–Kreiensen" with
-    | Some strecken -> 
+    | Some strecken ->
         Assert.That(strecken.Length, Is.EqualTo(3))
-        let bahnhöfe = findStations strecken.[1] templates 
-        Assert.That(bahnhöfe.Length, Is.EqualTo(19))
+        let bahnhöfe = findStations strecken.[1] templates
+        Assert.That(bahnhöfe.Length, Is.EqualTo(18))
         checkStationDistance bahnhöfe "Langeland" "3.5"
     | None -> Assert.Fail("no stations found")
+
+type Edge = { a: string; b: string }
+
+[<Test>]
+let TestSortEdges1 () =
+
+    let edges =
+        ResizeArray(
+            [ { a = "b"; b = "c" }
+              { a = "a"; b = "b" }
+              { a = "c"; b = "d" } ]
+        )
+
+    let nodeStart (n: Edge) = n.a
+    let nodeEnd (n: Edge) = n.b
+    let sorted = sortEdges nodeStart nodeEnd edges
+
+    let expected =
+        [ { a = "a"; b = "b" }
+          { a = "b"; b = "c" }
+          { a = "c"; b = "d" } ]
+
+
+    Assert.That(sorted.Length, Is.EqualTo(1))
+    Assert.That(expected, Is.EqualTo(sorted.[0]))
+
+[<Test>]
+let TestSortEdges2 () =
+
+    let edges =
+        ResizeArray(
+            [ { a = "b"; b = "c" }
+              { a = "a"; b = "b" }
+              { a = "d"; b = "e" } ]
+        )
+
+    let nodeStart (n: Edge) = n.a
+    let nodeEnd (n: Edge) = n.b
+    let sorted = sortEdges nodeStart nodeEnd edges
+
+    let expected1 =
+        [ { a = "a"; b = "b" }
+          { a = "b"; b = "c" } ]
+
+    let expected2 = [ { a = "d"; b = "e" } ]
+
+    Assert.That(sorted.Length, Is.EqualTo(2))
+    Assert.That(expected1, Is.EqualTo(sorted.[0]))
+    Assert.That(expected2, Is.EqualTo(sorted.[1]))
+
+[<Test>]
+let TestMatchStationName () =
+
+    Assert.That(matchStationName "Berlin" "Berlin" true, Is.EqualTo(MatchKind.EqualNames))
+
+    Assert.That(matchStationName "Abzw Rehsiepen" "Hagen Rehsiepen" true, Is.EqualTo(MatchKind.EndsWith))
+
+    Assert.That(matchStationName "Hagen Rehsiepen" "Abzw Rehsiepen" true, Is.EqualTo(MatchKind.Failed))
+
+    Assert.That(matchStationName "Himmelsthür (Abzw)" "Abzweig Himmelsthür" true, Is.EqualTo(MatchKind.EqualWithoutIgnored))
+
+    Assert.That(matchStationName "Köln Steinstr. Abzw" "Köln Steinstraße (Abzw)" true, Is.EqualTo(MatchKind.SameSubstring))
+
+    Assert.That(matchStationName "Abzw Werkleitz nach Magdeburg" "Werkleitz" true, Is.EqualTo(MatchKind.StartsWith))

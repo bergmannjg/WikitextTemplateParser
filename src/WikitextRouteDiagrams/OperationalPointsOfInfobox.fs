@@ -162,7 +162,7 @@ let private matchesSymbolType (parameters: seq<Parameter>) =
 
 let private matchesParameterName (parameters: seq<Parameter>) (names: string []) =
     parameters
-    |> existsParameterStringNameInList names (=)
+    |> forallStringsInParameterStringNameList names (=)
 
 let private regexSpaces = Regex(@"\s+")
 
@@ -264,6 +264,8 @@ let findStationOfInfobox (t: Template) =
         | (n, [], l) when matchCondition n [| "BS"; "BSe" |] 3 1 l -> matchStationAt 1 l
         | (n, [], l) when matchConditionWithParameters n [| "BS2"; "BS2e" |] 7 5 [| "T1"; "T2" |] l ->
             matchStationAt 4 l
+        | (n, [], l) when matchConditionWithParameters n [| "BS2"; "BS2e" |] 5 3 [| "T1" |] l ->
+            matchStationAt 3 l
         | (n, [], l) when matchCondition n [| "BS2"; "BS2e" |] 4 2 l -> matchStationAt 2 l
         | (n, [], l) when matchConditionWithParameters n [| "BS3"; "BS3e" |] 8 6 [| "T1"; "T2"; "T3" |] l ->
             matchStationAt 6 l

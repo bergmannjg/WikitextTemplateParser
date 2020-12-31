@@ -203,7 +203,21 @@ function loadRInfStationOfRouteTable(id, url) {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
-            { title: "Station", field: "name" },
+            {
+                title: "Station", field: "name", width: 230, formatter: function (cell, formatterParams, onRendered) {
+                    let value = cell.getValue();
+                    var regex = /StrUeb_(\d+)_(\d+)/;
+                    var match = regex.exec(value);
+                    if (match) {
+                        return "<span>"
+                            + value + " (<a href=\"/dbStationOfRoute/" + match[1] + "\">" + match[1] + "</a>"
+                            + "/" + "<a href=\"/dbStationOfRoute/" + match[2] + "\">" + match[2] + "</a>)"
+                            + "</span>";
+                    } else {
+                        return value;
+                    }
+                },
+            },
             { title: "DS100", field: "KUERZEL" },
             { title: "Art", field: "STELLE_ART", width: 150 },
             { title: "Distance", field: "km", width: 150 }
