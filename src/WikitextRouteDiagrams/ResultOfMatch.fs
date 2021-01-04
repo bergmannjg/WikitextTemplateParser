@@ -36,15 +36,16 @@ let private guessRouteIsShutdown (railwayGuide: string option) =
         || Regex("\(\d{4}\)").Match(v).Success
     | None -> false
 
-let getResultKind countWikiStops
-                  countDbStops
-                  countDbStopsFound
-                  countDbStopsNotFound
-                  (railwayGuide: string option)
-                  (unmatched: bool)
-                  (countAciveStations: int)
-                  (countShutdownStations: int)
-                  =
+let getResultKind
+    countWikiStops
+    countDbStops
+    countDbStopsFound
+    countDbStopsNotFound
+    (railwayGuide: string option)
+    (unmatched: bool)
+    (countAciveStations: int)
+    (countShutdownStations: int)
+    =
     let dbStopsWithRoute = countDbStops > 0
 
     if countWikiStops = 0 && dbStopsWithRoute then
@@ -123,9 +124,10 @@ let removeDoubleWkStations (results: ResultOfOpPoint []) =
             (fun r ->
                 match r with
                 | Success (db, wk, mk) ->
-                    if db.STELLE_ART <> RInfData.StelleArtGrenze
-                    then Some(db, wk, mk)
-                    else None
+                    if db.STELLE_ART <> RInfData.StelleArtGrenze then
+                        Some(db, wk, mk)
+                    else
+                        None
                 | Failure (_) -> None)
         |> Array.choose id
         |> Array.groupBy (fun (db, wk, mk) -> (wk.name, wk.kms))
@@ -142,7 +144,11 @@ let removeDoubleWkStations (results: ResultOfOpPoint []) =
                 | Success (db, wk, _) ->
                     match candidates
                           |> Array.tryFind (fun (c_db, c_wk, c_mk) -> wk.name = c_wk.name) with
-                    | Some (c_db, c_wk, c_mk) -> if db.name = c_db.name then r else Failure db
+                    | Some (c_db, c_wk, c_mk) ->
+                        if db.name = c_db.name then
+                            r
+                        else
+                            Failure db
                     | None -> r
                 | Failure (_) -> r)
 
@@ -157,7 +163,12 @@ let private filterResultsOfRouteWithRouteInfo (route: RouteInfo) (results: Resul
     | Some (indexFrom), Some (indexTo)
     | Some (indexTo), Some (indexFrom) when indexFrom < indexTo ->
         results
-        |> Array.mapi (fun i v -> if i >= indexFrom && i <= indexTo then Some v else None)
+        |> Array.mapi
+            (fun i v ->
+                if i >= indexFrom && i <= indexTo then
+                    Some v
+                else
+                    None)
         |> Array.choose id
     | _ -> Array.empty
 
@@ -180,7 +191,10 @@ let filterResultsOfRoute (route: RouteInfo) (results: ResultOfOpPoint []) =
     let r =
         filterResultsOfRouteWithRouteInfo route results // assumes start/stop of route is in success array
 
-    if r.Length = 0 then filterResultsOfRouteWithKm route results else r
+    if r.Length = 0 then
+        filterResultsOfRouteWithKm route results
+    else
+        r
 
 let showComparisonResults () =
     let results =
@@ -250,6 +264,16 @@ let loadDiffMatchPatch s1 s2 =
     d.diff_cleanupSemantic (diffs)
     diffs |> Seq.iter (fun s -> printfn "diffs: %A" s)
 
+let loadRoutesOfResultKind (rk: ResultKind option) =
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
+
+    [ for r in results do
+        if rk.IsNone || r.resultKind = rk.Value then
+            yield r.route ]
+    |> List.distinct
+    |> List.sort
+
 let loadSubstringMatches () =
     let results =
         Serializer.Deserialize<ResultOfRoute []>(DataAccess.ResultOfRoute.queryAll ())
@@ -305,7 +329,7 @@ let showMatchKindStatistics verbose =
                         "kind %A %A"
                         k
                         (if numExamplesPerRoute > l.Length then
-                            List.empty
+                             List.empty
                          else
                              ((List.take numExamplesPerRoute l)
                               |> List.map (fun (r, s) -> (r, s.dbname, s.wkname))))
@@ -333,7 +357,8 @@ let showMatchKindStatistics verbose =
             StartsWith
             StartsWithNotDistance
             EndsWith
-            EndsWithNotDistance ]
+            EndsWithNotDistance
+            EqualDistanceShortSubstring ]
           [ EqualBorder; EqualBorderNotDistance ]
           [ IgnoredDbOpPoint
             IgnoredWkOpPoint

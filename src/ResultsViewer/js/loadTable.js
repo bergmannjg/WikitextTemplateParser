@@ -226,15 +226,25 @@ function loadRInfStationOfRouteTable(id, url) {
 
 }
 
-function loadRInfSolOfRouteTable(id, url) {
+function loadRInfSolOfRouteTable(id, route, url) {
+
+    let urlOfRoute = (cell) => {
+        return "/BRouterOfSol/" + route + "/" + cell.getData().OperationalPointStart + '/' + cell.getData().OperationalPointEnd;
+    }
 
     new Tabulator(id, {
         ajaxURL: url,
         layout: "fitColumns",
         columns: [
+            { title: "Component", field: "Component", width: 150 },
             { title: "Start", field: "OperationalPointStart" },
             { title: "End", field: "OperationalPointEnd" },
-            { title: "LengthOfSoL", field: "LengthOfSoL", width: 150 },
+            {
+                title: "LengthOfSoL", field: "LengthOfSoL", width: 150, formatter: "link", formatterParams: {
+                    url: urlOfRoute,
+                    target: "_blank",
+                }
+            },
         ],
     });
 
@@ -273,6 +283,40 @@ function loadSubstringMatches(id, statusElementId, url) {
             { title: "dbname", field: "dbname" },
             { title: "wkname", field: "wkname" },
             { title: "matchkind", field: "matchkind.Case" }
+        ],
+    });
+
+}
+
+function loadSectionOfLineDbOpsDifferences(id, statusElementId, url) {
+
+    let urlOfRoute = (cell) => {
+        return "/BRouterOfSol/" + cell.getData().routenr + "/" + cell.getData().sol.OperationalPointStart + '/' + cell.getData().sol.OperationalPointEnd;
+    }
+
+    new Tabulator(id, {
+        ajaxURL: url,
+        layout: "fitColumns",
+        initialSort: [
+            { column: "route", dir: "asc" }, //sort by this first
+        ],
+        pagination: "local",
+        paginationSize: 20,
+        dataFiltered: function (filters, rows) {
+            statusElementId.textContent = rows.length + " rows selected"
+        },
+        columns: [
+            { title: "route", field: "routenr", headerFilter: "input", width: 150 },
+            { title: "start", field: "sol.OperationalPointStart" },
+            { title: "end", field: "sol.OperationalPointEnd" },
+            {
+                title: "distance RINF data", field: "sol.LengthOfSoL", formatter: "link", formatterParams: {
+                    url: urlOfRoute,
+                    target: "_blank",
+                }
+            },
+            { title: "distance DB data", field: "opDistance" },
+            { title: "difference", field: "difference" }
         ],
     });
 

@@ -7,14 +7,16 @@ let tabulatorCached = System.IO.Directory.Exists "./dist"
 /// using http://tabulator.info
 let titleAndScripts (titleString: string) =
     let tabulaturScript =
-        if tabulatorCached
-        then "/dist/js/tabulator.min.js"
-        else "https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"
+        if tabulatorCached then
+            "/dist/js/tabulator.min.js"
+        else
+            "https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"
 
     let tabulaturCss =
-        if tabulatorCached
-        then "/dist/css/tabulator.min.css"
-        else "https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css"
+        if tabulatorCached then
+            "/dist/css/tabulator.min.css"
+        else
+            "https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css"
 
     [ title [] [ str titleString ]
       link [ _rel "stylesheet"
@@ -75,6 +77,10 @@ let index =
                 str " "
                 a [ _href ("/substringMatches") ] [
                     str "SubstringMatches"
+                ]
+                str " "
+                a [ _href ("/sectionOfLineDbOpsDifferences") ] [
+                    str "Distance Differences"
                 ]
             ]
             div [ _id "results-table"
@@ -199,17 +205,18 @@ let wkStationOfRoute (title: string, route: int) =
 let dbStationOfRoute (route: int) =
     let extraNode =
         div [ _class "remark" ] [
-                a [ _href ("/rinfSoLOfRoute/" + route.ToString()) ] [
-                    str "RINF SoL of route"
-                ]
-                str " "
-                a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
-                    str "DB ISR"
-                ]
+            a [ _href ("/rinfSoLOfRoute/" + route.ToString()) ] [
+                str "RINF SoL of route"
+            ]
+            str " "
+            a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
+                str "DB ISR"
+            ]
         ]
 
     viewWithLeftRightBox
-        ("RINF versus DB Open data Stations " + route.ToString())
+        ("RINF versus DB Open data Stations "
+         + route.ToString())
         ("loadRInfStationOfRouteTable(\"#leftbox\", \"/data/RInfStationOfRoute/"
          + route.ToString()
          + "\");"
@@ -247,31 +254,62 @@ let rinfStationOfRoute (route: int) =
         ]
     ]
 
-let rinfSoLOfRoute (route: int) =
+let rinfSoLOfRoute (getLengthOfRoute: int -> float list) (route: int) =
     html [] [
         head [] (titleAndScripts "RINF Sections of Lines of Route")
         body [] [
+            let floats = getLengthOfRoute route
+
+            let lengths =
+                floats
+                |> List.map (fun l -> sprintf "%.1f" l)
+                |> String.concat " "
+
             h1 [ _style "text-align:center" ] [
                 str (
                     "RINF Sections of Line of Route "
                     + route.ToString()
+                    + ", Lengths of Components ("
+                    + lengths
+                    + ")"
                 )
             ]
+
             div [ _class "status" ] [
-                a [ _href ("https://geovdbn.deutschebahn.com/isr") ] [
-                    str "DB Infrastrukturregister"
-                ]
-                str " "
-                a [ _href ("https://www.openrailwaymap.org/") ] [
-                    str "OpenRailwayMap"
-                ]
+                yield
+                    a [ _href ("https://geovdbn.deutschebahn.com/isr")
+                        _target "_blank" ] [
+                        str "DB Infrastrukturregister"
+                    ]
+                yield str " "
+                yield
+                    a [ _href ("https://www.openrailwaymap.org/")
+                        _target "_blank" ] [
+                        str "OpenRailwayMap"
+                    ]
+                for r in [ 1 .. floats.Length ] do
+                    yield str " "
+
+                    yield
+                        a [ _href (
+                                "/BRouterOfRoute/"
+                                + route.ToString()
+                                + "/"
+                                + r.ToString()
+                            )
+                            _target "_blank" ] [
+                            str ("BRouter of component " + r.ToString())
+                        ]
             ]
+
             div [ _id "results-table"
                   _style "width:90%; left:5%" ] []
 
             script [ _type "application/javascript" ] [
                 rawText (
-                    "loadRInfSolOfRouteTable(\"#results-table\", \"/data/RInfSolOfRoute/"
+                    "loadRInfSolOfRouteTable(\"#results-table\","
+                    + route.ToString()
+                    + ",\"/data/RInfSolOfRoute/"
                     + route.ToString()
                     + "\");"
                 )
@@ -279,14 +317,12 @@ let rinfSoLOfRoute (route: int) =
         ]
     ]
 
-let substringMatches  =
+let substringMatches =
     html [] [
         head [] (titleAndScripts "SubstringMatches")
         body [] [
             h1 [ _style "text-align:center" ] [
-                str (
-                    "SubstringMatches"
-                )
+                str ("SubstringMatches")
             ]
             div [ _class "status" ] [
                 span [ _id "statusMsg" ] []
@@ -302,6 +338,26 @@ let substringMatches  =
         ]
     ]
 
+let sectionOfLineDbOpsDifferences =
+    html [] [
+        head [] (titleAndScripts "Distance Differences")
+        body [] [
+            h1 [ _style "text-align:center" ] [
+                str ("Distance Differences")
+            ]
+            div [ _class "status" ] [
+                span [ _id "statusMsg" ] []
+            ]
+            div [ _id "results-table"
+                  _style "width:90%; left:5%" ] []
+
+            script [ _type "application/javascript" ] [
+                rawText (
+                    "loadSectionOfLineDbOpsDifferences(\"#results-table\", document.getElementById(\"statusMsg\"), \"/data/sectionOfLineDbOpsDifferences\");"
+                )
+            ]
+        ]
+    ]
 
 let stationOfDbWk (title: string, route: int) =
     let extraNode =

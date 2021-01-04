@@ -59,7 +59,10 @@ let private applyDelete (s: string) (diff: Diff) =
 let private applyDeletes (s: string) (diffs: list<Diff>) = diffs |> List.fold (applyDelete) s
 
 let private (|Diff|_|) (op: Operation) (diff: Diff) =
-    if diff.operation = op then Some(diff.text.Trim()) else None
+    if diff.operation = op then
+        Some(diff.text.Trim())
+    else
+        None
 
 let private checkNeqDiffContainsIgnoredString (diff: Diff) =
     diff.operation <> Operation.EQUAL
@@ -136,9 +139,17 @@ type Op = Operation
 let private isEqualOrderChanged (diffs: list<Diff>) =
     match diffs with
     | [ Diff Op.DELETE d; Diff Op.EQUAL _; Diff Op.INSERT i ] when isEqualReplaced d i -> true
-    | [ Diff Op.DELETE n; Diff Op.INSERT i; Diff Op.EQUAL _; Diff Op.DELETE d ] when isEqualReplaced d i
-                                                                                     && isIgnoredStringsInStationname n ->
-        true
+    | [ Diff Op.DELETE n; Diff Op.INSERT i; Diff Op.EQUAL _; Diff Op.DELETE d ] when
+        isEqualReplaced d i
+        && isIgnoredStringsInStationname n -> true
+    | _ -> false
+
+/// check equality if first and last text block are equal
+let private isStartsAndEndsWith (diffs: list<Diff>) =
+    match diffs with
+    | [ Diff Op.EQUAL _; Diff Op.DELETE d; Diff Op.INSERT i;Diff Op.EQUAL _ ] when 
+        isIgnoredStringsInStationname i
+        && isIgnoredStringsInStationname d -> true
     | _ -> false
 
 /// check equality after removing text between parentheses
@@ -146,10 +157,25 @@ let private isEqualWithoutParentheses (diffs: list<Diff>) =
     match diffs with
     | [ Diff Op.EQUAL _; Diff Op.INSERT i ] when i.StartsWith "(" && i.EndsWith ")" -> true
     | [ Diff Op.EQUAL _; Diff Op.INSERT i; Diff Op.EQUAL _ ] when i.StartsWith "(" && i.EndsWith ")" -> true
+    | [ Diff Op.EQUAL _; Diff Op.DELETE d1; Diff Op.EQUAL _; Diff Op.DELETE d2 ] when d1 = "(" && d2 = ")" -> true
     | _ -> false
 
+let private getSubstrings length (s: string) =
+    if s.Length < length then
+        []
+    else
+        [ 0 .. s.Length - length ]
+        |> List.map (fun pos -> s.Substring(pos, length))
+
+let private containsSubstringWithLength (s1: string) (s2: string) length =
+    let s2Substrings = s2 |> getSubstrings length
+
+    s1
+    |> getSubstrings length
+    |> List.exists (fun t1 -> s2Substrings |> List.exists ((=) t1))
+
 let private diffStationName (wikiName: string) (dbName: string) withDistance =
-    let limit = if withDistance then 5 else 12
+    let limit = if withDistance then 8 else 12
 
     let diffs = getDiffs wikiName dbName
 
@@ -158,54 +184,74 @@ let private diffStationName (wikiName: string) (dbName: string) withDistance =
         |> List.filter (fun d -> d.operation = Operation.EQUAL && d.text.Length > 2)
         |> List.length
 
-    if countContainsEqual = 0 then Failed
-    else if isEqualWithoutIgnored diffs then EqualWithoutIgnored
-    else if isEqualOrderChanged diffs then EqualOrderChanged
-    else if isEqualWithoutParentheses diffs then EqualWithoutParentheses
-    else if isStartsWith diffs wikiName dbName then StartsWith
-    else if isStartsWith diffs dbName wikiName then StartsWith
-    else if isEndsWith diffs wikiName dbName then EndsWith
-    else if isEndsWith diffs dbName wikiName then EndsWith
-    else if isSameSubstring diffs limit then SameSubstring
-    else Failed
+    if countContainsEqual = 0 then
+        Failed
+    else if isEqualWithoutIgnored diffs then
+        EqualWithoutIgnored
+    else if isEqualOrderChanged diffs then
+        EqualOrderChanged
+    else if isEqualWithoutParentheses diffs then
+        EqualWithoutParentheses
+    else if isStartsWith diffs wikiName dbName then
+        StartsWith
+    else if isStartsWith diffs dbName wikiName then
+        StartsWith
+    else if isEndsWith diffs wikiName dbName then
+        EndsWith
+    else if isEndsWith diffs dbName wikiName then
+        EndsWith
+    else if isStartsAndEndsWith diffs then
+        EqualWithoutIgnored
+    else if isSameSubstring diffs limit then
+        SameSubstring
+    else
+        Failed
 
 let matchStationName (wikiName: string) (dbName: string) withDistance =
-    if equalIgnoreCase wikiName dbName
-    then MatchKind.EqualNames
-    else diffStationName (wikiName.ToLower()) (dbName.ToLower()) withDistance
+    if equalIgnoreCase wikiName dbName then
+        MatchKind.EqualNames
+    else
+        diffStationName (wikiName.ToLower()) (dbName.ToLower()) withDistance
 
 /// the distance matches, if any of the wikiDistances matches with the dbDistance
-let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
+let private matchStationDistanceWithDistance (wikiDistances: float []) (dbDistance: float) (distance: float) =
     wikiDistances
-    |> Array.exists (fun d -> equalDistance dbDistance d defaultEqualDistance)
+    |> Array.exists (fun d -> equalDistance dbDistance d distance)
+
+let private matchStationDistance (wikiDistances: float []) (dbDistance: float) =
+    matchStationDistanceWithDistance wikiDistances dbDistance defaultEqualDistance
 
 let private matchkindOfWkStationWithDbStationPhase1 (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) =
     if wikiStation.shortname.Length > 0
        && wikiStation.shortname = dbStation.KUERZEL then
-        if matchStationDistance wikiStation.kms dbStation.km
-        then EqualShortNames
-        else EqualShortNamesNotDistance
+        if matchStationDistance wikiStation.kms dbStation.km then
+            EqualShortNames
+        else
+            EqualShortNamesNotDistance
     else
 
     if System.String.Compare(wikiStation.name, dbStation.name, true) = 0 then
-        if matchStationDistance wikiStation.kms dbStation.km
-        then MatchKind.EqualNames
-        else MatchKind.EqualtNamesNotDistance
+        if matchStationDistance wikiStation.kms dbStation.km then
+            MatchKind.EqualNames
+        else
+            MatchKind.EqualtNamesNotDistance
     else
 
     if checkBorder wikiStation dbStation false then
-        if matchStationDistance wikiStation.kms dbStation.km
-        then MatchKind.EqualBorder
-        else MatchKind.EqualBorderNotDistance
+        if matchStationDistance wikiStation.kms dbStation.km then
+            MatchKind.EqualBorder
+        else
+            MatchKind.EqualBorderNotDistance
     else
         MatchKind.Failed
 
 let private matchkindOfWkStationWithDbStationPhase2 (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) =
     if wikiStation.shortname.Length > 0
        && wikiStation.shortname = dbStation.KUERZEL then
-        if matchStationDistance wikiStation.kms dbStation.km
-        then EqualShortNames
-        else EqualShortNamesNotDistance
+        if matchStationDistance wikiStation.kms dbStation.km then
+            EqualShortNames
+        else
+            EqualShortNamesNotDistance
     else
 
     if matchStationDistance wikiStation.kms dbStation.km then
@@ -220,6 +266,13 @@ let private matchkindOfWkStationWithDbStationPhase2 (wikiStation: WkOpPointOfRou
         | MatchKind.EqualWithoutParentheses -> MatchKind.SameSubstringNotDistance
         | mk -> MatchKind.Failed
 
+let private matchkindOfWkStationWithDbStationPhase3 (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) =
+    if matchStationDistanceWithDistance wikiStation.kms dbStation.km 0.4
+       && containsSubstringWithLength wikiStation.name dbStation.name 4 then
+        EqualDistanceShortSubstring
+    else
+        MatchKind.Failed
+
 let matchesWkStationWithDbStationPhase1 (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) =
     match matchkindOfWkStationWithDbStationPhase1 wikiStation dbStation with
     | MatchKind.Failed -> None
@@ -230,17 +283,27 @@ let matchesWkStationWithDbStationPhase2 (wikiStation: WkOpPointOfRoute) (dbStati
     | MatchKind.Failed -> None
     | mk -> Some(dbStation, wikiStation, mk)
 
-let private hasNoDistance (length: int) (mk: MatchKind) =
-    length = 0
-    || mk = MatchKind.EndsWithNotDistance
-    || mk = MatchKind.EqualWithoutIgnoredNotDistance
-    || mk = MatchKind.SameSubstringNotDistance
-    || mk = MatchKind.StartsWithNotDistance
+let matchesWkStationWithDbStationPhase3 (wikiStation: WkOpPointOfRoute) (dbStation: DbOpPointOfRoute) =
+    match matchkindOfWkStationWithDbStationPhase3 wikiStation dbStation with
+    | MatchKind.Failed -> None
+    | mk -> Some(dbStation, wikiStation, mk)
 
-let compareMatchForDistance (maxEqualDistance: float)
-                            ((db0, wk0, mk0): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
-                            ((db1, wk1, mk1): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
-                            =
+let isDistanceMatchKind (mk: MatchKind) =
+    not (
+        mk = MatchKind.EndsWithNotDistance
+        || mk = MatchKind.EqualWithoutIgnoredNotDistance
+        || mk = MatchKind.SameSubstringNotDistance
+        || mk = MatchKind.StartsWithNotDistance
+    )
+
+let private hasNoDistance (length: int) (mk: MatchKind) =
+    length = 0 || not (isDistanceMatchKind mk)
+
+let compareMatchForDistance
+    (maxEqualDistance: float)
+    ((db0, wk0, mk0): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
+    ((db1, wk1, mk1): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
+    =
     if hasNoDistance wk0.kms.Length mk0
        || hasNoDistance wk1.kms.Length mk1 then
         if mk0 = mk1 then 0
@@ -271,7 +334,8 @@ let compareMatchForDistance (maxEqualDistance: float)
         else
             1
 
-let compareMatch ((db0, wk0, mk0): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
-                 ((db1, wk1, mk1): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
-                 =
+let compareMatch
+    ((db0, wk0, mk0): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
+    ((db1, wk1, mk1): DbOpPointOfRoute * WkOpPointOfRoute * MatchKind)
+    =
     compareMatchForDistance defaultEqualDistance (db0, wk0, mk0) (db1, wk1, mk1)

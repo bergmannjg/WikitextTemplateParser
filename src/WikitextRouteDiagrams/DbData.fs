@@ -264,10 +264,9 @@ let private addRouteEndpoints (route: Strecke) (dbdata: seq<OperationalPointRail
 let getPositionInRoute routenr kuerzel =
     match (loadOperationalPointsCsvDataCached ()).TryGetValue routenr with
     | true, ops ->
-        match ops
-              |> Seq.tryFind (fun op -> op.KUERZEL = kuerzel) with
-        | Some op -> Some(getKMI2Float op.KM_I)
-        | None -> None
+        ops
+        |> Seq.tryFind (fun op -> op.KUERZEL = kuerzel)
+        |> Option.bind (fun op -> Some(getKMI2Float op.KM_I))
     | _ -> None
 
 /// load

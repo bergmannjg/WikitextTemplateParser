@@ -7,7 +7,8 @@ open Types
 open System.Text.RegularExpressions
 
 type SectionOfLine =
-    { IMName: int
+    { Component: int
+      IMName: int
       NationalLine: int
       OperationalPointStart: string
       OperationalPointStartLocation: string
@@ -61,7 +62,8 @@ let private loadSoLCsvData () =
             "./dbdata/RINF/SectionOfLines.csv"
             (fun dict row ->
                 let data =
-                    { IMName = row.[0].AsInteger()
+                    { Component = 0
+                      IMName = row.[0].AsInteger()
                       NationalLine = row.[1].AsInteger()
                       OperationalPointStart = row.[2]
                       OperationalPointStartLocation = row.[3]
@@ -167,28 +169,37 @@ let private loadSeqsOfSoLSorted routenr =
     let data = loadSeqsOfSoL routenr
 
     if data.Count > 0 then
+        let mutable componentNr = 0
         let nodeStart (n: SectionOfLine) = n.OperationalPointStart
         let nodeEnd (n: SectionOfLine) = n.OperationalPointEnd
+
         sortEdges nodeStart nodeEnd data
+        |> List.map
+            (fun seqs ->
+                componentNr <- componentNr + 1
+
+                seqs
+                |> Seq.toList
+                |> List.map (fun s -> { s with Component = componentNr }))
     else
-        [ Seq.empty ]
+        [ List.empty ]
 
 let loadSoL routenr =
-    Seq.concat (loadSeqsOfSoLSorted routenr)
+    loadSeqsOfSoLSorted routenr |> Seq.concat
 
-let private getPositionInRouteSeq routenr (opname: string) =
+let loadSoLAsJSon routenr =
+    Serializer.Serialize<seq<SectionOfLine>>(loadSoL routenr)
+
+/// get position in route for opname with ds100 or missingOperationalPoint data
+let private getPositionInRouteSeq routenr opname =
     match loadKuerzelArt opname with
-    | (ds100, _) when ds100 <> "" ->
-        match DbData.getPositionInRoute routenr ds100 with
-        | Some (km) -> Some km
-        | _ -> None
+    | (ds100, _) when ds100 <> "" -> DbData.getPositionInRoute routenr ds100
     | _ -> None
     |> Option.orElseWith
         (fun _ ->
-            match AdhocReplacements.RInfData.missingOperationalPoint
-                  |> Array.tryFind (fun (r, name, _) -> r = routenr && name = opname) with
-            | Some (_, _, km) -> Some km
-            | None -> None)
+            AdhocReplacements.RInfData.missingOperationalPoint
+            |> Array.tryFind (fun (r, name, _) -> r = routenr && name = opname)
+            |> Option.bind (fun (_, _, km) -> Some km))
 
 let isJunction (name: string) = name.StartsWith "StrUeb"
 
@@ -205,9 +216,8 @@ let private getNthPositionInRouteSeq routenr index (edges: SectionOfLine []) =
                 |> Array.take (index)
                 |> Array.sumBy (fun s -> s.LengthOfSoL)
 
-        match getPositionInRouteSeq routenr edges.[index].OperationalPointStart with
-        | Some km -> Some(km - dist)
-        | None -> None
+        getPositionInRouteSeq routenr edges.[index].OperationalPointStart
+        |> Option.map (fun km -> km - dist)
 
 /// get absolute start position (of kilometering) in route using db open data, rinf data is only relative in SectionOfLine
 let private getStartPositionInRoute routenr (edges: SectionOfLine []) =
@@ -248,7 +258,7 @@ let regexSpaces = Regex(@"\s\s+")
 
 let regexJunction = Regex(@"StrUeb_(\d{4})_(\d{4})")
 
-let getStationToJunctionDistance routenr nameOfStation nameOfJunction =
+let private getStationToJunctionDistance routenr nameOfStation nameOfJunction =
     let m = regexJunction.Match nameOfJunction
 
     if m.Success && m.Groups.Count = 3 then
@@ -261,26 +271,25 @@ let getStationToJunctionDistance routenr nameOfStation nameOfJunction =
             else
                 route1
 
-        match loadSeqsOfSoL otherRoute
-              |> Seq.tryFind
-                  (fun s ->
-                      (s.OperationalPointStart = nameOfStation
-                       && s.OperationalPointEnd = nameOfJunction)
-                      || (s.OperationalPointStart = nameOfJunction
-                          && s.OperationalPointEnd = nameOfStation)) with
-        | Some s -> s.LengthOfSoL
-        | None -> 0.0
+        loadSeqsOfSoL otherRoute
+        |> Seq.tryFind
+            (fun s ->
+                (s.OperationalPointStart = nameOfStation
+                 && s.OperationalPointEnd = nameOfJunction)
+                || (s.OperationalPointStart = nameOfJunction
+                    && s.OperationalPointEnd = nameOfStation))
+        |> Option.fold (fun _ s -> s.LengthOfSoL) 0.0
     else
         0.0
 
 let private loadStationNearRouteJunction routenr nameOfJunction expectedKm =
-    match DbData.loadStartOfRoute routenr expectedKm with
-    | Some (nameOfStation, km) ->
-        let dist =
-            getStationToJunctionDistance routenr nameOfStation nameOfJunction
+    DbData.loadStartOfRoute routenr expectedKm
+    |> Option.map
+        (fun (nameOfStation, km) ->
+            let dist =
+                getStationToJunctionDistance routenr nameOfStation nameOfJunction
 
-        Some(nameOfStation, max (km - dist) 0.0)
-    | None -> None
+            (nameOfStation, max (km - dist) 0.0))
 
 let private loadRouteOfSeq routenr (edges: SectionOfLine []) =
 
@@ -344,9 +353,6 @@ let loadRoute routenr =
     |> Seq.toArray
     |> Array.sortBy (fun op -> op.km)
 
-let loadSoLAsJSon routenr =
-    Serializer.Serialize<seq<SectionOfLine>>(loadSoL routenr)
-
 let loadRouteAsJSon routenr =
     Serializer.Serialize<seq<DbOpPointOfRoute>>(loadRoute routenr)
 
@@ -358,6 +364,70 @@ let printSoL (data: seq<SectionOfLine>) =
 
 let getRouteNumbers =
     (loadSoLCsvDataCached ()).Keys :> seq<int>
+
+type SectionOfLineDbOpsDifference =
+    { routenr: int
+      sol: SectionOfLine
+      opStart: DbOpPointOfRoute
+      opEnd: DbOpPointOfRoute
+      opDistance: float
+      difference: float }
+
+let compareDbDataOpDistances (routenr: int) =
+    let rinfRoute = loadSoL routenr
+    let dbRoute = DbData.loadRoute routenr
+
+    rinfRoute
+    |> Seq.map
+        (fun s ->
+            let (opStartKuerzel, _) = loadKuerzelArt s.OperationalPointStart
+            let (opEndKuerzel, _) = loadKuerzelArt s.OperationalPointEnd
+
+            let opStart =
+                dbRoute
+                |> Array.tryFind
+                    (fun op ->
+                        op.KUERZEL = opStartKuerzel
+                        && opStartKuerzel.Length > 0)
+
+            let opEnd =
+                dbRoute
+                |> Array.tryFind
+                    (fun op ->
+                        op.KUERZEL = opEndKuerzel
+                        && opEndKuerzel.Length > 0)
+
+            match opStart, opEnd with
+            | Some (opS), Some (opE) ->
+                let dist = abs (opE.km - opS.km)
+
+                if (abs (dist - s.LengthOfSoL) > 0.2) then
+                    Some(
+                        { routenr = routenr
+                          sol = s
+                          opStart = opS
+                          opEnd = opE
+                          opDistance = System.Math.Round(dist, 1)
+                          difference = System.Math.Round(abs (dist - s.LengthOfSoL), 1) }
+                    )
+                else
+                    None
+            | _ ->
+                (*
+                let isJunction =
+                    s.OperationalPointStart.StartsWith("StrUeb")
+                    || s.OperationalPointEnd.StartsWith("StrUeb")
+
+                if not isJunction then
+                    printfn
+                        "not found route %d '%s' '%s' %.1f"
+                        routenr
+                        s.OperationalPointStart
+                        s.OperationalPointEnd
+                        s.LengthOfSoL
+                *)
+                None)
+    |> Seq.choose id
 
 let compareDbDataRoute (routenr: int) =
     let rinfRoute = loadRoute routenr
@@ -389,3 +459,93 @@ let compareDbDataRoutes () =
         |> Seq.filter (fun (r, m) -> m > 0)
 
     printfn "total %d routes, %d routes with missing data" (keys |> Seq.length) (missing |> Seq.length)
+
+let compareDbDataOps () =
+    (loadSoLCsvDataCached ()).Keys
+    |> Seq.collect compareDbDataOpDistances
+    |> Seq.iter
+        (fun d ->
+            printfn
+                "distinct distance route %d '%s' '%s' rinf dist %.1f db dist %.1f diff %.1f"
+                d.routenr
+                d.sol.OperationalPointStart
+                d.sol.OperationalPointEnd
+                d.sol.LengthOfSoL
+                d.opDistance
+                d.difference)
+
+let compareDbDataOpsAsJson () =
+    let res =
+        (loadSoLCsvDataCached ()).Keys
+        |> Seq.collect compareDbDataOpDistances
+
+    Serializer.Serialize<seq<SectionOfLineDbOpsDifference>>(res)
+
+let private parseFloat (s: string) =
+    match System.Double.TryParse(s) with
+    | true, n -> Some n
+    | _ -> None
+
+/// from lat/lon to lon/lat
+let private parseLocation (s: string) =
+    let split = s.Replace(",", ".").Split()
+
+    if split.Length = 2 then
+        match parseFloat split.[0], parseFloat split.[1] with
+        | Some f1, Some f2 -> Some(f2, f1)
+        | _ -> None
+    else
+        None
+
+let private getBRouterUrl (zoom: int) (lonStart: float, latStart: float) (lonlats: (float * float) list) =
+    let lonlatString =
+        lonlats
+        |> List.map (fun (lon, lat) -> sprintf "%.7f,%.7f" lon lat)
+        |> String.concat ";"
+
+    sprintf
+        "https://brouter.de/brouter-web/#map=%d/%.4f/%.4f/osm-mapnik-german_style&lonlats=%s&profile=rail"
+        zoom
+        latStart
+        lonStart
+        lonlatString
+
+let getBRouterUrlOfSol routenr opStart opEnd =
+    loadSeqsOfSoL routenr
+    |> Seq.tryFind
+        (fun s ->
+            s.OperationalPointStart = opStart
+            && s.OperationalPointEnd = opEnd)
+    |> Option.bind
+        (fun s ->
+            match (parseLocation s.OperationalPointStartLocation), (parseLocation s.OperationalPointEndLocation) with
+            | Some lonLatStart, Some lonLatEnd -> Some(getBRouterUrl 12 lonLatStart [ lonLatStart; lonLatEnd ])
+            | _ -> None)
+
+let getLengthOfRouteComponents routenr =
+    loadSeqsOfSoLSorted routenr
+    |> List.map (fun seqs -> seqs |> List.sumBy (fun s -> s.LengthOfSoL))
+
+let getBRouterUrlOfRouteComponent routenr nr =
+    let defaultUrl = getBRouterUrl 8 (9.871, 52.302) []
+
+    let listOfSols = loadSeqsOfSoLSorted routenr
+
+    if nr = 0
+       || listOfSols.Length < nr
+       || listOfSols.[nr - 1].Length = 0 then
+        defaultUrl
+    else
+        let sols = listOfSols.[nr - 1]
+
+        let lonlats =
+            sols
+            |> List.map (fun s -> parseLocation s.OperationalPointStartLocation)
+            |> List.choose id
+
+        let lastSol = sols.[sols.Length - 1]
+
+        List.concat [ lonlats
+                      parseLocation lastSol.OperationalPointEndLocation
+                      |> Option.toList ]
+        |> getBRouterUrl 9 lonlats.[0]

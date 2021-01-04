@@ -18,8 +18,8 @@ The comparison of wiki data with available db data gives the follwing results:
 
 | Count | Value | Example |
 |---|-----:|---|
-|routes with all db data found in wikidata|647|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
-|routes with some db data not found in wikidata|50|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
+|routes with all db data found in wikidata|644|[Route 1700](https://de.wikipedia.org/wiki/Bahnstrecke_Hamm%E2%80%93Minden)|
+|routes with some db data not found in wikidata|48|[Weinheim-Sulzbach, Route 3601](https://de.wikipedia.org/wiki/Main-Neckar-Eisenbahn)|
 
 ## Statistics about operational points found
 
@@ -27,20 +27,20 @@ How many operational points are found:
 
 | Count | Value | Routes| 
 |--|-----:|----:|
-| operational points matched |6783|647|
-| operational points missing |49|31|
-| operational points with specified matching |24| 19|
+| operational points matched |6796|644|
+| operational points missing |52|38|
+| operational points with specified matching |11| 10|
 
 How do operational points match:
 
 | Count | Value |
 |--|-----:|
-| equal short names |2065|
+| equal [short names](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360) |2083|
 | equal names |4130|
-| same substring |551|
+| same substring |556|
 | border |37|
 
-There are **232** routes having only equal short names and equal names.
+There are **234** routes having only equal short names and equal names.
 
 ## Statistics about articles
 

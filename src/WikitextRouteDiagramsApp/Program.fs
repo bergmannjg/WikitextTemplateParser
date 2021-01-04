@@ -75,9 +75,11 @@ let main argv =
     | [| "-loadOsmData"; route |] -> loadOsmData (route |> int)
     | [| "-compareDbDataRoute"; route |] -> RInfData.compareDbDataRoute (route |> int) |> ignore
     | [| "-compareDbDataRoutes" |] -> RInfData.compareDbDataRoutes ()
+    | [| "-compareDbDataOps" |] -> RInfData.compareDbDataOps()
     | [| "-loadSoL"; route|] -> RInfData.loadRoute (route |> int) |> ignore
     | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (matchStationName wkname dbname false)
     | [| "-diffMatchPatch"; s1; s2 |] -> loadDiffMatchPatch s1 s2
+    | [| "-getBRouterUrl"; rt; s1; s2 |] -> printfn "%A" (RInfData.getBRouterUrlOfSol (rt|>int) s1 s2)
     | _ -> fprintfn stderr "usage: -loadroutes | -parseroutes | -comparetitles"
     0
 

@@ -69,14 +69,15 @@ type MatchKind =
     | EqualBorderNotDistance
     | EqualOrderChanged
     | StartsWith
-    | StartsWithNotDistance
     | EndsWith
+    | StartsWithNotDistance
     | EndsWithNotDistance
     | SameSubstring
     | SameSubstringNotDistance
     | SpecifiedMatch
     | IgnoredDbOpPoint
     | IgnoredWkOpPoint
+    | EqualDistanceShortSubstring
     | Failed
     
 /// result of match of operational points
