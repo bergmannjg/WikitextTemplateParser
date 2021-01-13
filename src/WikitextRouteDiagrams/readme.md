@@ -14,7 +14,7 @@ The wikipedia articles using the Route diagram templates can be retrieved with
 
 The wikipedia articles are collected from wikidata with the following SPARGL query:
 
-```
+```SPARQL
 SELECT ?railway ?railwayLabel ?article WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de". }
   ?railway wdt:P31 wd:Q728937;
@@ -23,12 +23,13 @@ SELECT ?railway ?railwayLabel ?article WHERE {
     schema:isPartOf <https://de.wikipedia.org/>.
 }
 ```
+
 * wdt:P31 wd:Q728937 'ist eine Eisenbahnstrecke'
 * wdt:P17 wd:Q183 'Staat Deutschland'
 
 ## Using CirrusSearch
 
-The wikipedia articles are collected from CirrusSearch with the following parameters 
+The wikipedia articles are collected from CirrusSearch with the following parameters
 
 * hastemplate:BS-header
 * deepcat:Bahnstrecke in Deutschland
@@ -37,7 +38,7 @@ in this [link](https://de.wikipedia.org/w/index.php?search=hastemplate%3ABS-head
 
 ## Download and parse
 
-The text of a wikipedia article is downloaded with https://de.wikipedia.org/wiki/Spezial:Exportieren.
+The text of a wikipedia article is downloaded with [Spezial:Exportieren](https://de.wikipedia.org/wiki/Spezial:Exportieren).
 
 The {{BS-header}} and {{BS-table}} templates are parsed. The Lua-based {{Routemap}} template is not yet covered. It is not used in germany (see this [link](https://de.wikipedia.org/w/index.php?search=hastemplate%3ARoutemap&title=Spezial:Suche&profile=advanced&fulltext=1&advancedSearch-current=%7B%7D&ns0=1)).
 
@@ -45,7 +46,7 @@ The parser uses the parser combinator library [fparsec](https://github.com/steph
 
 The following AST is generated
 
-```
+```SPARQL
 type Link = string * string
 
 and Composite =
@@ -75,7 +76,7 @@ This is done in several steps.
 
 ## Load Db Data
 
-* [Section of Line](https://rinf.era.europa.eu/RINF): Section of Line of register of infrastructure, 
+* [Section of Line](https://rinf.era.europa.eu/RINF): Section of Line of register of infrastructure,
 * [Operational points](https://rinf.era.europa.eu/RINF): Operational points of register of infrastructure,
 * [Geo-Streckennetz](https://data.deutschebahn.com/dataset/geo-strecke) Start/Stop of a route and usage (i.e. is passenger train) of a route.
 
@@ -102,14 +103,17 @@ All templates of an wiki info box with station data are extracted and transforme
 
 The operational points of a route are filtered from the StationOfInfobox data with the RouteInfo and transformed in StationOfRoute type:
 
-* find the operational points from RouteInfo in the list of StationOfInfobox (**matching step 2**, see function StationsOfRoute.findRouteInfoStations)
+* find the operational points from RouteInfo in the list of StationOfInfobox (**matching step 2**, see function OpPointOfRoute.findOpPointsOfRoute)
 * filter the operational points in the list of StationOfInfobox (see function StationsOfRoute.filterStations)
 
 ## Compare Wikitext operational points with DB operational points
 
 Compare the wikitext data of a route with the corresponding db data, i.e. are the operational points in db data a subset of the operational points in wiki data.
 
-A wikitext operational point matches with a db operational point (**matching step 3**, see function StationMatch.matchesWkStationWithDbStation)
+There are 3 phases to check if a wikitext operational point matches with a db operational point (**matching step 3**, see function OpPointMatch.matchStationName)
 
-* if the distance differences are small 
-* and shortnames ([DS100](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)) are equal or the names have a common substring.
+1. check if names or shortnames ([DS100](https://fahrweg.dbnetze.com/fahrweg-de/kunden/betrieb/betriebsstellen-1393360)) are equal,
+2. check if names have a significant common substring,
+3. check if distances are equal and names have a less significant common substring.
+
+Phase 1 gives 90% of successful matches.

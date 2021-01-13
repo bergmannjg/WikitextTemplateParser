@@ -6,10 +6,10 @@
     <Compile Include="Templates.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Database.fs" />
-    <Compile Include="Types.fs" />
     <Compile Include="Serializer.fs" />
     <Compile Include="DataAccess.fs" />
     <Compile Include="StringUtilities.fs" />
+    <Compile Include="ResultKind.fs" />
     <Compile Include="AdhocReplacements.fs" />
     <Compile Include="DbData.fs" />
     <Compile Include="RInfData.fs" />
@@ -17,10 +17,12 @@
     <Compile Include="Wikidata.fs" />
     <Compile Include="ParserProcessing.fs" />
     <Compile Include="RouteInfo.fs" />
-    <Compile Include="OperationalPointsOfInfobox.fs" />
-    <Compile Include="OperationalPointsOfRoute.fs" />
+    <Compile Include="OperationalPointOfInfobox.fs" />
+    <Compile Include="OperationalPointOfRoute.fs" />
     <Compile Include="OperationalPointMatch.fs" />
-    <Compile Include="ResultOfMatch.fs" />
+    <Compile Include="ResultOfOpPoint.fs" />
+    <Compile Include="OperationalPointsMatch.fs" />
+    <Compile Include="ResultOfRoute.fs" />
     <Compile Include="Comparer.fs" />
   </ItemGroup>
   <ItemGroup>

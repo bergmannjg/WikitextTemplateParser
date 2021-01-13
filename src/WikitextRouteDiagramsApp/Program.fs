@@ -1,86 +1,109 @@
-﻿
-open RouteInfo
-open Comparer
-open ResultsOfMatch
-open Wikidata
-open ParserProcessing
-open OpPointMatch
+﻿open FSharp.Collections
+
+open WikitextRouteDiagrams
 
 let loadTemplatesOfRoutesFromFile filename =
     System.IO.File.ReadAllLines filename
-    |> loadTemplatesOfRoutes false
+    |> Wikidata.loadTemplatesOfRoutes false
 
-let loadTemplatesOfStopsFromFile filename  =
+let loadTemplatesOfStopsFromFile filename =
     System.IO.File.ReadAllLines filename
-    |> loadTemplatesOfStops false
+    |> Wikidata.loadTemplatesOfStops false
 
-let classifyRouteInfo showDetails title  =
-    let templates = loadTemplatesForWikiTitle title  
-    match findRouteInfoInTemplates templates title with
-    | Some strecken ->
-        strecken|>List.iter (printRouteInfo showDetails) 
-    | None -> 
-        ()
+let classifyRouteInfo showDetails title =
+    let templates = Wikidata.loadTemplatesForWikiTitle title
+
+    match RouteInfo.findRouteInfoInTemplates templates title with
+    | Some strecken -> strecken |> List.iter (RouteInfo.printRouteInfo showDetails)
+    | None -> ()
 
 let classifyRouteInfos () =
-    DataAccess.TemplatesOfRoute.queryKeys()
+    DataAccess.TemplatesOfRoute.queryKeys ()
     |> List.iter (classifyRouteInfo false)
 
 let private chooseRouteLoader () =
-    if System.IO.Directory.Exists "./dbdata/RINF" then RInfData.loadRoute else DbData.loadRoute
+    if System.IO.Directory.Exists "./dbdata/RINF" then
+        RInfData.loadRoute
+    else
+        DbData.loadRoute
 
 let comparetitle showDetails loadRoute title =
-    loadTemplatesForWikiTitle title  
-    |> compare showDetails title loadRoute
+     Wikidata.loadTemplatesForWikiTitle title
+    |> Comparer.compare showDetails title loadRoute
 
 let comparetitles () =
     let loadRoute = chooseRouteLoader ()
-    DataAccess.TemplatesOfRoute.queryKeys()
+
+    DataAccess.TemplatesOfRoute.queryKeys ()
     |> List.iter (comparetitle false loadRoute)
 
-let loadOsmData (route :int) = 
+let loadOsmData (route: int) =
     let id = OsmData.loadRelationId (route)
     printfn "%A" id
+
+let queryName (name: string) =
+    let results =
+        Serializer.Deserialize<ResultOfRoute []>(RouteInfo.Data.queryAll ())
+
+    [ for r in results do
+        if r.resultKind = ResultKind.WikidataFoundInDbData
+           || r.resultKind = ResultKind.WikidataNotFoundInDbData then
+            yield r.title ]
+    |> List.distinct
+    |> List.iter
+        (fun t ->
+            let head =
+                OpPointOfInfobox.Data.query t
+                |> List.tryHead
+
+            match head with
+            | Some stations ->
+                stations
+                |> Array.filter (fun s -> s.name.Contains name)
+                |> Array.iter (fun s -> printfn "'%s', '%s'" t s.name)
+            | None -> ())
 
 [<EntryPoint>]
 let main argv =
     Serializer.addConverters ([||])
+
     match argv with
-    | [| "-loadroute"; route |] -> loadTemplatesOfRoutes true [| route |]
+    | [| "-loadroute"; route |] -> Wikidata.loadTemplatesOfRoutes true [| route |]
     | [| "-loadroutes"; filename |] -> loadTemplatesOfRoutesFromFile filename
-    | [| "-parseroute"; route |] -> parseTemplatesOfRoute route
-    | [| "-parseroutes" |] -> parseTemplatesOfRoutes ()
-    | [| "-loadstop"; stop |] -> loadTemplatesOfStops true [| stop |]
+    | [| "-parseroute"; route |] -> ParserProcessing.parseTemplatesOfRoute route
+    | [| "-parseroutes" |] -> ParserProcessing.parseTemplatesOfRoutes ()
+    | [| "-loadstop"; stop |] -> Wikidata.loadTemplatesOfStops true [| stop |]
     | [| "-loadstops"; filename |] -> loadTemplatesOfStopsFromFile filename
-    | [| "-parsestop"; stop |] -> parseTemplatesOfStop stop
-    | [| "-parsestops" |] -> parseTemplatesOfStops ()
+    | [| "-parsestop"; stop |] -> ParserProcessing.parseTemplatesOfStop stop
+    | [| "-parsestops" |] -> ParserProcessing.parseTemplatesOfStops ()
     | [| "-showtitles" |] ->
-        getWikipediaArticles 10000
+        Wikidata.getWikipediaArticles 10000
         |> Seq.iter (fun t -> printfn "%s" t)
     | [| "-showstations" |] ->
-        getWikipediaStations 10000
+        Wikidata.getWikipediaStations 10000
         |> Seq.iter (fun t -> printfn "%A" t)
     | [| "-dropCollection"; collection |] -> DataAccess.dropCollection collection |> ignore
-    | [| "-getStationLinks" |] -> getStationLinks ()
-    | [| "-comparetitle"; title |] -> comparetitle false (chooseRouteLoader()) title
-    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle true (chooseRouteLoader()) title
+    | [| "-getStationLinks" |] -> Wikidata.getStationLinks ()
+    | [| "-comparetitle"; title |] -> comparetitle false (chooseRouteLoader ()) title
+    | [| "-verbose"; "-comparetitle"; title |] -> comparetitle true (chooseRouteLoader ()) title
     | [| "-comparetitles" |] -> comparetitles ()
-    | [| "-showComparisonResults" |] -> showComparisonResults ()
+    | [| "-showComparisonResults" |] -> ResultOfRoute.showComparisonResults ()
     | [| "-classifyRouteInfos" |] -> classifyRouteInfos ()
-    | [| "-showRouteInfoResults" |] -> showRouteInfoResults ()
-    | [| "-verbose"; "-showMatchKindStatistics" |] -> showMatchKindStatistics true
-    | [| "-showMatchKindStatistics" |] -> showMatchKindStatistics false
-    | [| "-showNotFoundStatistics" |] -> showNotFoundStatistics ()
-    | [| "-queryName"; name |] -> OpPointsOfInfobox.queryName name
+    | [| "-showRouteInfoResults" |] -> RouteInfo.showRouteInfoResults ()
+    | [| "-verbose"; "-showMatchKindStatistics" |] -> ResultOfRoute.showMatchKindStatistics true
+    | [| "-showMatchKindStatistics" |] -> ResultOfRoute.showMatchKindStatistics false
+    | [| "-showNotFoundStatistics" |] -> ResultOfRoute.showNotFoundStatistics ()
+    | [| "-queryName"; name |] -> queryName name
     | [| "-loadOsmData"; route |] -> loadOsmData (route |> int)
-    | [| "-compareDbDataRoute"; route |] -> RInfData.compareDbDataRoute (route |> int) |> ignore
+    | [| "-compareDbDataRoute"; route |] ->
+        RInfData.compareDbDataRoute (route |> int)
+        |> ignore
     | [| "-compareDbDataRoutes" |] -> RInfData.compareDbDataRoutes ()
-    | [| "-compareDbDataOps" |] -> RInfData.compareDbDataOps()
-    | [| "-loadSoL"; route|] -> RInfData.loadRoute (route |> int) |> ignore
-    | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (matchStationName wkname dbname false)
-    | [| "-diffMatchPatch"; s1; s2 |] -> loadDiffMatchPatch s1 s2
-    | [| "-getBRouterUrl"; rt; s1; s2 |] -> printfn "%A" (RInfData.getBRouterUrlOfSol (rt|>int) s1 s2)
+    | [| "-compareDbDataOps" |] -> RInfData.compareDbDataOps ()
+    | [| "-loadSoL"; route |] -> RInfData.loadRoute (route |> int) |> ignore
+    | [| "-matchStationName"; wkname; dbname |] -> printfn "%A" (OpPointMatch.matchStationName wkname dbname false)
+    | [| "-diffMatchPatch"; s1; s2 |] -> ResultOfRoute.loadDiffMatchPatch s1 s2
+    | [| "-getBRouterUrl"; rt; s1; s2 |] -> printfn "%A" (RInfData.getBRouterUrlOfSol (rt |> int) s1 s2)
     | _ -> fprintfn stderr "usage: -loadroutes | -parseroutes | -comparetitles"
+
     0
-
-

@@ -1,141 +1,142 @@
-module Parser
+namespace WikitextRouteDiagrams
 
 open FParsec
-open Templates
 
-let trim (s: string) = s.Trim()
+module Parser = 
 
-let ws = spaces // skips any whitespace
+    let trim (s: string) = s.Trim()
 
-let str s = skipString s >>. ws
+    let ws = spaces // skips any whitespace
 
-let parseEndOfString =
-    skipChar '|'
-    <|> (skipChar '{' >>. skipChar '{')
-    <|> (skipChar '}' >>. skipChar '}')
-    <|> (skipChar '[' >>. skipChar '[')
-    <|> (skipChar ']' >>. skipChar ']')
-    <|> skipChar '\n'
+    let str s = skipString s >>. ws
 
-let parseStartOfTemplate = skipChar '{' >>. skipChar '{'
+    let parseEndOfString =
+        skipChar '|'
+        <|> (skipChar '{' >>. skipChar '{')
+        <|> (skipChar '}' >>. skipChar '}')
+        <|> (skipChar '[' >>. skipChar '[')
+        <|> (skipChar ']' >>. skipChar ']')
+        <|> skipChar '\n'
 
-let skipTillStartOfTemplate =
-    many ((notFollowedBy parseStartOfTemplate) >>. anyChar)
-    .>> ws
-    |>> ignore
+    let parseStartOfTemplate = skipChar '{' >>. skipChar '{'
 
-let parseEndOfNamedIdString = parseEndOfString <|> skipChar '='
+    let skipTillStartOfTemplate =
+        many ((notFollowedBy parseStartOfTemplate) >>. anyChar)
+        .>> ws
+        |>> ignore
 
-let pid0 =
-    many ((notFollowedBy parseEndOfString) >>. anyChar)
-    .>> ws
-    |>> (Array.ofList >> System.String.Concat >> trim)
+    let parseEndOfNamedIdString = parseEndOfString <|> skipChar '='
 
-let pid1 =
-    many1 ((notFollowedBy parseEndOfString) >>. anyChar)
-    .>> ws
-    |>> (Array.ofList >> System.String.Concat >> trim)
+    let pid0 =
+        many ((notFollowedBy parseEndOfString) >>. anyChar)
+        .>> ws
+        |>> (Array.ofList >> System.String.Concat >> trim)
 
-let pnamedId =
-    many1
-        ((notFollowedBy parseEndOfNamedIdString)
-         >>. anyChar)
-    .>> ws
-    |>> (Array.ofList >> System.String.Concat >> trim)
+    let pid1 =
+        many1 ((notFollowedBy parseEndOfString) >>. anyChar)
+        .>> ws
+        |>> (Array.ofList >> System.String.Concat >> trim)
 
-// ignore templates in link title
-let pid1LinkTitle =
-    many1
-        ((notFollowedBy (pchar ']' >>. pchar ']'))
-         >>. anyChar)
-    .>> ws
-    |>> (Array.ofList >> System.String.Concat >> trim)
+    let pnamedId =
+        many1
+            ((notFollowedBy parseEndOfNamedIdString)
+             >>. anyChar)
+        .>> ws
+        |>> (Array.ofList >> System.String.Concat >> trim)
 
-let link =
-    str "[["
-    >>. pid1
-    .>>. ((str "|" >>. pid1LinkTitle .>> str "]]")
-          <|> (str "]]" >>. preturn ""))
-    |>> Composite.Link
+    // ignore templates in link title
+    let pid1LinkTitle =
+        many1
+            ((notFollowedBy (pchar ']' >>. pchar ']'))
+             >>. anyChar)
+        .>> ws
+        |>> (Array.ofList >> System.String.Concat >> trim)
 
-let compositestring = pid1 .>> ws |>> Composite.String
+    let link =
+        str "[["
+        >>. pid1
+        .>>. ((str "|" >>. pid1LinkTitle .>> str "]]")
+              <|> (str "]]" >>. preturn ""))
+        |>> Composite.Link
 
-let compositetemplate, compositetemplateRef = createParserForwardedToRef ()
+    let compositestring = pid1 .>> ws |>> Composite.String
 
-let pcomposite =
-    (attempt link)
-    <|> (attempt compositestring)
-    <|> compositetemplate
+    let compositetemplate, compositetemplateRef = createParserForwardedToRef ()
 
-let pnamed =
-    ws
-    >>. pnamedId
-    .>> ws
-    .>> str "="
-    .>> ws
-    .>>. pid0
-    |>> Parameter.String
+    let pcomposite =
+        (attempt link)
+        <|> (attempt compositestring)
+        <|> compositetemplate
 
-let makecomposite (x: string) (y: string) (z: list<Composite>) =
-    if System.String.IsNullOrEmpty y then Composite(x, z) else Composite(x, Composite.String(y) :: z)
+    let pnamed =
+        ws
+        >>. pnamedId
+        .>> ws
+        .>> str "="
+        .>> ws
+        .>>. pid0
+        |>> Parameter.String
 
-let pnamedpcomposites =
-    pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) makecomposite
+    let makecomposite (x: string) (y: string) (z: list<Composite>) =
+        if System.String.IsNullOrEmpty y then Composite(x, z) else Composite(x, Composite.String(y) :: z)
 
-let panonpcomposites =
-    pid0
-    .>>. many1 pcomposite
-    |>> (fun (y, z) -> makecomposite "" y z)
+    let pnamedpcomposites =
+        pipe3 (ws >>. pnamedId .>> ws .>> str "=") (pid0) (many1 pcomposite) makecomposite
 
-let panonstring =
-    pid1 |>> (fun s -> Parameter.String("", s))
+    let panonpcomposites =
+        pid0
+        .>>. many1 pcomposite
+        |>> (fun (y, z) -> makecomposite "" y z)
 
-let parameter =
-    (attempt pnamedpcomposites)
-    <|> (attempt pnamed)
-    <|> (attempt panonpcomposites)
-    <|> panonstring
-    <|> preturn Parameter.Empty
+    let panonstring =
+        pid1 |>> (fun s -> Parameter.String("", s))
 
-let functionparameter =
-    pid1
-    |>> (fun s -> FunctionParameter.String(s))
-    <|> preturn FunctionParameter.Empty
+    let parameter =
+        (attempt pnamedpcomposites)
+        <|> (attempt pnamed)
+        <|> (attempt panonpcomposites)
+        <|> panonstring
+        <|> preturn Parameter.Empty
 
-let functionname =
-    many1 ((notFollowedBy (str ":")) >>. anyChar)
-    .>> ws
-    |>> (Array.ofList >> System.String.Concat >> trim)
+    let functionparameter =
+        pid1
+        |>> (fun s -> FunctionParameter.String(s))
+        <|> preturn FunctionParameter.Empty
 
-let parserfunction =
-    ws
-    >>. str "{{"
-    >>. str "#"
-    >>. functionname
-    .>> str ":"
-    .>> str "{{{"
-    .>>. sepBy1 functionparameter (str "|")
-    .>> str "}}}"
-    .>>. ((str "|" >>. sepBy1 parameter (str "|"))
-          <|> preturn [])
-    .>> str "}}"
-    |>> (fun ((fn, pl1), pl2) -> ("#" + fn, pl1, pl2))
+    let functionname =
+        many1 ((notFollowedBy (str ":")) >>. anyChar)
+        .>> ws
+        |>> (Array.ofList >> System.String.Concat >> trim)
 
-let template =
-    ws
-    >>. str "{{"
-    >>. pid1
-    .>>. ((str "|" >>. sepBy1 parameter (str "|"))
-          <|> preturn [])
-    .>> str "}}"
-    |>> (fun (n, pl) -> (n, List.empty, pl))
+    let parserfunction =
+        ws
+        >>. str "{{"
+        >>. str "#"
+        >>. functionname
+        .>> str ":"
+        .>> str "{{{"
+        .>>. sepBy1 functionparameter (str "|")
+        .>> str "}}}"
+        .>>. ((str "|" >>. sepBy1 parameter (str "|"))
+              <|> preturn [])
+        .>> str "}}"
+        |>> (fun ((fn, pl1), pl2) -> ("#" + fn, pl1, pl2))
 
-do compositetemplateRef
-   := (attempt parserfunction)
-   <|> template
-   |>> Composite.Template
+    let template =
+        ws
+        >>. str "{{"
+        >>. pid1
+        .>>. ((str "|" >>. sepBy1 parameter (str "|"))
+              <|> preturn [])
+        .>> str "}}"
+        |>> (fun (n, pl) -> (n, List.empty, pl))
 
-let templates =
-    many (template .>> skipTillStartOfTemplate)
+    do compositetemplateRef
+       := (attempt parserfunction)
+       <|> template
+       |>> Composite.Template
 
-let parse str = run templates str
+    let templates =
+        many (template .>> skipTillStartOfTemplate)
+
+    let parse str = run templates str

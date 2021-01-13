@@ -1,12 +1,15 @@
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Hosting
 open Microsoft.AspNetCore.Http
+
+open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
+
 open Giraffe
 open Giraffe.ViewEngine
-open RInfData
+
+open WikitextRouteDiagrams
 
 let contentTypeText = "text/plain; charset=utf-8"
 let contentTypeJson = "application/json; charset=utf-8"
@@ -90,25 +93,25 @@ let webApp =
     choose [ routef "/dist/css/%s" ((+) "./dist/css/" >> cssFile)
              routef "/dist/js/%s" ((+) "./dist/js/" >> jsonFile)
              route "/data/results"
-             >=> (loadAll DataAccess.ResultOfRoute.queryAll)
+             >=> (loadAll ResultOfRoute.DataRoute.queryAll)
              route "/data/routeinfos"
-             >=> (loadAll DataAccess.RouteInfo.queryAll)
+             >=> (loadAll RouteInfo.Data.queryAll)
              route "/data/stops"
              >=> (loadAll DataAccess.WikitextOfStop.queryKeysAsJson)
              route "/data/SubstringMatches"
-             >=> (loadAll ResultsOfMatch.loadSubstringMatches)
+             >=> (loadAll ResultOfRoute.loadSubstringMatches)
              route "/data/sectionOfLineDbOpsDifferences"
              >=> (loadAll RInfData.compareDbDataOpsAsJson)
              routef "/data/Wikitext/%s" loadWikitext
              routef "/data/WikitextOfStop/%s" loadWikitextOfStop
              routef "/data/WikitextOfStop/%s/%s" (concat >> loadWikitextOfStop)
              routef "/data/Templates/%s" (loadWithTitle DataAccess.TemplatesOfRoute.queryAsStrings)
-             routef "/data/StationOfInfobox/%s" (loadWithTitle DataAccess.WkOpPointOfInfobox.queryAsStrings)
+             routef "/data/StationOfInfobox/%s" (loadWithTitle OpPointOfInfobox.Data.queryAsStrings)
              routef "/data/DbStationOfRoute/%i" (sendTextWithRoute (DbData.loadRouteAsJSon))
              routef "/data/RInfStationOfRoute/%i" (sendTextWithRoute (RInfData.loadRouteAsJSon))
              routef "/data/RInfSolOfRoute/%i" (sendTextWithRoute (RInfData.loadSoLAsJSon))
-             routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute DataAccess.WkOpPointOfRoute.queryAsStrings)
-             routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute DataAccess.DbWkOpPointOfRoute.querysAsStrings)
+             routef "/data/WkStationOfRoute/%s/%i" (loadWithTitleAndRoute OpPointOfRoute.Data.queryAsStrings)
+             routef "/data/StationOfDbWk/%s/%i" (loadWithTitleAndRoute ResultOfRoute.DataOpPoints.querysAsStrings)
              routef "/js/%s" ((+) "./js/" >> jsonFile)
              routef "/osmRelationOfRoute/%i" redirectOsmRelation
              routef "/BRouterOfSol/%i/%s/%s" redirectBRouterUrlOfSol

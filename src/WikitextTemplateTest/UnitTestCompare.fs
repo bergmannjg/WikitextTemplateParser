@@ -2,12 +2,8 @@
 module TestCompare
 
 open NUnit.Framework
-open Templates
-open RouteInfo
-open OpPointsOfRoute
-open Types
-open RInfData
-open OpPointMatch
+
+open WikitextRouteDiagrams
 
 [<SetUp>]
 let Setup () = Serializer.addConverters ([||])
@@ -49,10 +45,10 @@ let TestCompareAltenbekenKreiensen () =
 
     Assert.That(templates.Length, Is.EqualTo(45))
 
-    match findRouteInfoInTemplates templates "Bahnstrecke_Altenbeken–Kreiensen" with
+    match RouteInfo.findRouteInfoInTemplates templates "Bahnstrecke_Altenbeken–Kreiensen" with
     | Some strecken ->
         Assert.That(strecken.Length, Is.EqualTo(3))
-        let bahnhöfe = findStations strecken.[1] templates
+        let bahnhöfe = OpPointOfRoute.findStations strecken.[1] templates
         Assert.That(bahnhöfe.Length, Is.EqualTo(18))
         checkStationDistance bahnhöfe "Langeland" "3.5"
     | None -> Assert.Fail("no stations found")
@@ -71,7 +67,7 @@ let TestSortEdges1 () =
 
     let nodeStart (n: Edge) = n.a
     let nodeEnd (n: Edge) = n.b
-    let sorted = sortEdges nodeStart nodeEnd edges
+    let sorted = RInfData.sortEdges nodeStart nodeEnd edges
 
     let expected =
         [ { a = "a"; b = "b" }
@@ -94,7 +90,7 @@ let TestSortEdges2 () =
 
     let nodeStart (n: Edge) = n.a
     let nodeEnd (n: Edge) = n.b
-    let sorted = sortEdges nodeStart nodeEnd edges
+    let sorted = RInfData.sortEdges nodeStart nodeEnd edges
 
     let expected1 =
         [ { a = "a"; b = "b" }
@@ -109,14 +105,14 @@ let TestSortEdges2 () =
 [<Test>]
 let TestMatchStationName () =
 
-    Assert.That(matchStationName "Berlin" "Berlin" true, Is.EqualTo(MatchKind.EqualNames))
+    Assert.That(OpPointMatch.matchStationName "Berlin" "Berlin" true, Is.EqualTo(MatchKind.EqualNames))
 
-    Assert.That(matchStationName "Abzw Rehsiepen" "Hagen Rehsiepen" true, Is.EqualTo(MatchKind.EndsWith))
+    Assert.That(OpPointMatch.matchStationName "Abzw Rehsiepen" "Hagen Rehsiepen" true, Is.EqualTo(MatchKind.EndsWith))
 
-    Assert.That(matchStationName "Hagen Rehsiepen" "Abzw Rehsiepen" true, Is.EqualTo(MatchKind.Failed))
+    Assert.That(OpPointMatch.matchStationName "Hagen Rehsiepen" "Abzw Rehsiepen" true, Is.EqualTo(MatchKind.Failed))
 
-    Assert.That(matchStationName "Himmelsthür (Abzw)" "Abzweig Himmelsthür" true, Is.EqualTo(MatchKind.EqualWithoutIgnored))
+    Assert.That(OpPointMatch.matchStationName "Himmelsthür (Abzw)" "Abzweig Himmelsthür" true, Is.EqualTo(MatchKind.EqualWithoutIgnored))
 
-    Assert.That(matchStationName "Köln Steinstr. Abzw" "Köln Steinstraße (Abzw)" true, Is.EqualTo(MatchKind.SameSubstring))
+    Assert.That(OpPointMatch.matchStationName "Köln Steinstr. Abzw" "Köln Steinstraße (Abzw)" true, Is.EqualTo(MatchKind.SameSubstring))
 
-    Assert.That(matchStationName "Abzw Werkleitz nach Magdeburg" "Werkleitz" true, Is.EqualTo(MatchKind.StartsWith))
+    Assert.That(OpPointMatch.matchStationName "Abzw Werkleitz nach Magdeburg" "Werkleitz" true, Is.EqualTo(MatchKind.StartsWith))

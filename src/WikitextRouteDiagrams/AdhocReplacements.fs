@@ -1,9 +1,10 @@
 /// replacements in wiki data to pass the matchings
 [<RequireQualifiedAccess>]
-module AdhocReplacements
+module internal AdhocReplacements
 
-open Types
 open System.Text.RegularExpressions
+
+open WikitextRouteDiagrams
 
 let regexRef = Regex(@"<ref[^>]*>.+?</ref>")
 let regexRefSelfClosed = Regex(@"<ref[^/]*/>")
@@ -222,6 +223,7 @@ module RouteInfo =
     let maybeReplaceRouteStation: (string * int * string option * string option) [] =
         [| ("Bahnstrecke Lübeck–Lübeck-Travemünde Strand", 1100, Some "Lübeck Hbf", Some "Schwartau Waldhalle")
            ("Heidebahn", 1711, Some "Hannover Hbf", Some "Walsrode")
+           ("Bahnstrecke Bochum–Gelsenkirchen", 2153, None, Some "Abzw Nordstern")
            ("Bahnstrecke Düsseldorf-Unterrath–Düsseldorf Flughafen Terminal", 2406, None, Some "Düsseldorf-Unterrath")
            ("Bahnstrecke Düsseldorf–Elberfeld", 2550, Some "Wuppertal Hbf", Some "Düsseldorf Hbf")
            ("Ennepetalbahn", 2804, None, Some "Hagen-Wehringhausen")
@@ -264,6 +266,7 @@ module OpPointMatch =
 /// changes of ResultKind by case analysis
 let adhocResultKindChanges =
     [| ("Bahnstrecke Stade–Osterholz-Scharmbeck", 1300, RouteIsShutdown)
+       ("Bahnstrecke Bremerhaven–Buxtehude", 1300, RouteIsShutdown)
        ("Bahnstrecke Bremervörde–Walsrode", 1711, RouteIsShutdown)
        ("Bahnstrecke Jerxheim–Börßum", 1940, RouteIsShutdown)
        ("Bahnstrecke Helmstedt–Börßum", 1940, RouteIsShutdown)
@@ -276,6 +279,7 @@ let adhocResultKindChanges =
        ("Kraichgaubahn", 4950, NoDbDataFoundWithRailwayGuide)
        ("Bahnstrecke München Ost–München Flughafen", 5560, WikidataWithoutDistancesInDbData)
        ("Bahnstrecke Ingolstadt–Treuchtlingen", 5851, WikidataWithoutDistancesInDbData)
+       ("Güteraußenring", 6067, RouteIsNoPassengerTrain)
        ("VnK-Strecke", 6070, RouteIsShutdown)
        ("Bahnstrecke Gotteszell–Blaibach", 9581, DbDataMissing) |]
 
@@ -314,6 +318,7 @@ module Comparer =
            ("Main-Neckar-Eisenbahn", 3601, "Weinheim-Sulzbach")
            ("Taunus-Eisenbahn", 3603, "Wiesbaden Ost Gbf (B)")
            ("Lahntalbahn", 3710, "Wetzlar Propan Rheingas")
+           ("Bahnstrecke Stuttgart–Tuttlingen", 4600, "Tuttlingen Gänsäcker")
            ("Schiefe Ebene (Eisenbahnstrecke)", 5100, "Neuenmarkt-Wirsberg Ost")
            ("Allgäubahn (Bayern)", 5362, "Biessenhofen Abzweig")
            ("Bahnstrecke Nürnberg–Bamberg", 5900, "Fürth (Bay) Gbf")
@@ -323,6 +328,7 @@ module Comparer =
            ("Berliner Außenring", 6087, "Hennigsdorf Nord (Hdw)")
            ("Berliner Nordbahn", 6088, "Stralsund SRG")
            ("Bahnstrecke Berlin–Magdeburg", 6110, "Potsdam Wildpark Ost")
+           ("Bahnstrecke Berlin–Magdeburg", 6110, "Brücke")
            ("Bahnstrecke Berlin–Blankenheim", 6118, "Seddin Bla")
            ("Güteraußenring", 6126, "Grünauer Kreuz Süd")
            ("Güteraußenring", 6126, "Grünauer Kreuz Nord")
@@ -333,6 +339,7 @@ module Comparer =
            ("Bahnstrecke Berlin–Halle", 6132, "Halle (Saale) Betriebsbahnhof Hnw")
            ("Bahnstrecke Berlin–Halle", 6132, "Halle (Saale) Gbf")
            ("Bahnstrecke Berlin–Dresden", 6135, "Berlin Attilastraße Oiltanking")
+           ("Bahnstrecke Berlin-Schönholz–Kremmen", 6183, "Hennigsdorf (b Berlin)            S-Bahn")
            ("Bahnstrecke Węgliniec–Roßlau", 6207, "Falkenberg (Elster) unt Bf Stw W 15")
            ("Bahnstrecke Děčín–Dresden-Neustadt", 6240, "Dresden Freiberger Straße")
            ("Bahnstrecke Halle–Bebra", 6340, "Halle Thüringer Bahn")

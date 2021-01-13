@@ -10,7 +10,7 @@ Parse wikitext [Route diagram](https://de.wikipedia.org/wiki/Wikipedia:Formatvor
 
 * a route is a route in a wikipedia article, an article may contain multiple routes,
 * entities compared are operational points (Betriebsstellen) like stations and stops,
-* reference is the [DB register of infrastructure](https://geovdbn.deutschebahn.com/isr), data from [RINF](https://rinf.era.europa.eu/RINF). 
+* reference is the [DB register of infrastructure](https://geovdbn.deutschebahn.com/isr), data from [RINF](https://rinf.era.europa.eu/RINF).
 
 ## Comparison
 
@@ -25,7 +25,7 @@ The comparison of wiki data with available db data gives the follwing results:
 
 How many operational points are found:
 
-| Count | Value | Routes| 
+| Count | Value | Routes|
 |--|-----:|----:|
 | operational points matched |6796|644|
 | operational points missing |52|38|

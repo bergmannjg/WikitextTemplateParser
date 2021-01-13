@@ -1,5 +1,5 @@
 [<RequireQualifiedAccess>]
-module StringUtilities
+module internal StringUtilities
 
 open System.Text.RegularExpressions
 

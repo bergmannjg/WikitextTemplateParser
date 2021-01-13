@@ -1,5 +1,5 @@
 /// wrapper class for LiteDB database
-module Database
+module internal Database
 
 open System
 open LiteDB

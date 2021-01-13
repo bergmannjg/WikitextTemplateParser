@@ -1,10 +1,13 @@
 // export VSTEST_HOST_DEBUG=1
 module TestParse
 
-open NUnit.Framework
-open FParsec
-open Templates
 open System.Text.RegularExpressions
+
+open NUnit.Framework
+
+open FParsec
+
+open WikitextRouteDiagrams
 
 let daten0 = """
 {{BS-header|Rheine–Norddeich Mole}}
@@ -308,29 +311,29 @@ let TestPrepare () =
 [<Test>]
 let TestParseDaten0 () =
     match Parser.parse (prepare daten0) with
-    | Success (result, _, _) ->
+    | FParsec.CharParsers.ParserResult.Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
         Assert.That(result.Length, Is.EqualTo(71))
-    | Failure (errorMsg, _, _) ->
+    | FParsec.CharParsers.ParserResult.Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
 
 [<Test>]
 let TestParseDaten1 () =
     match Parser.parse (prepare daten1) with
-    | Success (result, _, _) ->
+    | FParsec.CharParsers.ParserResult.Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
         Assert.That(result.Length, Is.EqualTo(74))
-    | Failure (errorMsg, _, _) ->
+    | FParsec.CharParsers.ParserResult.Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
 
 [<Test>]
 let TestParseDaten2 () =
     match Parser.parse (prepare daten2) with
-    | Success (result, _, _) ->
+    | FParsec.CharParsers.ParserResult.Success (result, _, _) ->
         fprintfn stderr "Success: %A" result
         Assert.That(result.Length, Is.EqualTo(91))
-    | Failure (errorMsg, _, _) ->
+    | FParsec.CharParsers.ParserResult.Failure (errorMsg, _, _) ->
         fprintfn stderr "Failure: %s" errorMsg
         Assert.That(0, Is.EqualTo(1))
